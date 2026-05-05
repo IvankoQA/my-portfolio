@@ -1,0 +1,16 @@
+.next/
+node_modules/
+out/
+build/
+coverage/
+dist/
+.turbo/
+
+# Generated Convex artifacts and local runtime output
+convex/_generated/
+.convex/
+
+# Logs and local environment artifacts
+*.log
+.env*
+.DS_Store

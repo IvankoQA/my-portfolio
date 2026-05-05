@@ -12,6 +12,9 @@
 
 # testing
 /coverage
+/playwright-report/
+/test-results/
+/reports/
 
 # next.js
 /.next/
@@ -40,8 +43,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# local AI tooling artifacts
-.cursor/
-.claude/
+# local AI tooling artifacts (project MCP is tracked)
+.cursor/*
+!.cursor/mcp.json
 .agents/
 skills-lock.json
+
+# keep sharable Claude setup in repo, ignore only local overrides
+CLAUDE.local.md
+.claude/settings.local.json
+# transient snapshots from `.claude/hooks/PreCompact.sh`
+.claude/state/
