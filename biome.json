@@ -1,9 +1,10 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.3.13/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.4.13/schema.json",
   "vcs": {
-    "enabled": false,
+    "enabled": true,
     "clientKind": "git",
-    "useIgnoreFile": false
+    "useIgnoreFile": true,
+    "defaultBranch": "main"
   },
   "css": {
     "parser": {
@@ -11,7 +12,18 @@
     }
   },
   "files": {
-    "ignoreUnknown": false
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!!**/.next",
+      "!!**/out",
+      "!!**/build",
+      "!!**/coverage",
+      "!!**/dist",
+      "!!**/node_modules",
+      "!!**/convex/_generated",
+      "!!**/my-portfolio-design"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -21,6 +33,12 @@
   },
   "linter": {
     "enabled": true,
+    "domains": {
+      "next": "recommended",
+      "react": "recommended",
+      "project": "none",
+      "types": "none"
+    },
     "rules": {
       "recommended": true,
       "a11y": {
