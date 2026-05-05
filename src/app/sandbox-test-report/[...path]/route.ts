@@ -100,7 +100,12 @@ export async function GET(
     })
   }
 
-  return new Response(hit.buf, {
+  // fs.readFile Buffer uses a normal ArrayBuffer; TS still types slice as ArrayBufferLike.
+  const body = hit.buf.buffer.slice(
+    hit.buf.byteOffset,
+    hit.buf.byteOffset + hit.buf.byteLength,
+  ) as ArrayBuffer
+  return new Response(body, {
     headers: {
       "content-type": mimeTypeFor(hit.filePath),
       "cache-control": "no-store",
