@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=1280">
+  <title>Ivan Kozenko — Senior Automation QA</title>
+  <link rel="stylesheet" href="tokens.css">
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&family=Sohne+Mono&family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: var(--font-sans); }
+    * { box-sizing: border-box; }
+    a { color: inherit; text-decoration: none; }
+    .mono { font-family: var(--font-mono); }
+    .pulse-dot { width: 8px; height: 8px; border-radius: 8px; background: var(--ok); display: inline-block; animation: pulse 1.6s ease-in-out infinite; box-shadow: 0 0 0 0 currentColor; flex-shrink: 0; }
+    @keyframes pulse { 0%,100% { opacity: 1; transform: scale(1);} 50% { opacity: 0.55; transform: scale(0.85);} }
+    .uline { background: linear-gradient(transparent 65%, var(--accent-soft) 65%); padding: 0 2px; }
+    .skel { background: linear-gradient(90deg, var(--bg-sunken) 0%, var(--line) 50%, var(--bg-sunken) 100%); background-size: 200% 100%; border-radius: 6px; animation: skel 1.4s ease-in-out infinite; }
+    @keyframes skel { 0%{background-position: 200% 0;} 100%{background-position:-200% 0;}}
+    @keyframes marquee { from { transform: translateX(0);} to { transform: translateX(-50%);} }
+    .spin { animation: spin 0.8s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg);} }
+    ::selection { background: var(--accent-soft); color: var(--ink); }
+    ::-webkit-scrollbar { width: 10px; height: 10px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 5px; border: 2px solid var(--bg); }
+    button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel" src="i18n.jsx"></script>
+  <script type="text/babel" src="ui.jsx"></script>
+  <script type="text/babel" src="cv-data.jsx"></script>
+  <script type="text/babel" src="jd-matcher.jsx"></script>
+  <script type="text/babel" src="home.jsx"></script>
+  <script type="text/babel" src="home-layouts.jsx"></script>
+  <script type="text/babel" src="sandbox-data.jsx"></script>
+  <script type="text/babel" src="sandbox.jsx"></script>
+  <script type="text/babel" src="auto-test.jsx"></script>
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+
+  <script type="text/babel" data-presets="env,react">
+    const { useState, useEffect, useRef } = React;
+
+    // Tweakable defaults — host parses + persists this block.
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "layout": "terminal",
+      "theme": "dark",
+      "lang": "en",
+      "accent": "amber",
+      "humor": 7,
+      "density": "normal",
+      "weightMode": "balanced",
+      "showWins": true,
+      "showExperience": true,
+      "showStack": true,
+      "showFit": true,
+      "showBeyond": true,
+      "showContact": true
+    }/*EDITMODE-END*/;
+
+    function TweakControls({ tweaks, setTweak }) {
+      return (
+        <>
+          <TweakSection title="Layout & language">
+            <TweakRadio label="Home layout" value={tweaks.layout} options={[{value:"terminal",label:"Terminal"},{value:"editorial",label:"Editorial"}]} onChange={(v)=>setTweak("layout",v)}/>
+            <TweakRadio label="Theme" value={tweaks.theme} options={[{value:"light",label:"Light"},{value:"dark",label:"Dark"}]} onChange={(v)=>setTweak("theme",v)}/>
+            <TweakRadio label="Language" value={tweaks.lang} options={[{value:"en",label:"EN"},{value:"ua",label:"UA"}]} onChange={(v)=>setTweak("lang",v)}/>
+          </TweakSection>
+          <TweakSection title="Look & feel">
+            <TweakRadio label="Accent" value={tweaks.accent} options={[{value:"amber",label:"Amber"},{value:"green",label:"Green"},{value:"violet",label:"Violet"}]} onChange={(v)=>setTweak("accent",v)}/>
+            <TweakRadio label="Density" value={tweaks.density} options={[{value:"sparse",label:"Sparse"},{value:"normal",label:"Normal"},{value:"dense",label:"Dense"}]} onChange={(v)=>setTweak("density",v)}/>
+            <TweakSlider label="Humor dial" value={tweaks.humor} min={0} max={10} step={1} onChange={(v)=>setTweak("humor",v)}/>
+          </TweakSection>
+          <TweakSection title="Job-fit logic">
+            <TweakRadio label="Weight mode" value={tweaks.weightMode} options={[{value:"strict",label:"Strict"},{value:"balanced",label:"Balanced"},{value:"lenient",label:"Lenient"}]} onChange={(v)=>setTweak("weightMode",v)}/>
+          </TweakSection>
+          <TweakSection title="Sections">
+            <TweakToggle label="Key wins" value={tweaks.showWins} onChange={(v)=>setTweak("showWins",v)}/>
+            <TweakToggle label="Experience" value={tweaks.showExperience} onChange={(v)=>setTweak("showExperience",v)}/>
+            <TweakToggle label="Tech stack" value={tweaks.showStack} onChange={(v)=>setTweak("showStack",v)}/>
+            <TweakToggle label="Job-fit checker" value={tweaks.showFit} onChange={(v)=>setTweak("showFit",v)}/>
+            <TweakToggle label="Beyond / education" value={tweaks.showBeyond} onChange={(v)=>setTweak("showBeyond",v)}/>
+            <TweakToggle label="Contact" value={tweaks.showContact} onChange={(v)=>setTweak("showContact",v)}/>
+          </TweakSection>
+        </>
+      );
+    }
+
+    function App() {
+      const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+      const { layout, theme, lang, accent, density, weightMode } = tweaks;
+      const t = useT(lang);
+
+      // Apply theme + accent to <html>
+      useEffect(() => {
+        document.documentElement.setAttribute("data-theme", theme);
+        document.documentElement.setAttribute("data-accent", accent);
+        window.__lang = lang;
+      }, [theme, accent, lang]);
+
+      // Page state machine: home | sandbox-store | sandbox-challenge | auto-test
+      const [page, setPage] = useState("home");
+      const [showStartChallenge, setShowStartChallenge] = useState(false);
+      const [showFinishConfirm, setShowFinishConfirm] = useState(false);
+      const [showResults, setShowResults] = useState(false);
+      const [foundBugIds, setFoundBugIds] = useState([]);
+      const [timeLeft, setTimeLeft] = useState(300);
+      const [finishedEarly, setFinishedEarly] = useState(false);
+
+      const sectionsVisible = {
+        wins: tweaks.showWins,
+        experience: tweaks.showExperience,
+        stack: tweaks.showStack,
+        fit: tweaks.showFit,
+        beyond: tweaks.showBeyond,
+        contact: tweaks.showContact,
+      };
+
+      // Challenge timer
+      useEffect(() => {
+        if (page !== "sandbox-challenge") return;
+        if (timeLeft <= 0) {
+          setFinishedEarly(false);
+          setShowResults(true);
+          return;
+        }
+        const id = setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+        return () => clearTimeout(id);
+      }, [page, timeLeft]);
+
+      function startChallenge() {
+        setShowStartChallenge(false);
+        setFoundBugIds([]);
+        setTimeLeft(300);
+        setFinishedEarly(false);
+        setPage("sandbox-challenge");
+      }
+
+      function markBug(id) {
+        setFoundBugIds((arr) => arr.includes(id) ? arr.filter(x => x !== id) : [...arr, id]);
+      }
+
+      function finishChallenge() {
+        setFinishedEarly(true);
+        setShowFinishConfirm(false);
+        setShowResults(true);
+      }
+
+      function runAutoTests() {
+        setShowResults(false);
+        setPage("auto-test");
+      }
+
+      function backToHome() {
+        setPage("home");
+        setShowResults(false);
+        setFoundBugIds([]);
+        setTimeLeft(300);
+      }
+
+      // Render the right page
+      let pageEl;
+      if (page === "home") {
+        const Home = layout === "terminal" ? window.HomeTerminal : window.HomeEditorial;
+        pageEl = (
+          <Home
+            lang={lang} setLang={(v)=>setTweak("lang",v)}
+            theme={theme} setTheme={(v)=>setTweak("theme",v)}
+            onGoSandbox={() => setPage("sandbox-store")}
+            weightMode={weightMode} setWeightMode={(v)=>setTweak("weightMode",v)}
+            sectionsVisible={sectionsVisible}
+          />
+        );
+      } else if (page === "sandbox-store" || page === "sandbox-challenge") {
+        pageEl = (
+          <window.Sandbox
+            lang={lang} setLang={(v)=>setTweak("lang",v)}
+            theme={theme} setTheme={(v)=>setTweak("theme",v)}
+            onGoHome={() => setPage("home")}
+            density={density}
+            humor={tweaks.humor}
+            challenge={page === "sandbox-challenge"}
+            onStartChallenge={() => setShowStartChallenge(true)}
+            onMarkBug={markBug}
+            foundBugIds={foundBugIds}
+            onFinishChallenge={() => setShowFinishConfirm(true)}
+            timeLeft={timeLeft}
+            totalBugs={window.SB_BUGS.length}
+          />
+        );
+      } else if (page === "auto-test") {
+        pageEl = <window.AutoTestReport onBack={backToHome} lang={lang} foundBugIds={foundBugIds}/>;
+      }
+
+      return (
+        <>
+          {pageEl}
+          {showStartChallenge && <window.ChallengeStartModal t={t} onStart={startChallenge} onCancel={()=>setShowStartChallenge(false)}/>}
+          {showFinishConfirm && <window.ChallengeFinishConfirm t={t} onCancel={()=>setShowFinishConfirm(false)} onConfirm={finishChallenge}/>}
+          {showResults && <window.ChallengeResults t={t} foundCount={foundBugIds.length} totalBugs={window.SB_BUGS.length} timeLeft={timeLeft} onRunAuto={runAutoTests} onSkip={() => { setShowResults(false); setPage("home"); }} lang={lang} finishedEarly={finishedEarly}/>}
+          <TweaksPanel title="Tweaks">
+            <TweakControls tweaks={tweaks} setTweak={setTweak}/>
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+  </script>
+</body>
+</html>
