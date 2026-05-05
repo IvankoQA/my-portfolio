@@ -1,7 +1,9 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 
-const baseDir = path.join(process.cwd(), "reports/html")
+/** Prefer committed static report (prod); fallback to local Playwright output. */
+const publicReportDir = path.join(process.cwd(), "public/sandbox-test-report")
+const reportsHtmlDir = path.join(process.cwd(), "reports/html")
 function mimeTypeFor(filePath: string): string {
   const ext = path.extname(filePath).toLowerCase()
   switch (ext) {
@@ -62,35 +64,46 @@ export async function GET(
     return Response.redirect(target, 307)
   }
 
-  // Resolve and guard against path traversal.
-  const resolved = path.resolve(baseDir, relative)
-  if (!resolved.startsWith(baseDir)) {
+  async function tryReadFromBase(
+    baseDir: string,
+  ): Promise<{ buf: Buffer; filePath: string } | null> {
+    const resolved = path.resolve(baseDir, relative)
+    const normalizedBase = path.resolve(baseDir)
+    if (!resolved.startsWith(normalizedBase)) {
+      return null
+    }
+    try {
+      const buf = await fs.readFile(resolved)
+      return { buf, filePath: resolved }
+    } catch {
+      return null
+    }
+  }
+
+  const hit =
+    (await tryReadFromBase(publicReportDir)) ??
+    (await tryReadFromBase(reportsHtmlDir))
+
+  if (!hit) {
     return new Response("Not found", { status: 404 })
   }
 
-  try {
-    const buf = await fs.readFile(resolved)
-
-    // If user asks to hide "when it ran" date, strip it from the HTML report.
-    // This keeps the embedded report usable without showing the run timestamp.
-    if (relative === "index.html") {
-      const raw = buf.toString("utf8")
-      const cleaned = raw.replace(DATE_PATTERN, "")
-      return new Response(cleaned, {
-        headers: {
-          "content-type": mimeTypeFor(resolved),
-          "cache-control": "no-store",
-        },
-      })
-    }
-
-    return new Response(buf, {
+  const ext = path.extname(hit.filePath).toLowerCase()
+  // Hide "when it ran" timestamps embedded as text in HTML (report + trace shell HTML).
+  if (ext === ".html") {
+    const cleaned = hit.buf.toString("utf8").replace(DATE_PATTERN, "")
+    return new Response(cleaned, {
       headers: {
-        "content-type": mimeTypeFor(resolved),
+        "content-type": mimeTypeFor(hit.filePath),
         "cache-control": "no-store",
       },
     })
-  } catch {
-    return new Response("Not found", { status: 404 })
   }
+
+  return new Response(hit.buf, {
+    headers: {
+      "content-type": mimeTypeFor(hit.filePath),
+      "cache-control": "no-store",
+    },
+  })
 }

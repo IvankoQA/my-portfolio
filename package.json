@@ -8,6 +8,7 @@
     "start": "next start",
     "biome:check": "node ./scripts/run-biome.mjs check .",
     "biome:format": "node ./scripts/run-biome.mjs format --write .",
+    "sandbox:report:sync": "node ./scripts/sync-sandbox-test-report.mjs",
     "lint": "node ./scripts/run-biome.mjs check .",
     "format": "node ./scripts/run-biome.mjs format --write .",
     "test": "playwright test",

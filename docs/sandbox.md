@@ -29,7 +29,7 @@ For stack, commands, and top-level directory map see the root [README.md](../REA
 | `Header.tsx` | Site header: logo, `#fit` / `#contact` links, EN/UK toggle, sandbox link, theme toggle. |
 | `sandbox/page.tsx` | `/sandbox` route — vibe store shell. |
 | `sandbox/[slug]/page.tsx` | `/sandbox/[slug]` — client redirect to `/sandbox` (locale-aware). |
-| `sandbox-test-report/[...path]/route.ts` | Proxy serving `reports/html/` at runtime (strips run timestamps). |
+| `sandbox-test-report/[...path]/route.ts` | Serves Playwright HTML report: prefers `public/sandbox-test-report/` (synced static bundle), else local `reports/html/`; strips US-style run timestamps from all `.html` responses. |
 | `sandbox-test-report/open-trace/route.ts` | Redirect to canonical trace viewer URL. |
 | `uk/page.tsx` | `/uk` — home page in Ukrainian locale. |
 | `uk/sandbox/page.tsx` | Re-export of sandbox page for `/uk/sandbox`. |

@@ -22,7 +22,8 @@
       "!!**/dist",
       "!!**/node_modules",
       "!!**/convex/_generated",
-      "!!**/my-portfolio-design"
+      "!!**/my-portfolio-design",
+      "!!**/public/sandbox-test-report"
     ]
   },
   "formatter": {

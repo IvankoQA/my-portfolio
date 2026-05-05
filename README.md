@@ -22,13 +22,13 @@ my-portfolio/
 ├── docs/                Detailed docs: sandbox API contract, spec, regression log
 │   └── testing/         Planted-bug list, coverage matrix, test case catalog
 ├── my-portfolio-design/ Historical JSX prototypes — not in production build
-├── public/              Static assets: CV PDF, icons
-├── reports/html/        Playwright HTML report — served via /sandbox-test-report route
+├── public/              Static assets: CV PDF, icons; `sandbox-test-report/` = synced Playwright HTML for prod
+├── reports/html/        Playwright HTML report output — sync to public with `pnpm run sandbox:report:sync`
 ├── scripts/             run-biome.mjs — Biome CLI wrapper
 ├── src/
 │   ├── app/             Next.js routes + route handlers
 │   │   ├── sandbox/     /sandbox page + /sandbox/[slug] redirect
-│   │   ├── sandbox-test-report/  Proxy route serving reports/html/ at runtime
+│   │   ├── sandbox-test-report/  Route serving static report (public/) or local reports/html/
 │   │   └── uk/          /uk locale mirrors
 │   ├── components/sandbox/vibe-store/  Main sandbox UI + auto-test report component
 │   ├── hooks/           use-is-mobile, use-sandbox-session
@@ -81,6 +81,8 @@ pnpm exec playwright install chromium
 | `pnpm run test:e2e:ci` | CI minimal: chromium + sandbox-store |
 | `pnpm run test:e2e:ci:all` | CI full: all 4 e2e projects |
 | `pnpm run test:store:full` | Sandbox UI + API routes |
+| `pnpm run sandbox:report:sync` | Copy `reports/html` → `public/sandbox-test-report` (strip run dates from HTML); run after tests, then deploy/commit |
+
 | `pnpm run test:api` | API tests only (`tests/api/`) |
 | `pnpm run test:smoke` | `@smoke` tag subset |
 
