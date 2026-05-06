@@ -1135,6 +1135,15 @@ function VibeSandboxStore({
       compact
     />
   )
+  const markBugBarModalHeader = (
+    <MarkBugControls
+      t={t}
+      pickBugMode={pickBugMode}
+      onToggle={() => setPickBugMode((x) => !x)}
+      count={markBugPickCount}
+      compact={isMobile}
+    />
+  )
   const drawerPickBugFooter = pickBugMode ? (
     <>
       <p
@@ -2028,6 +2037,7 @@ function VibeSandboxStore({
           fullWidth={isMobile}
           onClose={() => setFiltersOpen(false)}
           title={t("sb.filters")}
+          headerActions={markBugBarModalHeader}
           footer={drawerPickBugFooter}
         >
           <StoreFiltersCard
@@ -2054,6 +2064,7 @@ function VibeSandboxStore({
           onClose={() => setCartOpen(false)}
           title={appLocale === "uk" ? "Cart" : t("sb.cart")}
           closeClicksRequired={3}
+          headerActions={markBugBarModalHeader}
           footer={drawerPickBugFooter}
         >
           <CartContents
@@ -2079,6 +2090,7 @@ function VibeSandboxStore({
           t={t}
           onClose={() => setChatOpen(false)}
           isMobile={isMobile}
+          headerActions={markBugBarModalHeader}
           bugPickFooter={drawerPickBugFooter}
         />
       )}
@@ -2087,6 +2099,7 @@ function VibeSandboxStore({
           fullWidth={isMobile}
           onClose={() => setAccountOpen(false)}
           title={t("sb.account")}
+          headerActions={markBugBarModalHeader}
           footer={drawerPickBugFooter}
         >
           <AccountPanel
@@ -2772,6 +2785,7 @@ function Drawer({
   title,
   onClose,
   fullWidth,
+  headerActions,
   footer,
   closeClicksRequired = 1,
 }: {
@@ -2779,6 +2793,7 @@ function Drawer({
   title: string
   onClose: () => void
   fullWidth?: boolean
+  headerActions?: ReactNode
   footer?: ReactNode
   /** vs-18: cart drawer needs 3 taps before close */
   closeClicksRequired?: number
@@ -2847,29 +2862,40 @@ function Drawer({
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            gap: 12,
           }}
         >
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 600 }}>{title}</h3>
-          <button
-            type="button"
-            data-testid="drawer-close"
-            data-vibe-bug-id={closeClicksRequired > 1 ? "vs-18" : undefined}
-            onClick={requestClose}
+          <div
             style={{
-              width: 30,
-              height: 30,
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              borderRadius: 6,
               display: "inline-flex",
               alignItems: "center",
-              justifyContent: "center",
-              color: "var(--ink-3)",
+              gap: 8,
+              flexShrink: 0,
             }}
           >
-            <VibeIcon name="x" size={16} />
-          </button>
+            {headerActions}
+            <button
+              type="button"
+              data-testid="drawer-close"
+              data-vibe-bug-id={closeClicksRequired > 1 ? "vs-18" : undefined}
+              onClick={requestClose}
+              style={{
+                width: 30,
+                height: 30,
+                background: "transparent",
+                border: "none",
+                cursor: "pointer",
+                borderRadius: 6,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--ink-3)",
+              }}
+            >
+              <VibeIcon name="x" size={16} />
+            </button>
+          </div>
         </div>
         <div style={{ flex: 1, overflow: "auto", padding: 20 }}>{children}</div>
         {footer ? (
@@ -3886,11 +3912,13 @@ function ContactChat({
   t,
   onClose,
   isMobile,
+  headerActions,
   bugPickFooter,
 }: {
   t: (k: string) => string
   onClose: () => void
   isMobile: boolean
+  headerActions?: ReactNode
   bugPickFooter?: ReactNode
 }) {
   const [msgs, setMsgs] = useState<ChatMsg[]>(() => [
@@ -3996,21 +4024,31 @@ function ContactChat({
           <span className="pulse-dot" />
           <strong style={{ fontSize: 13 }}>{t("sb.contact.title")}</strong>
         </div>
-        <button
-          type="button"
-          data-testid="chat-drawer-close"
-          onClick={onClose}
+        <div
           style={{
-            width: 26,
-            height: 26,
-            border: "none",
-            background: "transparent",
-            cursor: "pointer",
-            color: "var(--ink-3)",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            flexShrink: 0,
           }}
         >
-          <VibeIcon name="x" size={14} />
-        </button>
+          {headerActions}
+          <button
+            type="button"
+            data-testid="chat-drawer-close"
+            onClick={onClose}
+            style={{
+              width: 26,
+              height: 26,
+              border: "none",
+              background: "transparent",
+              cursor: "pointer",
+              color: "var(--ink-3)",
+            }}
+          >
+            <VibeIcon name="x" size={14} />
+          </button>
+        </div>
       </div>
       <div
         ref={scrollRef}
