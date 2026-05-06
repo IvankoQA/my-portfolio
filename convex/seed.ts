@@ -476,7 +476,7 @@ const PRESETS_SEED = [
   {
     name: "wizard-chaos-on",
     scenarioSlug: "wizard-failure-recovery",
-    payload: JSON.stringify({ latencyMs: 0, errorRate: 1.0, enabled: true }),
+    payload: JSON.stringify({ latencyMs: 0, errorRate: 1, enabled: true }),
   },
   {
     name: "checkout-stock-reset",
