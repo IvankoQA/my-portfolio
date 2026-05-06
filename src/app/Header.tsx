@@ -81,6 +81,121 @@ function ArrowRightIcon() {
   )
 }
 
+type MarkBugState = {
+  visible: boolean
+  count: number
+  pickBugMode: boolean
+}
+
+type MarkBugControlProps = {
+  state: MarkBugState
+  onToggle: () => void
+}
+
+function MarkBugControl({ state, onToggle }: MarkBugControlProps) {
+  return (
+    <div
+      data-bug-pick-ignore
+      style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+    >
+      <button
+        type="button"
+        data-testid="mark-bug-toggle"
+        aria-pressed={state.pickBugMode}
+        title="Mark bug"
+        onClick={onToggle}
+        style={{
+          height: 30,
+          padding: "0 10px",
+          border: state.pickBugMode
+            ? "1px solid var(--accent-color)"
+            : "1px solid var(--line)",
+          borderRadius: 7,
+          background: state.pickBugMode ? "var(--accent-soft)" : "transparent",
+          color: state.pickBugMode ? "var(--accent-color)" : "var(--ink-2)",
+          cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 5,
+          fontSize: 11.5,
+          fontWeight: 600,
+          fontFamily: "var(--font-jetbrains-mono, ui-monospace, monospace)",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Mark bug
+      </button>
+      <span
+        className="mono"
+        title="Elements you marked on the page"
+        style={{
+          fontSize: 11,
+          fontWeight: 700,
+          color: "var(--ink-2)",
+          minWidth: 22,
+          textAlign: "center",
+        }}
+      >
+        {state.count}
+      </span>
+    </div>
+  )
+}
+
+type SandboxCtaProps = {
+  isUk: boolean
+  isMobile: boolean
+  href: string
+}
+
+function SandboxCta({ isUk, isMobile, href }: SandboxCtaProps) {
+  const label = isUk
+    ? "Спробувати себе в ролі тестувальника"
+    : "Try yourself as a QA tester"
+
+  return (
+    <Link
+      href={href}
+      title={label}
+      aria-label={label}
+      style={{
+        height: 30,
+        padding: isMobile ? "0 10px" : "0 12px",
+        fontSize: 12,
+        fontWeight: 500,
+        background: "var(--accent-color)",
+        color: "var(--accent-ink)",
+        border: "1px solid var(--accent-color)",
+        borderRadius: 8,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+      }}
+      onMouseEnter={(event) => {
+        ;(event.currentTarget as HTMLElement).style.opacity = "0.88"
+      }}
+      onMouseLeave={(event) => {
+        ;(event.currentTarget as HTMLElement).style.opacity = "1"
+      }}
+    >
+      {isMobile ? (
+        <ArrowRightIcon />
+      ) : (
+        <>
+          {label}
+          <ArrowRightIcon />
+        </>
+      )}
+    </Link>
+  )
+}
+
+function dispatchMarkBugToggle() {
+  globalThis.dispatchEvent(new Event("sandbox-mark-bug-toggle"))
+}
+
 export default function Header() {
   const pathname = usePathname()
   const router = useRouter()
@@ -109,20 +224,22 @@ export default function Header() {
   const contactHref = `${homeHref}#contact`
   const isSandboxPage =
     pathname === sandboxPath || pathname === `${sandboxPath}/`
-  const [markBugState, setMarkBugState] = useState({
+  const [markBugState, setMarkBugState] = useState<MarkBugState>({
     visible: false,
     count: 0,
     pickBugMode: false,
   })
 
   useEffect(() => {
-    if (typeof window === "undefined") return
+    if (!globalThis.window) return
     const onMarkBugState = (event: Event) => {
-      const detail = (event as CustomEvent<{
-        visible?: boolean
-        count?: number
-        pickBugMode?: boolean
-      }>).detail
+      const detail = (
+        event as CustomEvent<{
+          visible?: boolean
+          count?: number
+          pickBugMode?: boolean
+        }>
+      ).detail
       if (!detail) return
       setMarkBugState({
         visible: detail.visible ?? false,
@@ -130,9 +247,9 @@ export default function Header() {
         pickBugMode: detail.pickBugMode ?? false,
       })
     }
-    window.addEventListener("sandbox-mark-bug-state", onMarkBugState)
+    globalThis.addEventListener("sandbox-mark-bug-state", onMarkBugState)
     return () =>
-      window.removeEventListener("sandbox-mark-bug-state", onMarkBugState)
+      globalThis.removeEventListener("sandbox-mark-bug-state", onMarkBugState)
   }, [])
 
   useEffect(() => {
@@ -140,10 +257,12 @@ export default function Header() {
     setMarkBugState({ visible: false, count: 0, pickBugMode: false })
   }, [isSandboxPage])
 
-  function toggleMarkBug() {
-    if (typeof window === "undefined") return
-    window.dispatchEvent(new Event("sandbox-mark-bug-toggle"))
-  }
+  const themeTitle = !themeMounted
+    ? "Switch to dark"
+    : isDark
+      ? "Switch to light"
+      : "Switch to dark"
+  const shouldShowMarkBugControl = isSandboxPage && markBugState.visible
 
   return (
     <header
@@ -213,8 +332,7 @@ export default function Header() {
                 whiteSpace: "nowrap",
               }}
             >
-              ivan-kozenko
-              <span style={{ color: "var(--ink-3)" }}>-aqa</span>
+              ivan-kozenko <span style={{ color: "var(--ink-3)" }}>-aqa</span>
             </span>
           </Link>
         </div>
@@ -265,56 +383,11 @@ export default function Header() {
             marginLeft: "auto",
           }}
         >
-          {isSandboxPage && markBugState.visible ? (
-            <div
-              data-bug-pick-ignore
-              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
-            >
-              <button
-                type="button"
-                data-testid="mark-bug-toggle"
-                aria-pressed={markBugState.pickBugMode}
-                title="Mark bug"
-                onClick={toggleMarkBug}
-                style={{
-                  height: 30,
-                  padding: "0 10px",
-                  border: markBugState.pickBugMode
-                    ? "1px solid var(--accent-color)"
-                    : "1px solid var(--line)",
-                  borderRadius: 7,
-                  background: markBugState.pickBugMode
-                    ? "var(--accent-soft)"
-                    : "transparent",
-                  color: markBugState.pickBugMode
-                    ? "var(--accent-color)"
-                    : "var(--ink-2)",
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  fontFamily: "var(--font-jetbrains-mono, ui-monospace, monospace)",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Mark bug
-              </button>
-              <span
-                className="mono"
-                title="Elements you marked on the page"
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "var(--ink-2)",
-                  minWidth: 22,
-                  textAlign: "center",
-                }}
-              >
-                {markBugState.count}
-              </span>
-            </div>
+          {shouldShowMarkBugControl ? (
+            <MarkBugControl
+              state={markBugState}
+              onToggle={dispatchMarkBugToggle}
+            />
           ) : null}
 
           <button
@@ -344,13 +417,7 @@ export default function Header() {
             type="button"
             data-testid="theme-toggle"
             onClick={toggleTheme}
-            title={
-              themeMounted
-                ? isDark
-                  ? "Switch to light"
-                  : "Switch to dark"
-                : "Switch to dark"
-            }
+            title={themeTitle}
             aria-label="Toggle color theme"
             style={{
               height: 30,
@@ -368,53 +435,9 @@ export default function Header() {
             {isDark ? <SunIcon /> : <MoonIcon />}
           </button>
 
-          {!isSandboxPage ? (
-            <Link
-              href={sandboxPath}
-              title={
-                isUk
-                  ? "Спробувати себе в ролі тестувальника"
-                  : "Try yourself as a QA tester"
-              }
-              aria-label={
-                isUk
-                  ? "Спробувати себе в ролі тестувальника"
-                  : "Try yourself as a QA tester"
-              }
-              style={{
-                height: 30,
-                padding: isMobile ? "0 10px" : "0 12px",
-                fontSize: 12,
-                fontWeight: 500,
-                background: "var(--accent-color)",
-                color: "var(--accent-ink)",
-                border: "1px solid var(--accent-color)",
-                borderRadius: 8,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-              }}
-              onMouseEnter={(e) => {
-                ;(e.currentTarget as HTMLElement).style.opacity = "0.88"
-              }}
-              onMouseLeave={(e) => {
-                ;(e.currentTarget as HTMLElement).style.opacity = "1"
-              }}
-            >
-              {isMobile ? (
-                <ArrowRightIcon />
-              ) : (
-                <>
-                  {isUk
-                    ? "Спробувати себе в ролі тестувальника"
-                    : "Try yourself as a QA tester"}
-                  <ArrowRightIcon />
-                </>
-              )}
-            </Link>
-          ) : null}
+          {isSandboxPage ? null : (
+            <SandboxCta isUk={isUk} isMobile={isMobile} href={sandboxPath} />
+          )}
         </div>
       </div>
     </header>
