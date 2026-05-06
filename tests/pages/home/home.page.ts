@@ -20,7 +20,9 @@ export class HomePage {
   }
 
   get jobFitTextarea() {
-    return this.page.getByRole("textbox")
+    return this.page.getByRole("textbox", {
+      name: /paste a job description|опис вакансії/i,
+    })
   }
 
   get analyzeButton() {
