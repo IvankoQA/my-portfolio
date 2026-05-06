@@ -196,6 +196,17 @@ function dispatchMarkBugToggle() {
   globalThis.dispatchEvent(new Event("sandbox-mark-bug-toggle"))
 }
 
+function getHeaderNavItems(
+  isUk: boolean,
+  fitHref: string,
+  contactHref: string,
+) {
+  return [
+    { href: fitHref, label: isUk ? "Аналіз CV" : "CV fit" },
+    { href: contactHref, label: isUk ? "Контакти" : "Contact" },
+  ]
+}
+
 function useSandboxMarkBugState(isSandboxPage: boolean) {
   const [markBugState, setMarkBugState] = useState<MarkBugState>({
     visible: false,
@@ -262,6 +273,7 @@ export default function Header() {
   const isSandboxPage =
     pathname === sandboxPath || pathname === `${sandboxPath}/`
   const markBugState = useSandboxMarkBugState(isSandboxPage)
+  const navItems = getHeaderNavItems(isUk, fitHref, contactHref)
 
   let themeTitle = "Switch to dark"
   if (themeMounted && isDark) {
@@ -351,10 +363,7 @@ export default function Header() {
             marginLeft: 12,
           }}
         >
-          {[
-            { href: fitHref, label: isUk ? "Аналіз CV" : "CV fit" },
-            { href: contactHref, label: isUk ? "Контакти" : "Contact" },
-          ].map(({ href, label }) => (
+          {navItems.map(({ href, label }) => (
             <a
               key={href}
               href={href}

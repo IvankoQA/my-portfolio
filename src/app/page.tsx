@@ -480,6 +480,10 @@ async function runJdAnalysis(text: string, lang: AppLang): Promise<JdResult> {
   }
 }
 
+function pickLocalizedText(lang: AppLang, uk: string, en: string) {
+  return lang === "uk" ? uk : en
+}
+
 // ─── Contact card ────────────────────────────────────────────
 function ContactCard(
   props:
@@ -842,21 +846,24 @@ function JobFitChecker({
       if (p >= 2) {
         clearInterval(tick)
         setTimeout(() => {
-          runJdAnalysis(text, lang)
-            .then((r) => {
-              if (r.error === "noSignals") {
-                setState("error")
-                return
-              }
-              setResult(r)
-              setState("results")
-            })
-            .catch(() => {
-              setState("error")
-            })
+          void finalizeAnalysis(text, lang)
         }, 400)
       }
     }, 500)
+  }
+
+  async function finalizeAnalysis(input: string, locale: AppLang) {
+    try {
+      const r = await runJdAnalysis(input, locale)
+      if (r.error === "noSignals") {
+        setState("error")
+        return
+      }
+      setResult(r)
+      setState("results")
+    } catch {
+      setState("error")
+    }
   }
 
   useEffect(() => {
@@ -1381,6 +1388,7 @@ export default function Page() {
   const t = useT(lang)
   const sandboxPath = localizePath("/sandbox", locale)
   const isMobile = useIsMobile()
+  const localeKey = lang === "uk" ? "ua" : "en"
 
   return (
     <div style={{ minHeight: "100vh", background: "var(--bg)" }} id="top">
@@ -1452,18 +1460,15 @@ export default function Page() {
               <span
                 style={{ fontSize: 17, fontWeight: 500, color: "var(--ink-2)" }}
               >
-                {(CV.role as Record<string, string>)[
-                  lang === "uk" ? "ua" : "en"
-                ] ?? CV.role.en}
+                {(CV.role as Record<string, string>)[localeKey] ?? CV.role.en}
               </span>
               <span style={{ color: "var(--ink-4)" }}>·</span>
               <span
                 className="mono"
                 style={{ fontSize: 13, color: "var(--ink-3)" }}
               >
-                {(CV.location as Record<string, string>)[
-                  lang === "uk" ? "ua" : "en"
-                ] ?? CV.location.en}
+                {(CV.location as Record<string, string>)[localeKey] ??
+                  CV.location.en}
               </span>
             </div>
             <p
@@ -1537,9 +1542,11 @@ export default function Page() {
                 }}
               >
                 <Icon name="download" size={18} />
-                {lang === "uk"
-                  ? "Завантажити PDF резюме"
-                  : "Download PDF resume"}
+                {pickLocalizedText(
+                  lang,
+                  "Завантажити PDF резюме",
+                  "Download PDF resume",
+                )}
               </a>
             </div>
           </div>
@@ -1662,7 +1669,7 @@ export default function Page() {
       >
         <SectionHeader
           eyebrow={t("home.section.wins")}
-          title={lang === "uk" ? "Ключові досягнення" : "Key wins"}
+          title={pickLocalizedText(lang, "Ключові досягнення", "Key wins")}
         />
         <div className="grid grid-cols-1 gap-[18px] md:grid-cols-2">
           {CV.wins.map((w) => (
@@ -1693,7 +1700,7 @@ export default function Page() {
               <div
                 style={{ fontSize: 15, lineHeight: 1.5, color: "var(--ink-2)" }}
               >
-                {lang === "uk" ? w.ua : w.en}
+                {pickLocalizedText(lang, w.ua, w.en)}
               </div>
             </div>
           ))}
@@ -1712,7 +1719,7 @@ export default function Page() {
       >
         <SectionHeader
           eyebrow={t("home.section.experience")}
-          title={lang === "uk" ? "Досвід роботи" : "Experience"}
+          title={pickLocalizedText(lang, "Досвід роботи", "Experience")}
         />
         <div>
           {CV.experience.map((x) => (
@@ -1739,7 +1746,7 @@ export default function Page() {
       >
         <SectionHeader
           eyebrow={t("home.section.stack")}
-          title={lang === "uk" ? "Технологічний стек" : "Tech stack"}
+          title={pickLocalizedText(lang, "Технологічний стек", "Tech stack")}
           sub={
             lang === "uk"
               ? "Розмір крапки = глибина експертизи"
@@ -1770,7 +1777,7 @@ export default function Page() {
                     marginBottom: 12,
                   }}
                 >
-                  {lang === "uk" ? c.uaLabel : c.enLabel}
+                  {pickLocalizedText(lang, c.uaLabel, c.enLabel)}
                 </div>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                   {items.map((s) => (
@@ -1892,7 +1899,7 @@ export default function Page() {
                     size={14}
                     style={{ color: "var(--ok)", marginTop: 2, flexShrink: 0 }}
                   />
-                  {lang === "uk" ? d.ua : d.en}
+                  {pickLocalizedText(lang, d.ua, d.en)}
                 </div>
               ))}
             </div>
@@ -1929,7 +1936,7 @@ export default function Page() {
                       marginBottom: 4,
                     }}
                   >
-                    {lang === "uk" ? b.titleUa : b.titleEn}
+                    {pickLocalizedText(lang, b.titleUa, b.titleEn)}
                   </div>
                   <div
                     style={{
@@ -1938,7 +1945,7 @@ export default function Page() {
                       lineHeight: 1.5,
                     }}
                   >
-                    {lang === "uk" ? b.bodyUa : b.bodyEn}
+                    {pickLocalizedText(lang, b.bodyUa, b.bodyEn)}
                   </div>
                 </div>
               ))}
@@ -1985,7 +1992,7 @@ export default function Page() {
       >
         <SectionHeader
           eyebrow={t("home.section.contact")}
-          title={lang === "uk" ? "Зв'яжіться зі мною" : "Get in touch"}
+          title={pickLocalizedText(lang, "Зв'яжіться зі мною", "Get in touch")}
           sub={
             lang === "uk"
               ? "Найшвидше — Telegram або LinkedIn."
