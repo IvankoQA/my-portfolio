@@ -92,7 +92,7 @@ type MarkBugControlProps = {
   onToggle: () => void
 }
 
-function MarkBugControl({ state, onToggle }: MarkBugControlProps) {
+function MarkBugControl({ state, onToggle }: Readonly<MarkBugControlProps>) {
   return (
     <div
       data-bug-pick-ignore
@@ -148,7 +148,7 @@ type SandboxCtaProps = {
   href: string
 }
 
-function SandboxCta({ isUk, isMobile, href }: SandboxCtaProps) {
+function SandboxCta({ isUk, isMobile, href }: Readonly<SandboxCtaProps>) {
   const label = isUk
     ? "Спробувати себе в ролі тестувальника"
     : "Try yourself as a QA tester"
@@ -257,11 +257,10 @@ export default function Header() {
     setMarkBugState({ visible: false, count: 0, pickBugMode: false })
   }, [isSandboxPage])
 
-  const themeTitle = !themeMounted
-    ? "Switch to dark"
-    : isDark
-      ? "Switch to light"
-      : "Switch to dark"
+  let themeTitle = "Switch to dark"
+  if (themeMounted && isDark) {
+    themeTitle = "Switch to light"
+  }
   const shouldShowMarkBugControl = isSandboxPage && markBugState.visible
 
   return (

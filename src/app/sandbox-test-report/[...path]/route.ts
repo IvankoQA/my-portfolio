@@ -91,7 +91,7 @@ export async function GET(
   const ext = path.extname(hit.filePath).toLowerCase()
   // Hide "when it ran" timestamps embedded as text in HTML (report + trace shell HTML).
   if (ext === ".html") {
-    const cleaned = hit.buf.toString("utf8").replace(DATE_PATTERN, "")
+    const cleaned = hit.buf.toString("utf8").replaceAll(DATE_PATTERN, "")
     return new Response(cleaned, {
       headers: {
         "content-type": mimeTypeFor(hit.filePath),

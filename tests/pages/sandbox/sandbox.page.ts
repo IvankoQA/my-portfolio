@@ -185,7 +185,7 @@ export class SandboxPage {
     await this.withVisibleFilters(async () => {
       await this.filterPriceMax.evaluate((el: HTMLInputElement, v: string) => {
         const nativeSet = Object.getOwnPropertyDescriptor(
-          window.HTMLInputElement.prototype,
+          globalThis.HTMLInputElement.prototype,
           "value",
         )?.set
         nativeSet?.call(el, v)

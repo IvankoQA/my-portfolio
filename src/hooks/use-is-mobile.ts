@@ -9,7 +9,7 @@ export function useIsMobile(): boolean {
   const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    const mq = window.matchMedia(MOBILE_QUERY)
+    const mq = globalThis.matchMedia(MOBILE_QUERY)
     function update() {
       setIsMobile(mq.matches)
     }

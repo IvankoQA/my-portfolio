@@ -10,11 +10,12 @@ export function getLocaleFromPathname(
 }
 
 export function localizePath(pathname: string, locale: AppLocale): string {
-  const clean = pathname.startsWith("/uk/")
-    ? pathname.slice(3)
-    : pathname === "/uk"
-      ? "/"
-      : pathname
+  let clean = pathname
+  if (pathname.startsWith("/uk/")) {
+    clean = pathname.slice(3)
+  } else if (pathname === "/uk") {
+    clean = "/"
+  }
   if (locale === "uk") return clean === "/" ? "/uk" : `/uk${clean}`
   return clean
 }

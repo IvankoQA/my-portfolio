@@ -57,7 +57,10 @@ const ADJUST_LABEL = {
 } as const
 
 function normalizeText(t: string): string {
-  return (t || "").toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"')
+  return (t || "")
+    .toLowerCase()
+    .replaceAll(/[‘’]/g, "'")
+    .replaceAll(/[“”]/g, '"')
 }
 
 function countMatches(text: string, aliases: string[]): number {
@@ -65,10 +68,11 @@ function countMatches(text: string, aliases: string[]): number {
   let count = 0
   for (const a of aliases) {
     const needle = normalizeText(a)
-    const re = new RegExp(
-      `(^|[^a-z0-9])${needle.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^a-z0-9]|$)`,
-      "g",
+    const escapedNeedle = needle.replaceAll(
+      /[.*+?^${}()|[\]\\]/g,
+      String.raw`\$&`,
     )
+    const re = new RegExp(`(^|[^a-z0-9])${escapedNeedle}([^a-z0-9]|$)`, "g")
     const m = norm.match(re)
     if (m) count += m.length
   }
@@ -185,8 +189,9 @@ export function analyzeJD(
     if (hits > 0) {
       const adjW = 2
       totalJDSignals += adjW
-      const partialCredit =
-        weightMode === "lenient" ? 1.4 : weightMode === "strict" ? 0.4 : 0.85
+      let partialCredit = 0.85
+      if (weightMode === "lenient") partialCredit = 1.4
+      if (weightMode === "strict") partialCredit = 0.4
       earned += partialCredit
       partial.push({ id: a.id, label: a.label, hits, note: a.note })
     }

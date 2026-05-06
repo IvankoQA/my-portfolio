@@ -33,7 +33,7 @@ function stripDatesInHtmlFiles(dir) {
       stripDatesInHtmlFiles(p)
     } else if (ent.isFile() && ent.name.endsWith(".html")) {
       const raw = fs.readFileSync(p, "utf8")
-      fs.writeFileSync(p, raw.replace(DATE_PATTERN, ""), "utf8")
+      fs.writeFileSync(p, raw.replaceAll(DATE_PATTERN, ""), "utf8")
     }
   }
 }

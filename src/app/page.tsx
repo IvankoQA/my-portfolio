@@ -48,12 +48,12 @@ function Icon({
   size = 16,
   stroke = 1.7,
   style: extra = {},
-}: {
+}: Readonly<{
   name: IconName
   size?: number
   stroke?: number
   style?: React.CSSProperties
-}) {
+}>) {
   const c = {
     width: size,
     height: size,
@@ -165,12 +165,12 @@ function Chip({
   accent = false,
   sm = false,
   title,
-}: {
+}: Readonly<{
   children: React.ReactNode
   accent?: boolean
   sm?: boolean
   title?: string
-}) {
+}>) {
   return (
     <span
       title={title}
@@ -201,11 +201,11 @@ function SectionHeader({
   eyebrow,
   title,
   sub,
-}: {
+}: Readonly<{
   eyebrow?: string
   title: string
   sub?: string
-}) {
+}>) {
   return (
     <div style={{ marginBottom: 24 }}>
       {eyebrow && (
@@ -251,7 +251,14 @@ function SectionHeader({
 }
 
 // ─── Skill chip ──────────────────────────────────────────────
-function SkillChip({ s }: { s: (typeof CV.skills)[number] }) {
+function SkillChip({ s }: Readonly<{ s: (typeof CV.skills)[number] }>) {
+  let weightColor = "var(--ink-4)"
+  if (s.weight === 3) {
+    weightColor = "var(--accent-color)"
+  } else if (s.weight === 2) {
+    weightColor = "var(--ink-3)"
+  }
+
   return (
     <span
       style={{
@@ -273,12 +280,7 @@ function SkillChip({ s }: { s: (typeof CV.skills)[number] }) {
           width: 5,
           height: 5,
           borderRadius: 5,
-          background:
-            s.weight === 3
-              ? "var(--accent-color)"
-              : s.weight === 2
-                ? "var(--ink-3)"
-                : "var(--ink-4)",
+          background: weightColor,
         }}
       />
       {s.label}
@@ -287,7 +289,7 @@ function SkillChip({ s }: { s: (typeof CV.skills)[number] }) {
 }
 
 // ─── Stats bar ───────────────────────────────────────────────
-function Stats({ t }: { t: ReturnType<typeof useT> }) {
+function Stats({ t }: Readonly<{ t: ReturnType<typeof useT> }>) {
   return (
     <div
       style={{
@@ -338,11 +340,11 @@ function ExperienceItem({
   x,
   lang,
   isMobile,
-}: {
+}: Readonly<{
   x: (typeof CV.experience)[number]
   lang: AppLang
   isMobile: boolean
-}) {
+}>) {
   const l = lang === "uk" ? "ua" : "en"
   const to =
     typeof x.to === "string"
@@ -612,11 +614,11 @@ function ScoreGauge({
   score,
   label,
   sub,
-}: {
+}: Readonly<{
   score: number
   label: string
   sub: string
-}) {
+}>) {
   const C = 2 * Math.PI * 54
   const offset = C - (score / 100) * C
   return (
@@ -704,13 +706,13 @@ function FitGroup({
   dotColor,
   children,
   emptyText,
-}: {
+}: Readonly<{
   title: string
   count: number
   dotColor: string
   children: React.ReactNode
   emptyText: string
-}) {
+}>) {
   return (
     <div>
       <div
@@ -785,10 +787,10 @@ const secondaryBtn: React.CSSProperties = {
 function JobFitChecker({
   lang,
   isMobile,
-}: {
+}: Readonly<{
   lang: AppLang
   isMobile: boolean
-}) {
+}>) {
   const t = useT(lang)
   const [text, setText] = useState("")
   const [state, setState] = useState<
@@ -807,9 +809,10 @@ function JobFitChecker({
   function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (!f) return
-    const r = new FileReader()
-    r.onload = () => setText(String(r.result || "").slice(0, 30000))
-    r.readAsText(f)
+    void f
+      .text()
+      .then((content) => setText(content.slice(0, 30000)))
+      .catch(() => {})
   }
 
   function doAnalyze() {
@@ -880,8 +883,9 @@ function JobFitChecker({
   function copySummary() {
     if (!result) return
     const tk = (k: string) => t(k as Parameters<typeof t>[0])
+    const bandLabel = t(`fit.band.${result.band}` as Parameters<typeof t>[0])
     const lines = [
-      `Job-fit summary — Ivan Kozenko (${result.score}/100, ${t(`fit.band.${result.band}` as Parameters<typeof t>[0])})`,
+      `Job-fit summary — Ivan Kozenko (${result.score}/100, ${bandLabel})`,
       `Keyword match: ${result.rawScore}/100`,
       ...result.adjustments.map((a) => `${tk(a.labelKey)} (+${a.delta})`),
       `Overall score: ${result.score}/100 (includes portfolio boosts)`,
@@ -1100,63 +1104,66 @@ function JobFitChecker({
               >
                 {/* processing */}
               </div>
-              {phases.map((p, i) => (
-                <div
-                  key={p}
-                  style={{ display: "flex", alignItems: "center", gap: 12 }}
-                >
+              {phases.map((p, i) => {
+                const isCompleted = i < phase
+                const isCurrent = i === phase
+                let markerBackground = "var(--bg-sunken)"
+                if (isCompleted) markerBackground = "var(--ok)"
+                if (isCurrent) markerBackground = "transparent"
+                const markerBorder = isCurrent
+                  ? "2px solid var(--accent-color)"
+                  : "1px solid var(--line)"
+
+                return (
                   <div
-                    style={{
-                      width: 18,
-                      height: 18,
-                      borderRadius: 18,
-                      background:
-                        i < phase
-                          ? "var(--ok)"
-                          : i === phase
-                            ? "transparent"
-                            : "var(--bg-sunken)",
-                      border:
-                        i === phase
-                          ? "2px solid var(--accent-color)"
-                          : "1px solid var(--line)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
+                    key={p}
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
                   >
-                    {i < phase && (
-                      <Icon
-                        name="check"
-                        size={11}
-                        stroke={2.4}
-                        style={{ color: "var(--bg)" }}
-                      />
-                    )}
-                    {i === phase && (
-                      <div
-                        className="spin"
-                        style={{
-                          width: 10,
-                          height: 10,
-                          border: "2px solid var(--accent-color)",
-                          borderTopColor: "transparent",
-                          borderRadius: 5,
-                        }}
-                      />
-                    )}
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        borderRadius: 18,
+                        background: markerBackground,
+                        border: markerBorder,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      {isCompleted && (
+                        <Icon
+                          name="check"
+                          size={11}
+                          stroke={2.4}
+                          style={{ color: "var(--bg)" }}
+                        />
+                      )}
+                      {isCurrent && (
+                        <div
+                          className="spin"
+                          style={{
+                            width: 10,
+                            height: 10,
+                            border: "2px solid var(--accent-color)",
+                            borderTopColor: "transparent",
+                            borderRadius: 5,
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 14,
+                        color: i <= phase ? "var(--ink)" : "var(--ink-3)",
+                        fontWeight: isCurrent ? 500 : 400,
+                      }}
+                    >
+                      {p}
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      fontSize: 14,
-                      color: i <= phase ? "var(--ink)" : "var(--ink-3)",
-                      fontWeight: i === phase ? 500 : 400,
-                    }}
-                  >
-                    {p}
-                  </div>
-                </div>
-              ))}
+                )
+              })}
               <div
                 style={{
                   marginTop: 14,
