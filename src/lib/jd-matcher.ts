@@ -142,6 +142,77 @@ function finalScoreFromRaw(
   return Math.max(0, Math.min(100, raw + extra))
 }
 
+function collectStrongMatches(text: string) {
+  const strong: MatchedSkill[] = []
+  let totalJDSignals = 0
+  let earned = 0
+
+  for (const s of CV.skills) {
+    const hits = countMatches(text, s.aliases)
+    if (hits === 0) continue
+    totalJDSignals += s.weight
+    earned += s.weight
+    strong.push({
+      id: s.id,
+      label: s.label,
+      hits,
+      weight: s.weight,
+      level: s.level,
+      category: s.category,
+    })
+  }
+
+  return { strong, totalJDSignals, earned }
+}
+
+function partialCreditByMode(weightMode: WeightMode) {
+  if (weightMode === "lenient") return 1.4
+  if (weightMode === "strict") return 0.4
+  return 0.85
+}
+
+function collectPartialMatches(text: string, weightMode: WeightMode) {
+  const partial: PartialSkill[] = []
+  const partialCredit = partialCreditByMode(weightMode)
+  let totalJDSignals = 0
+  let earned = 0
+
+  for (const a of CV.adjacent) {
+    const hits = countMatches(text, a.aliases)
+    if (hits === 0) continue
+    totalJDSignals += 2
+    earned += partialCredit
+    partial.push({ id: a.id, label: a.label, hits, note: a.note })
+  }
+
+  return { partial, totalJDSignals, earned }
+}
+
+function collectGapMatches(
+  text: string,
+  strong: MatchedSkill[],
+  partial: PartialSkill[],
+) {
+  const gaps: GapSkill[] = []
+  let totalJDSignals = 0
+
+  for (const ask of COMMON_JD_ASKS) {
+    const hits = countMatches(text, ask.aliases)
+    if (hits === 0) continue
+    const inStrong = strong.some(
+      (s) => s.label.toLowerCase() === ask.label.toLowerCase(),
+    )
+    const inPartial = partial.some(
+      (p) => p.label.toLowerCase() === ask.label.toLowerCase(),
+    )
+    if (inStrong || inPartial) continue
+    totalJDSignals += 2
+    gaps.push({ label: ask.label, hits })
+  }
+
+  return { gaps, totalJDSignals }
+}
+
 export function analyzeJD(
   jdText: string,
   weightMode: WeightMode = "balanced",
@@ -162,54 +233,22 @@ export function analyzeJD(
     }
   }
   const text = jdText.slice(0, 30000)
-  const strong: MatchedSkill[] = []
-  const partial: PartialSkill[] = []
-  const gaps: GapSkill[] = []
-  let totalJDSignals = 0
-  let earned = 0
+  const strongMatches = collectStrongMatches(text)
+  const partialMatches = collectPartialMatches(text, weightMode)
+  const gapMatches = collectGapMatches(
+    text,
+    strongMatches.strong,
+    partialMatches.partial,
+  )
 
-  for (const s of CV.skills) {
-    const hits = countMatches(text, s.aliases)
-    if (hits > 0) {
-      totalJDSignals += s.weight
-      earned += s.weight
-      strong.push({
-        id: s.id,
-        label: s.label,
-        hits,
-        weight: s.weight,
-        level: s.level,
-        category: s.category,
-      })
-    }
-  }
-
-  for (const a of CV.adjacent) {
-    const hits = countMatches(text, a.aliases)
-    if (hits > 0) {
-      const adjW = 2
-      totalJDSignals += adjW
-      let partialCredit = 0.85
-      if (weightMode === "lenient") partialCredit = 1.4
-      if (weightMode === "strict") partialCredit = 0.4
-      earned += partialCredit
-      partial.push({ id: a.id, label: a.label, hits, note: a.note })
-    }
-  }
-
-  for (const ask of COMMON_JD_ASKS) {
-    const hits = countMatches(text, ask.aliases)
-    if (hits === 0) continue
-    const inStrong = strong.some(
-      (s) => s.label.toLowerCase() === ask.label.toLowerCase(),
-    )
-    const inPartial = partial.some(
-      (p) => p.label.toLowerCase() === ask.label.toLowerCase(),
-    )
-    if (inStrong || inPartial) continue
-    totalJDSignals += 2
-    gaps.push({ label: ask.label, hits })
-  }
+  const strong = strongMatches.strong
+  const partial = partialMatches.partial
+  const gaps = gapMatches.gaps
+  const totalJDSignals =
+    strongMatches.totalJDSignals +
+    partialMatches.totalJDSignals +
+    gapMatches.totalJDSignals
+  const earned = strongMatches.earned + partialMatches.earned
 
   if (totalJDSignals === 0) {
     return {

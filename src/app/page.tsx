@@ -458,6 +458,28 @@ function contactCardHoverBorder(
   ;(e.currentTarget as HTMLElement).style.borderColor = color
 }
 
+async function runJdAnalysis(text: string, lang: AppLang): Promise<JdResult> {
+  try {
+    const res = await fetch("/api/jd-match", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        text,
+        lang: lang === "uk" ? "uk" : "en",
+      }),
+    })
+    const payload = (await res.json()) as {
+      error?: string
+    } & Partial<JdMatchOkBody>
+    if (res.status === 422 && payload.error === "noSignals") {
+      return { ...analyzeJD("", "balanced"), empty: false, error: "noSignals" }
+    }
+    return payload.result ?? analyzeJD(text, "balanced")
+  } catch {
+    return analyzeJD(text, "balanced")
+  }
+}
+
 // ─── Contact card ────────────────────────────────────────────
 function ContactCard(
   props:
@@ -532,12 +554,7 @@ function ContactCard(
       setTimeout(() => setCopied(false), 1400)
     }
     return (
-      // biome-ignore lint/a11y/noStaticElementInteractions: hover-only border on card shell
-      <div
-        style={{ ...contactCardShell, color: "inherit" }}
-        onMouseEnter={(e) => contactCardHoverBorder(e, "var(--ink)")}
-        onMouseLeave={(e) => contactCardHoverBorder(e, "var(--line)")}
-      >
+      <div style={{ ...contactCardShell, color: "inherit" }}>
         {body}
         <button
           type="button"
@@ -825,40 +842,18 @@ function JobFitChecker({
       if (p >= 2) {
         clearInterval(tick)
         setTimeout(() => {
-          void (async () => {
-            try {
-              const res = await fetch("/api/jd-match", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  text,
-                  lang: lang === "uk" ? "uk" : "en",
-                }),
-              })
-              const payload = (await res.json()) as {
-                error?: string
-              } & Partial<JdMatchOkBody>
-              if (res.status === 422 && payload.error === "noSignals") {
-                setState("error")
-                return
-              }
-              const r = payload.result ?? analyzeJD(text, "balanced")
+          runJdAnalysis(text, lang)
+            .then((r) => {
               if (r.error === "noSignals") {
                 setState("error")
                 return
               }
               setResult(r)
               setState("results")
-            } catch {
-              const r = analyzeJD(text, "balanced")
-              if (r.error === "noSignals") {
-                setState("error")
-                return
-              }
-              setResult(r)
-              setState("results")
-            }
-          })()
+            })
+            .catch(() => {
+              setState("error")
+            })
         }, 400)
       }
     }, 500)

@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server"
+import { mutation, type MutationCtx } from "./_generated/server"
 
 // PLACEHOLDER — replace with data parsed from public/cv/CV_Ivan_Kozenko_AQA_Senior.pdf
 const EXPERIENCE_SEED = [
@@ -263,133 +263,151 @@ const TEST_RUNS_SEED = [
   },
 ] as const
 
+type SeedCtx = MutationCtx
+
+async function insertProfileIfMissing(ctx: SeedCtx) {
+  const existingProfile = await ctx.db.query("profile").take(1)
+  if (existingProfile.length > 0) return
+  await ctx.db.insert("profile", {
+    fullName: "Ivan Kozenko", // PLACEHOLDER — replace from CV PDF
+    title: "Senior QA Automation Engineer", // PLACEHOLDER — replace from CV PDF
+    tagline: "Building quality into every layer of the stack", // PLACEHOLDER — replace from CV PDF
+    summary:
+      "Senior QA Automation Engineer with extensive experience in test automation, CI/CD integration, and quality assurance across web and mobile platforms.", // PLACEHOLDER — replace from CV PDF
+    cvUrl: "/cv/CV_Ivan_Kozenko_AQA_Senior.pdf",
+    location: "Ukraine", // PLACEHOLDER — replace from CV PDF
+    email: "ivan.kozenko.qa@gmail.com",
+  })
+}
+
+async function insertExperienceIfMissing(ctx: SeedCtx) {
+  for (const item of EXPERIENCE_SEED) {
+    const existing = await ctx.db
+      .query("experience_items")
+      .withIndex("by_company_and_role_and_period", (q) =>
+        q
+          .eq("company", item.company)
+          .eq("role", item.role)
+          .eq("period", item.period),
+      )
+      .take(1)
+    if (existing.length === 0) {
+      await ctx.db.insert("experience_items", { ...item })
+    }
+  }
+}
+
+async function insertSkillsIfMissing(ctx: SeedCtx) {
+  for (const skill of SKILLS_SEED) {
+    const existing = await ctx.db
+      .query("skills")
+      .withIndex("by_name", (q) => q.eq("name", skill.name))
+      .take(1)
+    if (existing.length === 0) {
+      await ctx.db.insert("skills", { ...skill })
+    }
+  }
+}
+
+async function insertSandboxElementsIfMissing(ctx: SeedCtx) {
+  for (const elem of SANDBOX_ELEMENTS_SEED) {
+    const existing = await ctx.db
+      .query("sandbox_elements")
+      .withIndex("by_tab_and_key", (q) =>
+        q.eq("tab", elem.tab).eq("key", elem.key),
+      )
+      .take(1)
+    if (existing.length === 0) {
+      await ctx.db.insert("sandbox_elements", { ...elem })
+    }
+  }
+}
+
+async function insertChatIfMissing(ctx: SeedCtx, now: number) {
+  const existingChat = await ctx.db
+    .query("chat_messages")
+    .withIndex("by_sessionKey_and_createdAt", (q) =>
+      q.eq("sessionKey", DEMO_SESSION_KEY),
+    )
+    .take(1)
+  if (existingChat.length > 0) return
+
+  for (let i = 0; i < CHAT_MESSAGES_SEED.length; i++) {
+    await ctx.db.insert("chat_messages", {
+      sessionKey: DEMO_SESSION_KEY,
+      sender: CHAT_MESSAGES_SEED[i].sender,
+      text: CHAT_MESSAGES_SEED[i].text,
+      createdAt: now - (CHAT_MESSAGES_SEED.length - 1 - i) * 60_000,
+    })
+  }
+}
+
+async function insertTestRunsIfMissing(ctx: SeedCtx, now: number) {
+  for (const run of TEST_RUNS_SEED) {
+    const existing = await ctx.db
+      .query("test_runs")
+      .withIndex("by_runType_and_ranAt", (q) => q.eq("runType", run.runType))
+      .take(1)
+    if (existing.length === 0) {
+      await ctx.db.insert("test_runs", { ...run, ranAt: now })
+    }
+  }
+}
+
+async function insertSocialLinksIfMissing(ctx: SeedCtx) {
+  for (const link of SOCIAL_LINKS_SEED) {
+    const existing = await ctx.db
+      .query("social_links")
+      .withIndex("by_platform", (q) => q.eq("platform", link.platform))
+      .take(1)
+    if (existing.length === 0) {
+      await ctx.db.insert("social_links", { ...link })
+    }
+  }
+}
+
+async function insertProjectsIfMissing(ctx: SeedCtx) {
+  for (const project of PROJECTS_SEED) {
+    const existing = await ctx.db
+      .query("projects")
+      .withIndex("by_slug", (q) => q.eq("slug", project.slug))
+      .take(1)
+    if (existing.length === 0) {
+      await ctx.db.insert("projects", { ...project })
+    }
+  }
+}
+
+async function insertSandboxDefaultsIfMissing(ctx: SeedCtx, now: number) {
+  const existingDefaults = await ctx.db
+    .query("sandbox_defaults")
+    .withIndex("by_scope", (q) => q.eq("scope", "global"))
+    .take(1)
+  if (existingDefaults.length > 0) return
+  await ctx.db.insert("sandbox_defaults", {
+    scope: "global",
+    payload: JSON.stringify({
+      defaultRole: "user",
+      defaultActiveTab: "interactive",
+      elements: SANDBOX_ELEMENTS_SEED,
+    }),
+    updatedAt: now,
+  })
+}
+
 export const seedDefaults = mutation({
   args: {},
   handler: async (ctx) => {
     const now = Date.now()
-
-    // profile — singleton, no unique index; skip if any doc exists
-    const existingProfile = await ctx.db.query("profile").take(1)
-    if (existingProfile.length === 0) {
-      await ctx.db.insert("profile", {
-        fullName: "Ivan Kozenko", // PLACEHOLDER — replace from CV PDF
-        title: "Senior QA Automation Engineer", // PLACEHOLDER — replace from CV PDF
-        tagline: "Building quality into every layer of the stack", // PLACEHOLDER — replace from CV PDF
-        summary:
-          "Senior QA Automation Engineer with extensive experience in test automation, CI/CD integration, and quality assurance across web and mobile platforms.", // PLACEHOLDER — replace from CV PDF
-        cvUrl: "/cv/CV_Ivan_Kozenko_AQA_Senior.pdf",
-        location: "Ukraine", // PLACEHOLDER — replace from CV PDF
-        email: "ivan.kozenko.qa@gmail.com",
-      })
-    }
-
-    // experience_items — per-record by (company, role, period)
-    for (const item of EXPERIENCE_SEED) {
-      const existing = await ctx.db
-        .query("experience_items")
-        .withIndex("by_company_and_role_and_period", (q) =>
-          q
-            .eq("company", item.company)
-            .eq("role", item.role)
-            .eq("period", item.period),
-        )
-        .take(1)
-      if (existing.length === 0) {
-        await ctx.db.insert("experience_items", { ...item })
-      }
-    }
-
-    // skills — per-record by name
-    for (const skill of SKILLS_SEED) {
-      const existing = await ctx.db
-        .query("skills")
-        .withIndex("by_name", (q) => q.eq("name", skill.name))
-        .take(1)
-      if (existing.length === 0) {
-        await ctx.db.insert("skills", { ...skill })
-      }
-    }
-
-    // sandbox_elements — per-record by (tab, key)
-    for (const elem of SANDBOX_ELEMENTS_SEED) {
-      const existing = await ctx.db
-        .query("sandbox_elements")
-        .withIndex("by_tab_and_key", (q) =>
-          q.eq("tab", elem.tab).eq("key", elem.key),
-        )
-        .take(1)
-      if (existing.length === 0) {
-        await ctx.db.insert("sandbox_elements", { ...elem })
-      }
-    }
-
-    // chat_messages — batch-level guard: skip whole batch if demo session already has messages
-    const existingChat = await ctx.db
-      .query("chat_messages")
-      .withIndex("by_sessionKey_and_createdAt", (q) =>
-        q.eq("sessionKey", DEMO_SESSION_KEY),
-      )
-      .take(1)
-    if (existingChat.length === 0) {
-      for (let i = 0; i < CHAT_MESSAGES_SEED.length; i++) {
-        await ctx.db.insert("chat_messages", {
-          sessionKey: DEMO_SESSION_KEY,
-          sender: CHAT_MESSAGES_SEED[i].sender,
-          text: CHAT_MESSAGES_SEED[i].text,
-          createdAt: now - (CHAT_MESSAGES_SEED.length - 1 - i) * 60_000,
-        })
-      }
-    }
-
-    // test_runs — per runType; skip if any run of that type already exists
-    for (const run of TEST_RUNS_SEED) {
-      const existing = await ctx.db
-        .query("test_runs")
-        .withIndex("by_runType_and_ranAt", (q) => q.eq("runType", run.runType))
-        .take(1)
-      if (existing.length === 0) {
-        await ctx.db.insert("test_runs", { ...run, ranAt: now })
-      }
-    }
-
-    // social_links — per-record by platform
-    for (const link of SOCIAL_LINKS_SEED) {
-      const existing = await ctx.db
-        .query("social_links")
-        .withIndex("by_platform", (q) => q.eq("platform", link.platform))
-        .take(1)
-      if (existing.length === 0) {
-        await ctx.db.insert("social_links", { ...link })
-      }
-    }
-
-    // projects — per-record by slug
-    for (const project of PROJECTS_SEED) {
-      const existing = await ctx.db
-        .query("projects")
-        .withIndex("by_slug", (q) => q.eq("slug", project.slug))
-        .take(1)
-      if (existing.length === 0) {
-        await ctx.db.insert("projects", { ...project })
-      }
-    }
-
-    // sandbox_defaults — singleton by scope "global"
-    const existingDefaults = await ctx.db
-      .query("sandbox_defaults")
-      .withIndex("by_scope", (q) => q.eq("scope", "global"))
-      .take(1)
-    if (existingDefaults.length === 0) {
-      await ctx.db.insert("sandbox_defaults", {
-        scope: "global",
-        payload: JSON.stringify({
-          defaultRole: "user",
-          defaultActiveTab: "interactive",
-          elements: SANDBOX_ELEMENTS_SEED,
-        }),
-        updatedAt: now,
-      })
-    }
+    await insertProfileIfMissing(ctx)
+    await insertExperienceIfMissing(ctx)
+    await insertSkillsIfMissing(ctx)
+    await insertSandboxElementsIfMissing(ctx)
+    await insertChatIfMissing(ctx, now)
+    await insertTestRunsIfMissing(ctx, now)
+    await insertSocialLinksIfMissing(ctx)
+    await insertProjectsIfMissing(ctx)
+    await insertSandboxDefaultsIfMissing(ctx, now)
   },
 })
 

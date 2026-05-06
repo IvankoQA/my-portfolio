@@ -196,34 +196,7 @@ function dispatchMarkBugToggle() {
   globalThis.dispatchEvent(new Event("sandbox-mark-bug-toggle"))
 }
 
-export default function Header() {
-  const pathname = usePathname()
-  const router = useRouter()
-  const locale = getLocaleFromPathname(pathname)
-  const isUk = locale === "uk"
-  const { resolvedTheme, setTheme } = useTheme()
-  const [themeMounted, setThemeMounted] = useState(false)
-  useEffect(() => {
-    setThemeMounted(true)
-  }, [])
-  const isDark = themeMounted && resolvedTheme === "dark"
-  const isMobile = useIsMobile()
-
-  function toggleLang() {
-    const next = isUk ? "en" : "uk"
-    router.push(localizePath(pathname || "/", next))
-  }
-
-  function toggleTheme() {
-    setTheme(resolvedTheme === "dark" ? "light" : "dark")
-  }
-
-  const sandboxPath = localizePath("/sandbox", locale)
-  const homeHref = localizePath("/", locale)
-  const fitHref = `${homeHref}#fit`
-  const contactHref = `${homeHref}#contact`
-  const isSandboxPage =
-    pathname === sandboxPath || pathname === `${sandboxPath}/`
+function useSandboxMarkBugState(isSandboxPage: boolean) {
   const [markBugState, setMarkBugState] = useState<MarkBugState>({
     visible: false,
     count: 0,
@@ -256,6 +229,39 @@ export default function Header() {
     if (isSandboxPage) return
     setMarkBugState({ visible: false, count: 0, pickBugMode: false })
   }, [isSandboxPage])
+
+  return markBugState
+}
+
+export default function Header() {
+  const pathname = usePathname()
+  const router = useRouter()
+  const locale = getLocaleFromPathname(pathname)
+  const isUk = locale === "uk"
+  const { resolvedTheme, setTheme } = useTheme()
+  const [themeMounted, setThemeMounted] = useState(false)
+  useEffect(() => {
+    setThemeMounted(true)
+  }, [])
+  const isDark = themeMounted && resolvedTheme === "dark"
+  const isMobile = useIsMobile()
+
+  function toggleLang() {
+    const next = isUk ? "en" : "uk"
+    router.push(localizePath(pathname || "/", next))
+  }
+
+  function toggleTheme() {
+    setTheme(resolvedTheme === "dark" ? "light" : "dark")
+  }
+
+  const sandboxPath = localizePath("/sandbox", locale)
+  const homeHref = localizePath("/", locale)
+  const fitHref = `${homeHref}#fit`
+  const contactHref = `${homeHref}#contact`
+  const isSandboxPage =
+    pathname === sandboxPath || pathname === `${sandboxPath}/`
+  const markBugState = useSandboxMarkBugState(isSandboxPage)
 
   let themeTitle = "Switch to dark"
   if (themeMounted && isDark) {
