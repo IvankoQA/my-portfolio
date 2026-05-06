@@ -11,14 +11,14 @@ type Fixtures = {
 
 export const test = base.extend<Fixtures>({
   // biome-ignore lint/correctness/noEmptyPattern: Playwright fixture signature requires destructure param
-  env: async ({}, useFixture) => {
-    await useFixture(readEnv())
+  env: async ({}, fixtureDone) => {
+    await fixtureDone(readEnv())
   },
-  homePage: async ({ page }, useFixture) => {
-    await useFixture(new HomePage(page))
+  homePage: async ({ page }, fixtureDone) => {
+    await fixtureDone(new HomePage(page))
   },
-  sandboxPage: async ({ page }, useFixture) => {
-    await useFixture(new SandboxPage(page))
+  sandboxPage: async ({ page }, fixtureDone) => {
+    await fixtureDone(new SandboxPage(page))
   },
 })
 

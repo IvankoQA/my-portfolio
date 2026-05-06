@@ -809,8 +809,7 @@ function JobFitChecker({
   function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0]
     if (!f) return
-    void f
-      .text()
+    f.text()
       .then((content) => setText(content.slice(0, 30000)))
       .catch(() => {})
   }
