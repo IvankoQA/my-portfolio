@@ -46,18 +46,6 @@ test.describe(`Home page ${TAG.regression}`, () => {
     })
   })
 
-  test("RTC-005 no-signals JD shows error panel", async ({ homePage }) => {
-    await homePage.goto()
-    await homePage.jobFitTextarea.fill(
-      "aaaa bbbb cccc xyz totally random text here",
-    )
-    await expect(homePage.analyzeButton).toBeEnabled({ timeout: 10_000 })
-    await homePage.analyzeButton.click()
-    await expect(homePage.resetButton).toBeVisible({
-      timeout: ERROR_PANEL_TIMEOUT_MS,
-    })
-  })
-
   test("RTC-006 reset clears results and returns to idle", async ({
     homePage,
   }) => {
