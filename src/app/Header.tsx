@@ -109,6 +109,41 @@ export default function Header() {
   const contactHref = `${homeHref}#contact`
   const isSandboxPage =
     pathname === sandboxPath || pathname === `${sandboxPath}/`
+  const [markBugState, setMarkBugState] = useState({
+    visible: false,
+    count: 0,
+    pickBugMode: false,
+  })
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const onMarkBugState = (event: Event) => {
+      const detail = (event as CustomEvent<{
+        visible?: boolean
+        count?: number
+        pickBugMode?: boolean
+      }>).detail
+      if (!detail) return
+      setMarkBugState({
+        visible: detail.visible ?? false,
+        count: detail.count ?? 0,
+        pickBugMode: detail.pickBugMode ?? false,
+      })
+    }
+    window.addEventListener("sandbox-mark-bug-state", onMarkBugState)
+    return () =>
+      window.removeEventListener("sandbox-mark-bug-state", onMarkBugState)
+  }, [])
+
+  useEffect(() => {
+    if (isSandboxPage) return
+    setMarkBugState({ visible: false, count: 0, pickBugMode: false })
+  }, [isSandboxPage])
+
+  function toggleMarkBug() {
+    if (typeof window === "undefined") return
+    window.dispatchEvent(new Event("sandbox-mark-bug-toggle"))
+  }
 
   return (
     <header
@@ -230,6 +265,58 @@ export default function Header() {
             marginLeft: "auto",
           }}
         >
+          {isSandboxPage && markBugState.visible ? (
+            <div
+              data-bug-pick-ignore
+              style={{ display: "inline-flex", alignItems: "center", gap: 4 }}
+            >
+              <button
+                type="button"
+                data-testid="mark-bug-toggle-header"
+                aria-pressed={markBugState.pickBugMode}
+                title="Mark bug"
+                onClick={toggleMarkBug}
+                style={{
+                  height: 30,
+                  padding: "0 10px",
+                  border: markBugState.pickBugMode
+                    ? "1px solid var(--accent-color)"
+                    : "1px solid var(--line)",
+                  borderRadius: 7,
+                  background: markBugState.pickBugMode
+                    ? "var(--accent-soft)"
+                    : "transparent",
+                  color: markBugState.pickBugMode
+                    ? "var(--accent-color)"
+                    : "var(--ink-2)",
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  fontFamily: "var(--font-jetbrains-mono, ui-monospace, monospace)",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Mark bug
+              </button>
+              <span
+                className="mono"
+                title="Marked bugs count"
+                style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  color: "var(--ink-2)",
+                  minWidth: 22,
+                  textAlign: "center",
+                }}
+              >
+                {markBugState.count}
+              </span>
+            </div>
+          ) : null}
+
           <button
             type="button"
             data-testid="locale-toggle"

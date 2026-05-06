@@ -1126,15 +1126,6 @@ function VibeSandboxStore({
       compact={isCompactDesktopToolbar}
     />
   )
-  const markBugBarCompact = (
-    <MarkBugControls
-      t={t}
-      pickBugMode={pickBugMode}
-      onToggle={() => setPickBugMode((x) => !x)}
-      count={markBugPickCount}
-      compact
-    />
-  )
   const markBugBarModalHeader = (
     <MarkBugControls
       t={t}
@@ -1159,6 +1150,38 @@ function VibeSandboxStore({
       {markBugBarDesktop}
     </>
   ) : null
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    window.dispatchEvent(
+      new CustomEvent("sandbox-mark-bug-state", {
+        detail: {
+          visible: true,
+          count: markBugPickCount,
+          pickBugMode,
+        },
+      }),
+    )
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent("sandbox-mark-bug-state", {
+          detail: {
+            visible: false,
+            count: 0,
+            pickBugMode: false,
+          },
+        }),
+      )
+    }
+  }, [markBugPickCount, pickBugMode])
+
+  useEffect(() => {
+    if (typeof window === "undefined") return
+    const onExternalToggle = () => setPickBugMode((x) => !x)
+    window.addEventListener("sandbox-mark-bug-toggle", onExternalToggle)
+    return () =>
+      window.removeEventListener("sandbox-mark-bug-toggle", onExternalToggle)
+  }, [])
 
   return (
     <div
@@ -1259,7 +1282,6 @@ function VibeSandboxStore({
                     flexShrink: 0,
                   }}
                 >
-                  {markBugBarCompact}
                   <button
                     type="button"
                     data-testid="chat-button"
@@ -1515,7 +1537,6 @@ function VibeSandboxStore({
                   maxWidth: "100%",
                 }}
               >
-                {markBugBarDesktop}
                 <button
                   type="button"
                   data-testid="chat-button"
