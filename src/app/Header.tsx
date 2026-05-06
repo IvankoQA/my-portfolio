@@ -272,7 +272,7 @@ export default function Header() {
             >
               <button
                 type="button"
-                data-testid="mark-bug-toggle-header"
+                data-testid="mark-bug-toggle"
                 aria-pressed={markBugState.pickBugMode}
                 title="Mark bug"
                 onClick={toggleMarkBug}
@@ -303,7 +303,7 @@ export default function Header() {
               </button>
               <span
                 className="mono"
-                title="Marked bugs count"
+                title="Elements you marked on the page"
                 style={{
                   fontSize: 11,
                   fontWeight: 700,
