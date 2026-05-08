@@ -1,6 +1,10 @@
 import { defineConfig, devices } from "@playwright/test"
 
 export default defineConfig({
+  captureGitInfo: {
+    commit: true,
+    diff: !!process.env.CI,
+  },
   testDir: "./tests",
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : 6,
