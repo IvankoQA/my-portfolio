@@ -4,6 +4,8 @@ export const gettingStartedVscodeTopic: PlaywrightTopic = {
   slug: "getting-started-vscode",
   groupId: "getting-started",
   order: 220,
+  level: "beginner",
+  trackOrder: 3,
   sourceDoc: "getting-started-vscode-js.md",
   officialDocsUrl: "https://playwright.dev/docs/getting-started-vscode",
   title: {

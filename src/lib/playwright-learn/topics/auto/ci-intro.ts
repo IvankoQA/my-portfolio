@@ -4,6 +4,8 @@ export const ciIntroTopic: PlaywrightTopic = {
   slug: "ci-intro",
   groupId: "ci",
   order: 145,
+  level: "advanced",
+  trackOrder: 6,
   sourceDoc: "ci-intro.md",
   officialDocsUrl: "https://playwright.dev/docs/ci-intro",
   title: {

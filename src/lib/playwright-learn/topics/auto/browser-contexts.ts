@@ -4,6 +4,8 @@ export const browserContextsTopic: PlaywrightTopic = {
   slug: "browser-contexts",
   groupId: "guides",
   order: 130,
+  level: "intermediate",
+  trackOrder: 18,
   sourceDoc: "browser-contexts.md",
   officialDocsUrl: "https://playwright.dev/docs/browser-contexts",
   title: {

@@ -4,6 +4,8 @@ export const touchEventsTopic: PlaywrightTopic = {
   slug: "touch-events",
   groupId: "guides",
   order: 410,
+  level: "advanced",
+  trackOrder: 24,
   sourceDoc: "touch-events.md",
   officialDocsUrl: "https://playwright.dev/docs/touch-events",
   title: {

@@ -4,6 +4,8 @@ export const testUiModeTopic: PlaywrightTopic = {
   slug: "test-ui-mode",
   groupId: "test-runner",
   order: 390,
+  level: "advanced",
+  trackOrder: 2,
   sourceDoc: "test-ui-mode-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-ui-mode",
   title: {

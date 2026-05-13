@@ -4,6 +4,8 @@ export const testTimeoutsTopic: PlaywrightTopic = {
   slug: "test-timeouts",
   groupId: "test-runner",
   order: 380,
+  level: "intermediate",
+  trackOrder: 3,
   sourceDoc: "test-timeouts-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-timeouts",
   title: {

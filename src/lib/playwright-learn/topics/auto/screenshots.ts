@@ -4,6 +4,8 @@ export const screenshotsTopic: PlaywrightTopic = {
   slug: "screenshots",
   groupId: "guides",
   order: 295,
+  level: "beginner",
+  trackOrder: 17,
   sourceDoc: "screenshots.md",
   officialDocsUrl: "https://playwright.dev/docs/screenshots",
   title: {

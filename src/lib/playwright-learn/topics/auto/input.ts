@@ -4,6 +4,8 @@ export const inputTopic: PlaywrightTopic = {
   slug: "input",
   groupId: "guides",
   order: 230,
+  level: "beginner",
+  trackOrder: 7,
   sourceDoc: "input.md",
   officialDocsUrl: "https://playwright.dev/docs/input",
   title: {

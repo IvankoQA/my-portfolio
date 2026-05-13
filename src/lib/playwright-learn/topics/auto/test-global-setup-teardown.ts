@@ -4,6 +4,8 @@ export const testGlobalSetupTeardownTopic: PlaywrightTopic = {
   slug: "test-global-setup-teardown",
   groupId: "test-runner",
   order: 340,
+  level: "intermediate",
+  trackOrder: 13,
   sourceDoc: "test-global-setup-teardown-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-global-setup-teardown",
   title: {

@@ -4,6 +4,8 @@ export const testFixturesTopic: PlaywrightTopic = {
   slug: "test-fixtures",
   groupId: "test-runner",
   order: 335,
+  level: "intermediate",
+  trackOrder: 4,
   sourceDoc: "test-fixtures-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-fixtures",
   title: {

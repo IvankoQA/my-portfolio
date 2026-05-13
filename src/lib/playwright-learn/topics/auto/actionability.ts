@@ -4,6 +4,8 @@ export const actionabilityTopic: PlaywrightTopic = {
   slug: "actionability",
   groupId: "guides",
   order: 105,
+  level: "beginner",
+  trackOrder: 9,
   sourceDoc: "actionability.md",
   officialDocsUrl: "https://playwright.dev/docs/actionability",
   title: {

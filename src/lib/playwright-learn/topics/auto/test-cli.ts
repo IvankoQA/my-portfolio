@@ -4,6 +4,8 @@ export const testCliTopic: PlaywrightTopic = {
   slug: "test-cli",
   groupId: "test-runner",
   order: 320,
+  level: "beginner",
+  trackOrder: 12,
   sourceDoc: "test-cli-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-cli",
   title: {

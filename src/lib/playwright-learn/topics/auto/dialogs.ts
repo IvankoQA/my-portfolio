@@ -4,6 +4,8 @@ export const dialogsTopic: PlaywrightTopic = {
   slug: "dialogs",
   groupId: "guides",
   order: 170,
+  level: "intermediate",
+  trackOrder: 20,
   sourceDoc: "dialogs.md",
   officialDocsUrl: "https://playwright.dev/docs/dialogs",
   title: {

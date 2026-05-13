@@ -4,6 +4,8 @@ export const framesTopic: PlaywrightTopic = {
   slug: "frames",
   groupId: "guides",
   order: 205,
+  level: "intermediate",
+  trackOrder: 19,
   sourceDoc: "frames.md",
   officialDocsUrl: "https://playwright.dev/docs/frames",
   title: {

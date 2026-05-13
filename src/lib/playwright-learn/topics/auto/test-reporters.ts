@@ -4,6 +4,8 @@ export const testReportersTopic: PlaywrightTopic = {
   slug: "test-reporters",
   groupId: "test-runner",
   order: 360,
+  level: "intermediate",
+  trackOrder: 9,
   sourceDoc: "test-reporters-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-reporters",
   title: {

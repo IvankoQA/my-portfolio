@@ -2,7 +2,8 @@ import Link from "next/link"
 import type { AppLocale } from "@/lib/i18n/locale"
 import {
   getTopicsByGroup,
-  PLAYWRIGHT_TOPICS,
+  getTopicsByLevel,
+  TRACK_META,
 } from "@/lib/playwright-learn/catalog"
 import {
   learnTopicHref,
@@ -11,33 +12,36 @@ import {
 import { stripDocsImportMarkers } from "@/lib/playwright-learn/strip-docs-import-markers"
 import { TOPIC_GROUP_TITLES } from "@/lib/playwright-learn/types"
 import { renderInlineMarkdown } from "./inline-markdown"
+import { TrackCard } from "./track-card"
 
 const OFFICIAL_DOCS = "https://playwright.dev/docs/intro"
+
+const LEVELS = ["beginner", "intermediate", "advanced"] as const
 
 const COPY = {
   en: {
     title: "Playwright notes & quizzes",
     intro:
-      "Here you’ll find a compact, opinionated walkthrough of Playwright’s official documentation: the same concepts you’d read on the site, reorganized into short sections with code samples.",
+      "Here you'll find a compact, opinionated walkthrough of Playwright's official documentation: the same concepts you'd read on the site, reorganized into short sections with code samples.",
     aside:
-      "All of this (and much more) already lives on playwright.dev — I’m not replacing it. I wanted a version on my own site with end-of-topic quizzes, less noise, and a tighter reading flow.",
+      "All of this (and much more) already lives on playwright.dev — I'm not replacing it. I wanted a version on my own site with end-of-topic quizzes, less noise, and a tighter reading flow.",
     officialLabel: "Official Playwright docs",
-    modulesTitle: "Modules",
+    tracksTitle: "Learning tracks",
+    modulesTitle: "Browse by module",
     read: "Read",
     quiz: "Quiz",
-    startCta: "Start with the introduction",
   },
   uk: {
     title: "Нотатки та тести з Playwright",
     intro:
-      "Тут — стислий, суб’єктивний прохід по офіційній документації Playwright: ті самі ідеї, що на сайті, але короткими блоками з прикладами коду.",
+      "Тут — стислий, суб'єктивний прохід по офіційній документації Playwright: ті самі ідеї, що на сайті, але короткими блоками з прикладами коду.",
     aside:
       "Усе це (і значно більше) вже є на playwright.dev — це не заміна. Хотілося мати власну версію з квізами після тем, без зайвого шуму й зручнішим для читання ритмом.",
     officialLabel: "Офіційна документація Playwright",
-    modulesTitle: "Розділи",
+    tracksTitle: "Навчальні треки",
+    modulesTitle: "Перегляд за розділами",
     read: "Читати",
     quiz: "Квіз",
-    startCta: "Почати з вступу",
   },
 } as const
 
@@ -48,7 +52,16 @@ type Props = {
 export function LearnPlaywrightIntro({ locale }: Props) {
   const t = COPY[locale]
   const groups = getTopicsByGroup()
-  const firstTopic = PLAYWRIGHT_TOPICS[0]
+
+  const trackData = LEVELS.map((level) => {
+    const topics = getTopicsByLevel(level)
+    return {
+      level,
+      slugs: topics.map((tp) => tp.slug),
+      firstSlug: topics[0]?.slug ?? "",
+      ...TRACK_META[level],
+    }
+  })
 
   return (
     <article
@@ -103,32 +116,38 @@ export function LearnPlaywrightIntro({ locale }: Props) {
         </p>
       </header>
 
-      {firstTopic ? (
-        <div style={{ marginTop: 22 }}>
-          <Link
-            href={learnTopicHref(locale, firstTopic.slug)}
-            data-testid="learn-intro-start"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: 44,
-              padding: "0 20px",
-              borderRadius: 10,
-              fontSize: 15,
-              fontWeight: 600,
-              color: "var(--accent-ink)",
-              background: "var(--accent-color)",
-              textDecoration: "none",
-            }}
-          >
-            {t.startCta}
-          </Link>
+      <section style={{ marginTop: 36 }} aria-labelledby="learn-tracks-heading">
+        <h2
+          id="learn-tracks-heading"
+          style={{
+            fontSize: 13,
+            fontWeight: 700,
+            letterSpacing: "0.06em",
+            textTransform: "uppercase",
+            color: "var(--ink-3)",
+            margin: "0 0 14px",
+          }}
+        >
+          {t.tracksTitle}
+        </h2>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {trackData.map((track) => (
+            <TrackCard
+              key={track.level}
+              level={track.level}
+              slugs={track.slugs}
+              firstSlug={track.firstSlug}
+              label={track.label}
+              description={track.description}
+              color={track.color}
+              locale={locale}
+            />
+          ))}
         </div>
-      ) : null}
+      </section>
 
       <section
-        style={{ marginTop: 40 }}
+        style={{ marginTop: 48 }}
         aria-labelledby="learn-modules-heading"
       >
         <h2

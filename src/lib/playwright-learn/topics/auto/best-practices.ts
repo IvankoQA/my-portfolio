@@ -4,6 +4,8 @@ export const bestPracticesTopic: PlaywrightTopic = {
   slug: "best-practices",
   groupId: "guides",
   order: 125,
+  level: "advanced",
+  trackOrder: 26,
   sourceDoc: "best-practices-js.md",
   officialDocsUrl: "https://playwright.dev/docs/best-practices",
   title: {

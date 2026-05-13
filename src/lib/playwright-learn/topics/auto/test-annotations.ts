@@ -4,6 +4,8 @@ export const testAnnotationsTopic: PlaywrightTopic = {
   slug: "test-annotations",
   groupId: "test-runner",
   order: 310,
+  level: "intermediate",
+  trackOrder: 1,
   sourceDoc: "test-annotations-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-annotations",
   title: {

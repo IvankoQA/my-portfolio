@@ -4,6 +4,8 @@ export const testShardingTopic: PlaywrightTopic = {
   slug: "test-sharding",
   groupId: "test-runner",
   order: 370,
+  level: "advanced",
+  trackOrder: 5,
   sourceDoc: "test-sharding-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-sharding",
   title: {

@@ -4,6 +4,8 @@ export const chromeExtensionsTopic: PlaywrightTopic = {
   slug: "chrome-extensions",
   groupId: "guides",
   order: 137,
+  level: "advanced",
+  trackOrder: 22,
   sourceDoc: "chrome-extensions-js-python.md",
   officialDocsUrl: "https://playwright.dev/docs/chrome-extensions",
   title: {

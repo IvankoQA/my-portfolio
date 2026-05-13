@@ -4,6 +4,8 @@ export const traceViewerIntroTopic: PlaywrightTopic = {
   slug: "trace-viewer-intro",
   groupId: "guides",
   order: 420,
+  level: "beginner",
+  trackOrder: 16,
   sourceDoc: "trace-viewer-intro-js.md",
   officialDocsUrl: "https://playwright.dev/docs/trace-viewer-intro",
   title: {

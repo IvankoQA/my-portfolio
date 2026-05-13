@@ -4,6 +4,8 @@ export const ariaSnapshotsTopic: PlaywrightTopic = {
   slug: "aria-snapshots",
   groupId: "guides",
   order: 115,
+  level: "advanced",
+  trackOrder: 17,
   sourceDoc: "aria-snapshots.md",
   officialDocsUrl: "https://playwright.dev/docs/aria-snapshots",
   title: {

@@ -4,6 +4,8 @@ export const gettingStartedMcpTopic: PlaywrightTopic = {
   slug: "getting-started-mcp",
   groupId: "getting-started",
   order: 215,
+  level: "beginner",
+  trackOrder: 4,
   sourceDoc: "getting-started-mcp.md",
   officialDocsUrl: "https://playwright.dev/docs/getting-started-mcp",
   title: {

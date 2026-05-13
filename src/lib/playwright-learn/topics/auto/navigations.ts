@@ -4,6 +4,8 @@ export const navigationsTopic: PlaywrightTopic = {
   slug: "navigations",
   groupId: "guides",
   order: 260,
+  level: "beginner",
+  trackOrder: 8,
   sourceDoc: "navigations.md",
   officialDocsUrl: "https://playwright.dev/docs/navigations",
   title: {

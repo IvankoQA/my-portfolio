@@ -4,6 +4,8 @@ export const libraryTopic: PlaywrightTopic = {
   slug: "library",
   groupId: "guides",
   order: 240,
+  level: "advanced",
+  trackOrder: 12,
   sourceDoc: "library-js.md",
   officialDocsUrl: "https://playwright.dev/docs/library",
   title: {

@@ -4,6 +4,8 @@ export const testRetriesTopic: PlaywrightTopic = {
   slug: "test-retries",
   groupId: "test-runner",
   order: 365,
+  level: "intermediate",
+  trackOrder: 2,
   sourceDoc: "test-retries-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-retries",
   title: {

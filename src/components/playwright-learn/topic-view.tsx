@@ -12,6 +12,7 @@ import { stripDocsImportMarkers } from "@/lib/playwright-learn/strip-docs-import
 import type {
   AdjacentTopics,
   PlaywrightTopic,
+  TopicLevel,
   TopicSection,
   TopicSequenceItem,
 } from "@/lib/playwright-learn/types"
@@ -24,6 +25,13 @@ type Props = {
   topic: PlaywrightTopic
   adjacent: AdjacentTopics
   locale: AppLocale
+  trackTotal?: number
+}
+
+const TRACK_LEVEL_LABELS: Record<TopicLevel, { en: string; uk: string }> = {
+  beginner: { en: "Beginner", uk: "Початківець" },
+  intermediate: { en: "Intermediate", uk: "Середній" },
+  advanced: { en: "Advanced", uk: "Просунутий" },
 }
 
 const STRINGS = {
@@ -344,7 +352,7 @@ function SectionBlock({
   )
 }
 
-export function TopicView({ topic, adjacent, locale }: Props) {
+export function TopicView({ topic, adjacent, locale, trackTotal }: Props) {
   const t = STRINGS[locale]
   const quizHref = learnTopicQuizHref(locale, topic.slug)
   const hasQuiz = topic.quiz.length > 0
@@ -361,20 +369,45 @@ export function TopicView({ topic, adjacent, locale }: Props) {
         color: "var(--ink)",
       }}
     >
-      <Link
-        href={learnIndexHref(locale)}
-        data-testid="learn-back-to-index"
+      <div
         style={{
-          display: "inline-flex",
+          display: "flex",
           alignItems: "center",
-          gap: 6,
-          fontSize: 12.5,
-          color: "var(--ink-3)",
+          gap: 12,
           marginBottom: 14,
+          flexWrap: "wrap",
         }}
       >
-        <ArrowLeftIcon size={12} /> {t.backToIndex}
-      </Link>
+        <Link
+          href={learnIndexHref(locale)}
+          data-testid="learn-back-to-index"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 12.5,
+            color: "var(--ink-3)",
+          }}
+        >
+          <ArrowLeftIcon size={12} /> {t.backToIndex}
+        </Link>
+        {trackTotal != null && (
+          <span
+            style={{
+              fontSize: 12,
+              color: "var(--ink-3)",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <span style={{ opacity: 0.4 }}>·</span>
+            {TRACK_LEVEL_LABELS[topic.level][locale]}
+            <span style={{ opacity: 0.4 }}>·</span>
+            {topic.trackOrder} / {trackTotal}
+          </span>
+        )}
+      </div>
 
       <header>
         <h1

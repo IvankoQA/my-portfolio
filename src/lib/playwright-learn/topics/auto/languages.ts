@@ -4,6 +4,8 @@ export const languagesTopic: PlaywrightTopic = {
   slug: "languages",
   groupId: "guides",
   order: 235,
+  level: "advanced",
+  trackOrder: 11,
   sourceDoc: "languages.md",
   officialDocsUrl: "https://playwright.dev/docs/languages",
   title: {

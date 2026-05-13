@@ -4,6 +4,8 @@ export const testUseOptionsTopic: PlaywrightTopic = {
   slug: "test-use-options",
   groupId: "test-runner",
   order: 395,
+  level: "intermediate",
+  trackOrder: 7,
   sourceDoc: "test-use-options-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-use-options",
   title: {

@@ -4,6 +4,8 @@ export const testTypescriptTopic: PlaywrightTopic = {
   slug: "test-typescript",
   groupId: "test-runner",
   order: 385,
+  level: "advanced",
+  trackOrder: 4,
   sourceDoc: "test-typescript-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-typescript",
   title: {

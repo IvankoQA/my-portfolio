@@ -4,6 +4,8 @@ export const videosTopic: PlaywrightTopic = {
   slug: "videos",
   groupId: "guides",
   order: 425,
+  level: "advanced",
+  trackOrder: 25,
   sourceDoc: "videos.md",
   officialDocsUrl: "https://playwright.dev/docs/videos",
   title: {

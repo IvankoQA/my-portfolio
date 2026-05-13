@@ -4,6 +4,8 @@ export const networkTopic: PlaywrightTopic = {
   slug: "network",
   groupId: "guides",
   order: 265,
+  level: "intermediate",
+  trackOrder: 14,
   sourceDoc: "network.md",
   officialDocsUrl: "https://playwright.dev/docs/network",
   title: {

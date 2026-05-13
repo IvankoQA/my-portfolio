@@ -4,6 +4,8 @@ export const clockTopic: PlaywrightTopic = {
   slug: "clock",
   groupId: "guides",
   order: 150,
+  level: "advanced",
+  trackOrder: 18,
   sourceDoc: "clock.md",
   officialDocsUrl: "https://playwright.dev/docs/clock",
   title: {

@@ -4,6 +4,8 @@ export type Localized = {
   uk: string
 }
 
+export type TopicLevel = "beginner" | "intermediate" | "advanced"
+
 export type TopicGroupId =
   | "intro"
   | "getting-started"
@@ -58,6 +60,10 @@ export type PlaywrightTopic = {
   groupId: TopicGroupId
   /** Sort key within the full catalog (lower = earlier). */
   order: number
+  /** Learning track this topic belongs to. */
+  level: TopicLevel
+  /** Sort key within the level track (lower = earlier). */
+  trackOrder: number
   title: Localized
   /** Short line for the index card. */
   summary: Localized

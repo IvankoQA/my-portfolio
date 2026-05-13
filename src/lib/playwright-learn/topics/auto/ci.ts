@@ -4,6 +4,8 @@ export const ciTopic: PlaywrightTopic = {
   slug: "ci",
   groupId: "ci",
   order: 140,
+  level: "advanced",
+  trackOrder: 7,
   sourceDoc: "ci.md",
   officialDocsUrl: "https://playwright.dev/docs/ci",
   title: {

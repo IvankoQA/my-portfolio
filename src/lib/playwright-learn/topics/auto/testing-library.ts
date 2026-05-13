@@ -4,6 +4,8 @@ export const testingLibraryTopic: PlaywrightTopic = {
   slug: "testing-library",
   groupId: "guides",
   order: 405,
+  level: "advanced",
+  trackOrder: 29,
   sourceDoc: "testing-library-js.md",
   officialDocsUrl: "https://playwright.dev/docs/testing-library",
   title: {

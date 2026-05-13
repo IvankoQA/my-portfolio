@@ -4,6 +4,8 @@ export const testAssertionsTopic: PlaywrightTopic = {
   slug: "test-assertions",
   groupId: "test-runner",
   order: 315,
+  level: "beginner",
+  trackOrder: 10,
   sourceDoc: "test-assertions-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-assertions",
   title: {

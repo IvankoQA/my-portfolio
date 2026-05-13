@@ -4,6 +4,8 @@ export const gettingStartedCliTopic: PlaywrightTopic = {
   slug: "getting-started-cli",
   groupId: "getting-started",
   order: 210,
+  level: "beginner",
+  trackOrder: 2,
   sourceDoc: "getting-started-cli.md",
   officialDocsUrl: "https://playwright.dev/docs/getting-started-cli",
   title: {

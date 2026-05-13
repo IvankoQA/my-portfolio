@@ -4,6 +4,8 @@ export const mockBrowserApisTopic: PlaywrightTopic = {
   slug: "mock-browser-apis",
   groupId: "guides",
   order: 255,
+  level: "advanced",
+  trackOrder: 15,
   sourceDoc: "mock-browser-js.md",
   officialDocsUrl: "https://playwright.dev/docs/mock-browser-apis",
   title: {

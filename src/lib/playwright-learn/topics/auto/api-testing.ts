@@ -4,6 +4,8 @@ export const apiTestingTopic: PlaywrightTopic = {
   slug: "api-testing",
   groupId: "guides",
   order: 110,
+  level: "intermediate",
+  trackOrder: 16,
   sourceDoc: "api-testing-js.md",
   officialDocsUrl: "https://playwright.dev/docs/api-testing",
   title: {

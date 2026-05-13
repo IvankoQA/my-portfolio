@@ -4,6 +4,8 @@ export const puppeteerTopic: PlaywrightTopic = {
   slug: "puppeteer",
   groupId: "migration",
   order: 290,
+  level: "advanced",
+  trackOrder: 28,
   sourceDoc: "puppeteer-js.md",
   officialDocsUrl: "https://playwright.dev/docs/puppeteer",
   title: {

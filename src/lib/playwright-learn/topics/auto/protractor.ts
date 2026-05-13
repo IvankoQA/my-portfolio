@@ -4,6 +4,8 @@ export const protractorTopic: PlaywrightTopic = {
   slug: "protractor",
   groupId: "migration",
   order: 285,
+  level: "advanced",
+  trackOrder: 27,
   sourceDoc: "protractor-js.md",
   officialDocsUrl: "https://playwright.dev/docs/protractor",
   title: {

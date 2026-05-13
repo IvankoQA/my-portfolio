@@ -4,6 +4,8 @@ export const otherLocatorsTopic: PlaywrightTopic = {
   slug: "other-locators",
   groupId: "guides",
   order: 270,
+  level: "advanced",
+  trackOrder: 16,
   sourceDoc: "other-locators.md",
   officialDocsUrl: "https://playwright.dev/docs/other-locators",
   title: {

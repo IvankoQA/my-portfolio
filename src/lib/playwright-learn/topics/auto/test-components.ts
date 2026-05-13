@@ -4,6 +4,8 @@ export const testComponentsTopic: PlaywrightTopic = {
   slug: "test-components",
   groupId: "test-runner",
   order: 325,
+  level: "advanced",
+  trackOrder: 14,
   sourceDoc: "test-components-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-components",
   title: {

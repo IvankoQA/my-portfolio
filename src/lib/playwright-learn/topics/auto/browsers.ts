@@ -73,6 +73,8 @@ export const browsersTopic: PlaywrightTopic = {
   slug: "browsers",
   groupId: "guides",
   order: 135,
+  level: "advanced",
+  trackOrder: 10,
   sourceDoc: "browsers.md",
   officialDocsUrl: "https://playwright.dev/docs/browsers",
   title: {

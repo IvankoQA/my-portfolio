@@ -4,6 +4,8 @@ export const accessibilityTestingTopic: PlaywrightTopic = {
   slug: "accessibility-testing",
   groupId: "guides",
   order: 100,
+  level: "intermediate",
+  trackOrder: 25,
   sourceDoc: "accessibility-testing-js.md",
   officialDocsUrl: "https://playwright.dev/docs/accessibility-testing",
   title: {

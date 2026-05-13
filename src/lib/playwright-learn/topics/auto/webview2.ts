@@ -4,6 +4,8 @@ export const webview2Topic: PlaywrightTopic = {
   slug: "webview2",
   groupId: "integrations",
   order: 430,
+  level: "advanced",
+  trackOrder: 23,
   sourceDoc: "webview2.md",
   officialDocsUrl: "https://playwright.dev/docs/webview2",
   title: {

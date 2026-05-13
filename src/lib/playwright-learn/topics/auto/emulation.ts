@@ -4,6 +4,8 @@ export const emulationTopic: PlaywrightTopic = {
   slug: "emulation",
   groupId: "guides",
   order: 185,
+  level: "advanced",
+  trackOrder: 9,
   sourceDoc: "emulation.md",
   officialDocsUrl: "https://playwright.dev/docs/emulation",
   title: {

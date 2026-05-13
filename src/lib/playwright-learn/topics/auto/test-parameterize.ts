@@ -4,6 +4,8 @@ export const testParameterizeTopic: PlaywrightTopic = {
   slug: "test-parameterize",
   groupId: "test-runner",
   order: 350,
+  level: "intermediate",
+  trackOrder: 12,
   sourceDoc: "test-parameterize-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-parameterize",
   title: {

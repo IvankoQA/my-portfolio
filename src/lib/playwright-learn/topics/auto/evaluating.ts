@@ -4,6 +4,8 @@ export const evaluatingTopic: PlaywrightTopic = {
   slug: "evaluating",
   groupId: "guides",
   order: 190,
+  level: "intermediate",
+  trackOrder: 22,
   sourceDoc: "evaluating.md",
   officialDocsUrl: "https://playwright.dev/docs/evaluating",
   title: {

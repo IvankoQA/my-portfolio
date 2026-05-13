@@ -2,6 +2,7 @@ import type {
   AdjacentTopics,
   PlaywrightTopic,
   TopicGroupId,
+  TopicLevel,
   TopicNavGrouped,
 } from "./types"
 import { EXCLUDED_PLAYWRIGHT_LEARN_CATALOG_SLUGS } from "./constants"
@@ -80,4 +81,59 @@ export function getTopicNavByGroup(): TopicNavGrouped {
     groupId: g.groupId,
     topics: g.topics.map((t) => ({ slug: t.slug, title: t.title })),
   }))
+}
+
+export const TRACK_META: Record<
+  TopicLevel,
+  {
+    label: { en: string; uk: string }
+    description: { en: string; uk: string }
+    color: string
+  }
+> = {
+  beginner: {
+    label: { en: "Beginner", uk: "Початківець" },
+    description: {
+      en: "Install Playwright, write your first test, and master the core APIs.",
+      uk: "Встановіть Playwright, напишіть перший тест і опануйте базові API.",
+    },
+    color: "#22c55e",
+  },
+  intermediate: {
+    label: { en: "Intermediate", uk: "Середній рівень" },
+    description: {
+      en: "Master fixtures, network mocking, authentication, and multi-browser flows.",
+      uk: "Освойте fixtures, мок мережі, автентифікацію та багатобраузерні сценарії.",
+    },
+    color: "#3b82f6",
+  },
+  advanced: {
+    label: { en: "Advanced", uk: "Просунутий рівень" },
+    description: {
+      en: "Visual snapshots, CI pipelines, Docker, emulation, and framework integrations.",
+      uk: "Візуальні снепшоти, CI пайплайни, Docker, емуляція та інтеграція з фреймворками.",
+    },
+    color: "#a855f7",
+  },
+}
+
+/** Topics in a single learning track, sorted by trackOrder. */
+export function getTopicsByLevel(level: TopicLevel): PlaywrightTopic[] {
+  return PLAYWRIGHT_TOPICS.filter((t) => t.level === level).sort(
+    (a, b) => a.trackOrder - b.trackOrder,
+  )
+}
+
+/** Prev/next within the same level track. */
+export function getAdjacentTopicsInTrack(slug: string): AdjacentTopics {
+  const topic = PLAYWRIGHT_TOPICS.find((t) => t.slug === slug)
+  if (!topic) return {}
+  const track = getTopicsByLevel(topic.level)
+  const i = track.findIndex((t) => t.slug === slug)
+  if (i === -1) return {}
+  const slim = (t: PlaywrightTopic) => ({ slug: t.slug, title: t.title })
+  return {
+    prev: i > 0 ? slim(track[i - 1]) : undefined,
+    next: i < track.length - 1 ? slim(track[i + 1]) : undefined,
+  }
 }

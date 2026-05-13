@@ -4,6 +4,8 @@ export const authTopic: PlaywrightTopic = {
   slug: "auth",
   groupId: "guides",
   order: 120,
+  level: "intermediate",
+  trackOrder: 17,
   sourceDoc: "auth.md",
   officialDocsUrl: "https://playwright.dev/docs/auth",
   title: {

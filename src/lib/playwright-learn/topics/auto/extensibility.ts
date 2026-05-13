@@ -4,6 +4,8 @@ export const extensibilityTopic: PlaywrightTopic = {
   slug: "extensibility",
   groupId: "guides",
   order: 200,
+  level: "advanced",
+  trackOrder: 19,
   sourceDoc: "extensibility.md",
   officialDocsUrl: "https://playwright.dev/docs/extensibility",
   title: {

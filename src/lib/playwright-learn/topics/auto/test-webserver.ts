@@ -4,6 +4,8 @@ export const testWebserverTopic: PlaywrightTopic = {
   slug: "test-webserver",
   groupId: "test-runner",
   order: 400,
+  level: "intermediate",
+  trackOrder: 10,
   sourceDoc: "test-webserver-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-webserver",
   title: {

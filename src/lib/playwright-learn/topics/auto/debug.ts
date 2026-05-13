@@ -4,6 +4,8 @@ export const debugTopic: PlaywrightTopic = {
   slug: "debug",
   groupId: "guides",
   order: 165,
+  level: "beginner",
+  trackOrder: 15,
   sourceDoc: "debug.md",
   officialDocsUrl: "https://playwright.dev/docs/debug",
   title: {

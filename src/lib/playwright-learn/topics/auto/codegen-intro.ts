@@ -4,6 +4,8 @@ export const codegenIntroTopic: PlaywrightTopic = {
   slug: "codegen-intro",
   groupId: "getting-started",
   order: 160,
+  level: "beginner",
+  trackOrder: 13,
   sourceDoc: "codegen-intro.md",
   officialDocsUrl: "https://playwright.dev/docs/codegen-intro",
   title: {

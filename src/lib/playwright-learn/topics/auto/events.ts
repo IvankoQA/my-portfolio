@@ -4,6 +4,8 @@ export const eventsTopic: PlaywrightTopic = {
   slug: "events",
   groupId: "guides",
   order: 195,
+  level: "intermediate",
+  trackOrder: 24,
   sourceDoc: "events.md",
   officialDocsUrl: "https://playwright.dev/docs/events",
   title: {

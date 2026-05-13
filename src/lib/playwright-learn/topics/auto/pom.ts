@@ -4,6 +4,8 @@ export const pomTopic: PlaywrightTopic = {
   slug: "pom",
   groupId: "guides",
   order: 280,
+  level: "intermediate",
+  trackOrder: 11,
   sourceDoc: "pom.md",
   officialDocsUrl: "https://playwright.dev/docs/pom",
   title: {

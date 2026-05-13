@@ -4,6 +4,8 @@ export const testSnapshotsTopic: PlaywrightTopic = {
   slug: "test-snapshots",
   groupId: "test-runner",
   order: 375,
+  level: "advanced",
+  trackOrder: 1,
   sourceDoc: "test-snapshots-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-snapshots",
   title: {

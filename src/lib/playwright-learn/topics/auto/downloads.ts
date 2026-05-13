@@ -4,6 +4,8 @@ export const downloadsTopic: PlaywrightTopic = {
   slug: "downloads",
   groupId: "guides",
   order: 180,
+  level: "intermediate",
+  trackOrder: 21,
   sourceDoc: "downloads.md",
   officialDocsUrl: "https://playwright.dev/docs/downloads",
   title: {

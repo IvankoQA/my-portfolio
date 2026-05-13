@@ -4,6 +4,8 @@ export const testParallelTopic: PlaywrightTopic = {
   slug: "test-parallel",
   groupId: "test-runner",
   order: 345,
+  level: "intermediate",
+  trackOrder: 5,
   sourceDoc: "test-parallel-js.md",
   officialDocsUrl: "https://playwright.dev/docs/test-parallel",
   title: {

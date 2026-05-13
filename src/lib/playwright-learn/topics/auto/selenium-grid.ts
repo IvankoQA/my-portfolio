@@ -4,6 +4,8 @@ export const seleniumGridTopic: PlaywrightTopic = {
   slug: "selenium-grid",
   groupId: "ci",
   order: 300,
+  level: "advanced",
+  trackOrder: 20,
   sourceDoc: "selenium-grid.md",
   officialDocsUrl: "https://playwright.dev/docs/selenium-grid",
   title: {

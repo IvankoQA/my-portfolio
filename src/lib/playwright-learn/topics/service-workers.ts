@@ -4,6 +4,8 @@ export const serviceWorkersTopic: PlaywrightTopic = {
   slug: "service-workers",
   groupId: "guides",
   order: 268,
+  level: "advanced",
+  trackOrder: 21,
   sourceDoc: "service-workers-js-python.md",
   officialDocsUrl: "https://playwright.dev/docs/service-workers",
   title: {

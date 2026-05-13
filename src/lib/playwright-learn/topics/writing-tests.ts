@@ -4,6 +4,8 @@ export const writingTestsTopic: PlaywrightTopic = {
   slug: "writing-tests",
   groupId: "writing-tests",
   order: 20,
+  level: "beginner",
+  trackOrder: 5,
   sourceDoc: "writing-tests-js.md",
   officialDocsUrl: "https://playwright.dev/docs/writing-tests",
   title: {

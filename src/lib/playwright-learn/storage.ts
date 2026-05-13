@@ -1,4 +1,5 @@
 import { PLAYWRIGHT_LEARN_STORAGE_KEY } from "./constants"
+import type { TopicLevel } from "./types"
 
 export type PlaywrightLearnStoredTopic = {
   quizCompletedOnce?: boolean
@@ -9,6 +10,9 @@ export type PlaywrightLearnStoredTopic = {
 export type PlaywrightLearnProgressV1 = {
   v: 1
   topics: Record<string, PlaywrightLearnStoredTopic>
+  // Version stays at 1 — this field is additive and optional.
+  // Do NOT bump to v:2; that would wipe existing user progress.
+  completedTracks?: TopicLevel[]
 }
 
 function emptyProgress(): PlaywrightLearnProgressV1 {

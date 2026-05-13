@@ -4,6 +4,8 @@ export const handlesTopic: PlaywrightTopic = {
   slug: "handles",
   groupId: "guides",
   order: 225,
+  level: "intermediate",
+  trackOrder: 23,
   sourceDoc: "handles.md",
   officialDocsUrl: "https://playwright.dev/docs/handles",
   title: {

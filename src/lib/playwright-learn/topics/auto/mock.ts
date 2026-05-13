@@ -4,6 +4,8 @@ export const mockTopic: PlaywrightTopic = {
   slug: "mock",
   groupId: "guides",
   order: 250,
+  level: "intermediate",
+  trackOrder: 15,
   sourceDoc: "mock.md",
   officialDocsUrl: "https://playwright.dev/docs/mock",
   title: {

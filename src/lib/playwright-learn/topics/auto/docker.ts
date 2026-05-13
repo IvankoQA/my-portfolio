@@ -4,6 +4,8 @@ export const dockerTopic: PlaywrightTopic = {
   slug: "docker",
   groupId: "ci",
   order: 175,
+  level: "advanced",
+  trackOrder: 8,
   sourceDoc: "docker.md",
   officialDocsUrl: "https://playwright.dev/docs/docker",
   title: {
