@@ -198,30 +198,14 @@ function Chip({
 
 // ─── Section header ──────────────────────────────────────────
 function SectionHeader({
-  eyebrow,
   title,
   sub,
 }: Readonly<{
-  eyebrow?: string
   title: string
   sub?: string
 }>) {
   return (
     <div style={{ marginBottom: 24 }}>
-      {eyebrow && (
-        <div
-          className="mono"
-          style={{
-            fontSize: 12,
-            color: "var(--ink-3)",
-            letterSpacing: 0.4,
-            marginBottom: 8,
-            textTransform: "lowercase",
-          }}
-        >
-          {eyebrow}
-        </div>
-      )}
       <h2
         style={{
           margin: 0,
@@ -1668,7 +1652,6 @@ export default function Page() {
         style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 32px 0" }}
       >
         <SectionHeader
-          eyebrow={t("home.section.wins")}
           title={pickLocalizedText(lang, "Ключові досягнення", "Key wins")}
         />
         <div className="grid grid-cols-1 gap-[18px] md:grid-cols-2">
@@ -1680,19 +1663,16 @@ export default function Page() {
                 borderRadius: 14,
                 background: "var(--bg-elev)",
                 border: "1px solid var(--line)",
-                position: "relative",
               }}
             >
               <div
                 className="mono"
                 style={{
-                  position: "absolute",
-                  top: 14,
-                  right: 16,
                   fontSize: 10,
                   color: "var(--ink-4)",
                   letterSpacing: 0.5,
                   textTransform: "uppercase",
+                  marginBottom: 10,
                 }}
               >
                 {w.tag}
@@ -1718,7 +1698,6 @@ export default function Page() {
         }}
       >
         <SectionHeader
-          eyebrow={t("home.section.experience")}
           title={pickLocalizedText(lang, "Досвід роботи", "Experience")}
         />
         <div>
@@ -1745,7 +1724,6 @@ export default function Page() {
         }}
       >
         <SectionHeader
-          eyebrow={t("home.section.stack")}
           title={pickLocalizedText(lang, "Технологічний стек", "Tech stack")}
           sub={
             lang === "uk"
@@ -1965,7 +1943,6 @@ export default function Page() {
         }}
       >
         <SectionHeader
-          eyebrow={t("home.section.fit")}
           title={
             lang === "uk"
               ? "Перевірка під вашу вакансію"
@@ -1991,7 +1968,6 @@ export default function Page() {
         }}
       >
         <SectionHeader
-          eyebrow={t("home.section.contact")}
           title={pickLocalizedText(lang, "Зв'яжіться зі мною", "Get in touch")}
           sub={
             lang === "uk"

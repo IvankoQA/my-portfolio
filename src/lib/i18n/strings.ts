@@ -24,14 +24,9 @@ const STRINGS = {
     "home.frameworks": "frameworks built",
     "home.mentees": "QA mentees",
 
-    "home.section.experience": "// experience",
-    "home.section.stack": "// tech stack",
-    "home.section.wins": "// key wins",
     "home.section.education": "// development",
     "home.section.languages": "// languages",
     "home.section.beyond": "// beyond engineering",
-    "home.section.fit": "// recruiter — job-fit checker",
-    "home.section.contact": "// contact",
 
     "exp.present": "present",
 
@@ -103,14 +98,9 @@ const STRINGS = {
     "home.frameworks": "фреймворків з нуля",
     "home.mentees": "менті у QA",
 
-    "home.section.experience": "// досвід",
-    "home.section.stack": "// технології",
-    "home.section.wins": "// ключові досягнення",
     "home.section.education": "// розвиток",
     "home.section.languages": "// мови",
     "home.section.beyond": "// поза інженерією",
-    "home.section.fit": "// рекрутерам — аналіз вакансії",
-    "home.section.contact": "// контакти",
 
     "exp.present": "сьогодні",
 
