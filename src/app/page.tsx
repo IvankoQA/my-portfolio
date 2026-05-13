@@ -1725,11 +1725,6 @@ export default function Page() {
       >
         <SectionHeader
           title={pickLocalizedText(lang, "Технологічний стек", "Tech stack")}
-          sub={
-            lang === "uk"
-              ? "Розмір крапки = глибина експертизи"
-              : "Dot size indicates depth of expertise"
-          }
         />
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           {SKILL_CATS.map((c) => {

@@ -6,6 +6,10 @@ import { useTheme } from "next-themes"
 import { useEffect, useState } from "react"
 import { useIsMobile } from "@/hooks/use-is-mobile"
 import { getLocaleFromPathname, localizePath } from "@/lib/i18n/locale"
+import {
+  isPlaywrightLearnPath,
+  learnIndexHref,
+} from "@/lib/playwright-learn/paths"
 
 function GlobeIcon() {
   return (
@@ -200,11 +204,49 @@ function getHeaderNavItems(
   isUk: boolean,
   fitHref: string,
   contactHref: string,
+  learnHref: string,
 ) {
   return [
     { href: fitHref, label: isUk ? "Аналіз CV" : "CV fit" },
     { href: contactHref, label: isUk ? "Контакти" : "Contact" },
+    {
+      href: learnHref,
+      label: isUk ? "Навчання" : "Learn",
+    },
   ]
+}
+
+type LearnMobileCtaProps = {
+  isUk: boolean
+  href: string
+}
+
+function LearnMobileCta({ isUk, href }: Readonly<LearnMobileCtaProps>) {
+  const label = isUk ? "Навчання" : "Learn"
+  return (
+    <Link
+      href={href}
+      data-testid="header-learn-mobile-cta"
+      aria-label={label}
+      style={{
+        height: 30,
+        padding: "0 10px",
+        fontSize: 12,
+        fontWeight: 500,
+        background: "transparent",
+        color: "var(--ink-2)",
+        border: "1px solid var(--line)",
+        borderRadius: 8,
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 6,
+        whiteSpace: "nowrap",
+        flexShrink: 0,
+      }}
+    >
+      {label}
+    </Link>
+  )
 }
 
 function useSandboxMarkBugState(isSandboxPage: boolean) {
@@ -270,10 +312,12 @@ export default function Header() {
   const homeHref = localizePath("/", locale)
   const fitHref = `${homeHref}#fit`
   const contactHref = `${homeHref}#contact`
+  const learnHref = learnIndexHref(locale)
   const isSandboxPage =
     pathname === sandboxPath || pathname === `${sandboxPath}/`
+  const isLearnPage = isPlaywrightLearnPath(pathname)
   const markBugState = useSandboxMarkBugState(isSandboxPage)
-  const navItems = getHeaderNavItems(isUk, fitHref, contactHref)
+  const navItems = getHeaderNavItems(isUk, fitHref, contactHref, learnHref)
 
   let themeTitle = "Switch to dark"
   if (themeMounted && isDark) {
@@ -448,6 +492,10 @@ export default function Header() {
           >
             {isDark ? <SunIcon /> : <MoonIcon />}
           </button>
+
+          {isMobile && !isLearnPage ? (
+            <LearnMobileCta isUk={isUk} href={learnHref} />
+          ) : null}
 
           {isSandboxPage ? null : (
             <SandboxCta isUk={isUk} isMobile={isMobile} href={sandboxPath} />
