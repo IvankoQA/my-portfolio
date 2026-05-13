@@ -5,6 +5,7 @@ export default defineConfig({
     commit: true,
     diff: !!process.env.CI,
   },
+  globalTimeout: process.env.CI ? 600_000 : undefined,
   testDir: "./tests",
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 2 : 6,
