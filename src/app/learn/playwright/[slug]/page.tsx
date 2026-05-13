@@ -3,7 +3,9 @@ import { notFound } from "next/navigation"
 import { TopicView } from "@/components/playwright-learn/topic-view"
 import {
   getAdjacentTopics,
+  getAdjacentTopicsInTrack,
   getAllSlugs,
+  getNextLevelFirstSlug,
   getTopicBySlug,
   getTopicsByLevel,
 } from "@/lib/playwright-learn/catalog"
@@ -37,13 +39,20 @@ export default async function LearnPlaywrightTopicPage({
   const topic = getTopicBySlug(slug)
   if (!topic) notFound()
   const adjacent = getAdjacentTopics(slug)
-  const trackTotal = getTopicsByLevel(topic.level).length
+  const trackTopics = getTopicsByLevel(topic.level)
+  const trackTotal = trackTopics.length
+  const trackSlugs = trackTopics.map((t) => t.slug)
+  const trackAdjacent = getAdjacentTopicsInTrack(slug)
+  const nextLevelFirstSlug = getNextLevelFirstSlug(topic.level)
   return (
     <TopicView
       topic={topic}
       adjacent={adjacent}
       locale="en"
       trackTotal={trackTotal}
+      trackAdjacent={trackAdjacent}
+      trackSlugs={trackSlugs}
+      nextLevelFirstSlug={nextLevelFirstSlug}
     />
   )
 }

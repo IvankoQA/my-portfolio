@@ -137,3 +137,12 @@ export function getAdjacentTopicsInTrack(slug: string): AdjacentTopics {
     next: i < track.length - 1 ? slim(track[i + 1]) : undefined,
   }
 }
+
+const LEVEL_ORDER: TopicLevel[] = ["beginner", "intermediate", "advanced"]
+
+/** Slug of the first topic in the next level track, or undefined if already advanced. */
+export function getNextLevelFirstSlug(level: TopicLevel): string | undefined {
+  const idx = LEVEL_ORDER.indexOf(level)
+  const next = LEVEL_ORDER[idx + 1]
+  return next ? getTopicsByLevel(next)[0]?.slug : undefined
+}

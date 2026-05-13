@@ -1,6 +1,6 @@
 "use client"
 
-import { createElement, Fragment } from "react"
+import { createElement, Fragment, useEffect, useState } from "react"
 import Link from "next/link"
 import type { AppLocale } from "@/lib/i18n/locale"
 import {
@@ -16,6 +16,10 @@ import type {
   TopicSection,
   TopicSequenceItem,
 } from "@/lib/playwright-learn/types"
+import {
+  loadPlaywrightLearnProgress,
+  savePlaywrightLearnProgress,
+} from "@/lib/playwright-learn/storage"
 import { CodeBlock } from "./code-block"
 import { renderInlineMarkdown } from "./inline-markdown"
 import { ArrowLeftIcon, ArrowRightIcon, ExternalIcon } from "./icons"
@@ -26,6 +30,9 @@ type Props = {
   adjacent: AdjacentTopics
   locale: AppLocale
   trackTotal?: number
+  trackAdjacent?: AdjacentTopics
+  trackSlugs?: string[]
+  nextLevelFirstSlug?: string
 }
 
 const TRACK_LEVEL_LABELS: Record<TopicLevel, { en: string; uk: string }> = {
@@ -41,6 +48,9 @@ const STRINGS = {
     prev: "Previous",
     next: "Next",
     takeQuiz: "Take the quiz",
+    trackComplete: "track complete",
+    continueTo: "Continue to",
+    allTracksComplete: "All tracks complete",
   },
   uk: {
     backToIndex: "Усі теми",
@@ -48,6 +58,9 @@ const STRINGS = {
     prev: "Попередня",
     next: "Наступна",
     takeQuiz: "Пройти тести",
+    trackComplete: "трек завершено",
+    continueTo: "Перейти до",
+    allTracksComplete: "Всі треки завершено",
   },
 } as const
 
@@ -352,11 +365,100 @@ function SectionBlock({
   )
 }
 
-export function TopicView({ topic, adjacent, locale, trackTotal }: Props) {
+const TRACK_NEXT_LEVEL: Partial<Record<TopicLevel, TopicLevel>> = {
+  beginner: "intermediate",
+  intermediate: "advanced",
+}
+
+function TrackCompletionBanner({
+  level,
+  trackSlugs,
+  nextLevelFirstSlug,
+  locale,
+}: {
+  level: TopicLevel
+  trackSlugs: string[]
+  nextLevelFirstSlug: string | undefined
+  locale: AppLocale
+}) {
+  const t = STRINGS[locale]
+  const [show, setShow] = useState(false)
+
+  useEffect(() => {
+    const progress = loadPlaywrightLearnProgress()
+    const allDone =
+      trackSlugs.length > 0 &&
+      trackSlugs.every((slug) => progress.topics[slug]?.quizCompletedOnce)
+    setShow(allDone)
+    if (allDone && !progress.completedTracks?.includes(level)) {
+      savePlaywrightLearnProgress({
+        ...progress,
+        completedTracks: [...(progress.completedTracks ?? []), level],
+      })
+    }
+  }, [level, trackSlugs])
+
+  if (!show) return null
+
+  const currentLabel = TRACK_LEVEL_LABELS[level][locale]
+  const nextLevel = TRACK_NEXT_LEVEL[level]
+  const nextLabel = nextLevel ? TRACK_LEVEL_LABELS[nextLevel][locale] : null
+
+  return (
+    <div
+      style={{
+        marginTop: 20,
+        padding: "14px 18px",
+        borderRadius: 12,
+        background: "#22c55e14",
+        border: "1px solid #22c55e33",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        gap: "8px 16px",
+      }}
+    >
+      <span style={{ fontSize: 14, fontWeight: 600, color: "#22c55e" }}>
+        ✓ {currentLabel} {t.trackComplete}
+      </span>
+      {nextLabel && nextLevelFirstSlug ? (
+        <Link
+          href={learnTopicHref(locale, nextLevelFirstSlug)}
+          style={{
+            fontSize: 14,
+            fontWeight: 600,
+            color: "#22c55e",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          {t.continueTo} {nextLabel} <ArrowRightIcon size={12} />
+        </Link>
+      ) : (
+        <span style={{ fontSize: 13, color: "#22c55e" }}>
+          {t.allTracksComplete}
+        </span>
+      )}
+    </div>
+  )
+}
+
+export function TopicView({
+  topic,
+  adjacent,
+  locale,
+  trackTotal,
+  trackAdjacent,
+  trackSlugs,
+  nextLevelFirstSlug,
+}: Props) {
   const t = STRINGS[locale]
   const quizHref = learnTopicQuizHref(locale, topic.slug)
   const hasQuiz = topic.quiz.length > 0
-  const showTopNav = Boolean(adjacent.prev || adjacent.next)
+  const nav = trackAdjacent ?? adjacent
+  const showTopNav = Boolean(nav.prev || nav.next)
   const hasToc = topic.sections.length > 1
   const showTopBand = showTopNav || hasToc
 
@@ -450,7 +552,7 @@ export function TopicView({ topic, adjacent, locale, trackTotal }: Props) {
         >
           {showTopNav ? (
             <TopicAdjacentNav
-              adjacent={adjacent}
+              adjacent={nav}
               locale={locale}
               testIdSuffix="-top"
             />
@@ -547,11 +649,15 @@ export function TopicView({ topic, adjacent, locale, trackTotal }: Props) {
             ))}
           </div>
 
-          <TopicAdjacentNav
-            adjacent={adjacent}
-            locale={locale}
-            testIdSuffix=""
-          />
+          <TopicAdjacentNav adjacent={nav} locale={locale} testIdSuffix="" />
+          {trackSlugs && trackSlugs.length > 0 ? (
+            <TrackCompletionBanner
+              level={topic.level}
+              trackSlugs={trackSlugs}
+              nextLevelFirstSlug={nextLevelFirstSlug}
+              locale={locale}
+            />
+          ) : null}
         </footer>
       </div>
     </article>
