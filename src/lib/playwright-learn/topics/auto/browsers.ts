@@ -1,4 +1,4 @@
-import type { PlaywrightTopic } from "../../types"
+import type { PlaywrightTopic, TopicSequenceItem } from "../../types"
 
 const projectsConfig = `import { defineConfig, devices } from '@playwright/test';
 

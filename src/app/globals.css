@@ -537,8 +537,8 @@ nav.learn-toc-nav > ul.learn-toc-list a:hover {
 
 @container learn-toc (min-width: 400px) {
   nav.learn-toc-nav > ul.learn-toc-list {
-    /* As many columns as fit; empty tracks collapse → one row when titles are short */
-    grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-    gap: 6px 18px;
+    /* Smaller min keeps short titles on one row instead of wrapping across two */
+    grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+    gap: 4px 14px;
   }
 }

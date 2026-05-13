@@ -1,6 +1,6 @@
 "use client"
 
-import { createElement } from "react"
+import { createElement, Fragment } from "react"
 import Link from "next/link"
 import type { AppLocale } from "@/lib/i18n/locale"
 import {
@@ -172,8 +172,22 @@ const paragraphStyleBase = {
   whiteSpace: "pre-wrap" as const,
 }
 
+const orderedListStyleBase = {
+  color: "var(--ink-2)",
+  fontSize: 15,
+  lineHeight: 1.65,
+  marginTop: 10,
+  paddingLeft: 22,
+}
+
+const listItemStyleBase = {
+  marginTop: 4,
+}
+
+const ORDERED_ITEM_RE = /^\d+\.\s+/
+
 function renderSectionParagraph(
-  sectionId: string,
+  _sectionId: string,
   textRaw: string,
   paraKey: string,
 ) {
@@ -195,10 +209,68 @@ function renderSectionParagraph(
       )
     }
   }
+
+  const lines = text.split("\n")
+  const hasListItem = lines.some((l) => ORDERED_ITEM_RE.test(l))
+  if (!hasListItem) {
+    return (
+      <p key={paraKey} style={paragraphStyleBase}>
+        {renderInlineMarkdown(text, paraKey)}
+      </p>
+    )
+  }
+
+  type Seg =
+    | { kind: "para"; lines: string[] }
+    | { kind: "list"; items: string[] }
+  const segs: Seg[] = []
+  for (const line of lines) {
+    if (ORDERED_ITEM_RE.test(line)) {
+      const last = segs.at(-1)
+      if (last?.kind === "list")
+        last.items.push(line.replace(ORDERED_ITEM_RE, ""))
+      else
+        segs.push({ kind: "list", items: [line.replace(ORDERED_ITEM_RE, "")] })
+    } else {
+      const last = segs.at(-1)
+      if (last?.kind === "para") last.lines.push(line)
+      else segs.push({ kind: "para", lines: [line] })
+    }
+  }
+
   return (
-    <p key={paraKey} style={paragraphStyleBase}>
-      {renderInlineMarkdown(text, paraKey)}
-    </p>
+    <Fragment key={paraKey}>
+      {segs.map((seg) => {
+        if (seg.kind === "list") {
+          const olKey = `${paraKey}-ol-${seg.items[0].slice(0, 24)}`
+          return (
+            <ol key={olKey} style={orderedListStyleBase}>
+              {seg.items.map((item) => (
+                <li
+                  key={`${paraKey}-li-${item.slice(0, 24)}`}
+                  style={listItemStyleBase}
+                >
+                  {renderInlineMarkdown(
+                    item,
+                    `${paraKey}-li-${item.slice(0, 24)}`,
+                  )}
+                </li>
+              ))}
+            </ol>
+          )
+        }
+        const txt = seg.lines.join("\n").trim()
+        if (!txt) return null
+        return (
+          <p
+            key={`${paraKey}-p-${txt.slice(0, 24)}`}
+            style={paragraphStyleBase}
+          >
+            {renderInlineMarkdown(txt, `${paraKey}-p-${txt.slice(0, 24)}`)}
+          </p>
+        )
+      })}
+    </Fragment>
   )
 }
 
@@ -212,7 +284,7 @@ function renderSequenceItems(
       const b = item.block
       return (
         <CodeBlock
-          key={`${section.id}:seq:${si}:${b.id}`}
+          key={`${section.id}:seq:${b.id}`}
           code={b.code}
           language={b.language}
           locale={locale}

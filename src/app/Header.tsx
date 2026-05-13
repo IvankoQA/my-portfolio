@@ -301,7 +301,7 @@ export default function Header() {
 
   function toggleLang() {
     const next = isUk ? "en" : "uk"
-    router.push(localizePath(pathname || "/", next))
+    router.push(localizePath(pathname || "/", next), { scroll: false })
   }
 
   function toggleTheme() {
