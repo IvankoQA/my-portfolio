@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "node ./scripts/run-next-dev.mjs",
     "build": "next build",
     "start": "next start",
     "biome:check": "node ./scripts/run-biome.mjs check .",
@@ -21,7 +21,11 @@
     "test:e2e:ci:all": "playwright test --project=chromium --project=sandbox-store --project=iphone-15-pro --project=sandbox-store-iphone-15-pro",
     "test:store:full": "pnpm run test:store && playwright test tests/api/routes.api.spec.ts --project=api",
     "test:api": "playwright test tests/api --project=api",
-    "test:smoke": "playwright test --grep @smoke"
+    "test:smoke": "playwright test --grep @smoke",
+    "learn:generate-topics": "node ./scripts/generate-playwright-learn-topics.mjs",
+    "learn:check-uk-urls": "node ./scripts/check-uk-learn-playwright-urls.mjs",
+    "learn:strip-non-ts-codeblocks": "node ./scripts/strip-playwright-learn-non-ts-codeblocks.mjs",
+    "learn:strip-remote-media": "node ./scripts/strip-playwright-learn-remote-media.mjs"
   },
   "dependencies": {
     "convex": "^1.37.0",

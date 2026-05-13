@@ -24,6 +24,7 @@
 /build
 
 # misc
+.cache/
 .DS_Store
 *.pem
 
@@ -54,3 +55,4 @@ CLAUDE.local.md
 .claude/settings.local.json
 # transient snapshots from `.claude/hooks/PreCompact.sh`
 .claude/state/
+.gstack/
