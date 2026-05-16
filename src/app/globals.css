@@ -90,6 +90,12 @@
   --chip-bg: rgba(20, 17, 13, 0.045);
   --chip-bg-hover: rgba(20, 17, 13, 0.08);
 
+  /* syntax highlighting */
+  --syntax-keyword: #0550ae;
+  --syntax-string: #b84c00;
+  --syntax-comment: #6b7280;
+  --syntax-number: #0a7c6a;
+
   /* shadcn semantic bridge */
   --background: var(--bg);
   --foreground: var(--ink);
@@ -141,6 +147,12 @@
   --term-ink: #d2cec4;
   --chip-bg: rgba(240, 237, 229, 0.06);
   --chip-bg-hover: rgba(240, 237, 229, 0.1);
+
+  /* syntax highlighting */
+  --syntax-keyword: #79c0ff;
+  --syntax-string: #ffa657;
+  --syntax-comment: #8b949e;
+  --syntax-number: #56d364;
 
   /* shadcn semantic bridge */
   --background: var(--bg);

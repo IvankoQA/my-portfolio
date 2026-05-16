@@ -168,10 +168,6 @@ export function Quiz({ slug, questions, locale }: Props) {
       >
         {t.title}
       </h2>
-      <p style={{ color: "var(--ink-3)", marginTop: 6, fontSize: 14 }}>
-        {t.intro}
-      </p>
-
       <div
         ref={liveRef}
         role="status"

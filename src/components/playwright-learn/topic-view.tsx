@@ -21,6 +21,7 @@ import {
   savePlaywrightLearnProgress,
 } from "@/lib/playwright-learn/storage"
 import { CodeBlock } from "./code-block"
+import { MermaidDiagram } from "./mermaid-diagram"
 import { renderInlineMarkdown } from "./inline-markdown"
 import { ArrowLeftIcon, ArrowRightIcon, ExternalIcon } from "./icons"
 import { TableOfContents } from "./toc"
@@ -77,9 +78,11 @@ function TopicAdjacentNav({
   const { prev, next } = adjacent
   const navStyle = {
     marginTop: 16,
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
+    display: "flex",
+    flexWrap: "wrap" as const,
+    alignItems: "center",
     gap: 10,
+    justifyContent: "space-between",
   } as const
   const linkBase = {
     padding: "10px 12px",
@@ -93,6 +96,9 @@ function TopicAdjacentNav({
     flexWrap: "wrap" as const,
     background: "var(--bg-card)",
     minWidth: 0,
+    width: "max-content" as const,
+    maxWidth: "100%",
+    boxSizing: "border-box" as const,
   }
 
   if (!prev && !next) {
@@ -134,9 +140,7 @@ function TopicAdjacentNav({
             {prev.title[locale]}
           </span>
         </Link>
-      ) : (
-        <span />
-      )}
+      ) : null}
       {next ? (
         <Link
           href={learnTopicHref(locale, next.slug)}
@@ -145,6 +149,7 @@ function TopicAdjacentNav({
           style={{
             ...linkBase,
             justifyContent: "flex-end",
+            marginLeft: prev ? undefined : "auto",
           }}
         >
           <span
@@ -171,9 +176,7 @@ function TopicAdjacentNav({
             {t.next} <ArrowRightIcon size={11} />
           </span>
         </Link>
-      ) : (
-        <span />
-      )}
+      ) : null}
     </nav>
   )
 }
@@ -345,6 +348,12 @@ function SectionBlock({
       >
         {section.title[locale]}
       </h2>
+      {section.diagram && (
+        <MermaidDiagram
+          definition={section.diagram.mermaid}
+          caption={section.diagram.caption?.[locale]}
+        />
+      )}
       {useSequence
         ? renderSequenceItems(section, locale, section.sequence ?? [])
         : section.paragraphs?.map((p, pi) => {
@@ -526,6 +535,15 @@ export function TopicView({
         {(() => {
           const summaryText = stripDocsImportMarkers(topic.summary[locale])
           if (summaryText === null) return null
+          const firstParaRaw = topic.sections[0]?.paragraphs?.[0]?.[locale]
+          const firstParaText = firstParaRaw
+            ? stripDocsImportMarkers(firstParaRaw)
+            : null
+          if (
+            firstParaText !== null &&
+            summaryText.trim() === firstParaText?.trim()
+          )
+            return null
           return (
             <p
               style={{

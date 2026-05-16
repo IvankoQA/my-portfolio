@@ -89,6 +89,10 @@ export const TRACK_META: Record<
     label: { en: string; uk: string }
     description: { en: string; uk: string }
     color: string
+    outcomes: {
+      en: { learn: string; skills: string }
+      uk: { learn: string; skills: string }
+    }
   }
 > = {
   beginner: {
@@ -98,6 +102,20 @@ export const TRACK_META: Record<
       uk: "Встановіть Playwright, напишіть перший тест і опануйте базові API.",
     },
     color: "#22c55e",
+    outcomes: {
+      en: {
+        learn:
+          "You'll install Playwright, write your first test, and learn the fundamental building blocks: picking elements with locators, asserting page state, navigating between pages, and running tests across multiple browsers.",
+        skills:
+          "After completing this track you'll be able to write end-to-end tests from scratch, run them locally and in CI, read the HTML report, and step through failures in the Trace Viewer.",
+      },
+      uk: {
+        learn:
+          "Ви встановите Playwright, напишете перший тест і вивчите базові блоки: вибір елементів локаторами, перевірки стану сторінки, навігація між сторінками та запуск тестів у різних браузерах.",
+        skills:
+          "Після завершення зможете самостійно покрити тестами будь-який веб-застосунок, запустити їх локально і в CI, читати HTML-звіт та розбирати падіння через Trace Viewer.",
+      },
+    },
   },
   intermediate: {
     label: { en: "Intermediate", uk: "Середній рівень" },
@@ -106,6 +124,20 @@ export const TRACK_META: Record<
       uk: "Освойте fixtures, мок мережі, автентифікацію та багатобраузерні сценарії.",
     },
     color: "#3b82f6",
+    outcomes: {
+      en: {
+        learn:
+          "You'll master test fixtures and their lifecycle, intercept and mock network requests, implement one-time login with storageState, write Page Object Models, test iframes and popups, and combine UI tests with direct API calls.",
+        skills:
+          "After completing this track you'll be able to build scalable test suites with shared fixtures, reliable auth state, and stable network isolation — tests that run fast and consistently in any environment.",
+      },
+      uk: {
+        learn:
+          "Ви освоїте lifecycle фікстур, перехоплення та мокування мережевих запитів, патерн одноразового логіну зі storageState, Page Object Model, тестування iframes і попапів та поєднання UI-тестів з прямими API-викликами.",
+        skills:
+          "Після завершення зможете будувати масштабовані тест-набори зі спільними фікстурами, надійним станом авторизації та стабільною мережевою ізоляцією.",
+      },
+    },
   },
   advanced: {
     label: { en: "Advanced", uk: "Просунутий рівень" },
@@ -114,6 +146,20 @@ export const TRACK_META: Record<
       uk: "Візуальні снепшоти, CI пайплайни, Docker, емуляція та інтеграція з фреймворками.",
     },
     color: "#a855f7",
+    outcomes: {
+      en: {
+        learn:
+          "You'll set up visual regression testing with screenshots, shard test suites across CI machines, run Playwright in Docker, emulate devices and locales, configure timeouts and retries, and integrate with popular frameworks.",
+        skills:
+          "After completing this track you'll be able to run thousands of tests in parallel across distributed CI infrastructure, catch visual regressions automatically, and adapt Playwright to any stack or environment.",
+      },
+      uk: {
+        learn:
+          "Ви налаштуєте візуальне регресійне тестування зі скриншотами, шардинг набору між CI-машинами, запуск у Docker, емуляцію пристроїв і локалей, конфігурацію тайм-аутів та повторів і інтеграцію з популярними фреймворками.",
+        skills:
+          "Після завершення зможете запускати тисячі тестів паралельно на розподіленій CI-інфраструктурі, автоматично ловити візуальні регресії та адаптувати Playwright до будь-якого стеку.",
+      },
+    },
   },
 }
 

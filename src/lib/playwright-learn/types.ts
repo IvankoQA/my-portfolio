@@ -39,6 +39,14 @@ export type TopicSection = {
   paragraphs?: Localized[]
   codeBlocks?: CodeBlock[]
   sequence?: TopicSequenceItem[]
+  /** Optional Mermaid diagram rendered after the section <h2>, before paragraphs/sequence.
+   *  `mermaid` is the full diagram definition including the opening keyword,
+   *  e.g. "flowchart LR\n  A[Browser] --> B[Chromium]"
+   */
+  diagram?: {
+    mermaid: string
+    caption?: Localized
+  }
 }
 
 export type QuizOption = {

@@ -1,7 +1,11 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { QuizTopicView } from "@/components/playwright-learn/quiz-topic-view"
-import { getAllSlugs, getTopicBySlug } from "@/lib/playwright-learn/catalog"
+import {
+  getAllSlugs,
+  getAdjacentTopics,
+  getTopicBySlug,
+} from "@/lib/playwright-learn/catalog"
 
 type PageParams = { slug: string }
 
@@ -31,5 +35,6 @@ export default async function LearnPlaywrightQuizUkPage({
   const { slug } = await params
   const topic = getTopicBySlug(slug)
   if (!topic) notFound()
-  return <QuizTopicView topic={topic} locale="uk" />
+  const adjacent = getAdjacentTopics(slug)
+  return <QuizTopicView topic={topic} locale="uk" adjacent={adjacent} />
 }

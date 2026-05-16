@@ -5,14 +5,12 @@ import {
   getTopicsByLevel,
   TRACK_META,
 } from "@/lib/playwright-learn/catalog"
-import {
-  learnTopicHref,
-  learnTopicQuizHref,
-} from "@/lib/playwright-learn/paths"
 import { stripDocsImportMarkers } from "@/lib/playwright-learn/strip-docs-import-markers"
-import { TOPIC_GROUP_TITLES } from "@/lib/playwright-learn/types"
-import { renderInlineMarkdown } from "./inline-markdown"
-import { TrackCard } from "./track-card"
+import {
+  LearnIntroClient,
+  type TrackData,
+  type GroupData,
+} from "./learn-intro-client"
 
 const OFFICIAL_DOCS = "https://playwright.dev/docs/intro"
 
@@ -22,7 +20,7 @@ const COPY = {
   en: {
     title: "Playwright notes & quizzes",
     intro:
-      "Here you'll find a compact, opinionated walkthrough of Playwright's official documentation: the same concepts you'd read on the site, reorganized into short sections with code samples.",
+      "Playwright is a testing framework that lets you write automated browser tests in TypeScript. These notes cover the official documentation topic by topic — short sections, runnable TypeScript examples, and an optional quiz after each topic to check your understanding.",
     aside:
       "All of this (and much more) already lives on playwright.dev — I'm not replacing it. I wanted a version on my own site with end-of-topic quizzes, less noise, and a tighter reading flow.",
     officialLabel: "Official Playwright docs",
@@ -34,7 +32,7 @@ const COPY = {
   uk: {
     title: "Нотатки та тести з Playwright",
     intro:
-      "Тут — стислий, суб'єктивний прохід по офіційній документації Playwright: ті самі ідеї, що на сайті, але короткими блоками з прикладами коду.",
+      "Playwright — це фреймворк для автоматизованого тестування браузерів. Тут зібрані нотатки з офіційної документації: кожна тема — короткий текст, приклади коду на TypeScript і необов'язковий квіз для самоперевірки.",
     aside:
       "Усе це (і значно більше) вже є на playwright.dev — це не заміна. Хотілося мати власну версію з квізами після тем, без зайвого шуму й зручнішим для читання ритмом.",
     officialLabel: "Офіційна документація Playwright",
@@ -53,15 +51,37 @@ export function LearnPlaywrightIntro({ locale }: Props) {
   const t = COPY[locale]
   const groups = getTopicsByGroup()
 
-  const trackData = LEVELS.map((level) => {
+  const trackData: TrackData[] = LEVELS.map((level) => {
     const topics = getTopicsByLevel(level)
+    const meta = TRACK_META[level]
     return {
       level,
       slugs: topics.map((tp) => tp.slug),
       firstSlug: topics[0]?.slug ?? "",
-      ...TRACK_META[level],
+      topics: topics.map((tp) => ({ slug: tp.slug, title: tp.title })),
+      label: meta.label,
+      description: meta.description,
+      outcomes: meta.outcomes,
+      color: meta.color,
     }
   })
+
+  const groupData: GroupData[] = groups.map(({ groupId, topics }) => ({
+    groupId,
+    topics: topics.map((tp) => ({
+      slug: tp.slug,
+      title: tp.title,
+      summary: {
+        en: stripDocsImportMarkers(tp.summary.en) ?? "",
+        uk: stripDocsImportMarkers(tp.summary.uk) ?? "",
+      },
+      groupId: tp.groupId,
+      hasQuiz: tp.quiz.length > 0,
+    })),
+  }))
+
+  // Flatten all topics for search
+  const allTopics = groupData.flatMap((g) => g.topics)
 
   return (
     <article
@@ -104,157 +124,30 @@ export function LearnPlaywrightIntro({ locale }: Props) {
           }}
         >
           {t.aside}{" "}
-          <a
+          <Link
             href={OFFICIAL_DOCS}
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: "var(--accent-color)", fontWeight: 600 }}
           >
             {t.officialLabel}
-          </a>
+          </Link>
           .
         </p>
       </header>
 
-      <section style={{ marginTop: 36 }} aria-labelledby="learn-tracks-heading">
-        <h2
-          id="learn-tracks-heading"
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            color: "var(--ink-3)",
-            margin: "0 0 14px",
-          }}
-        >
-          {t.tracksTitle}
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {trackData.map((track) => (
-            <TrackCard
-              key={track.level}
-              level={track.level}
-              slugs={track.slugs}
-              firstSlug={track.firstSlug}
-              label={track.label}
-              description={track.description}
-              color={track.color}
-              locale={locale}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section
-        style={{ marginTop: 48 }}
-        aria-labelledby="learn-modules-heading"
-      >
-        <h2
-          id="learn-modules-heading"
-          style={{
-            fontSize: 13,
-            fontWeight: 700,
-            letterSpacing: "0.06em",
-            textTransform: "uppercase",
-            color: "var(--ink-3)",
-            margin: "0 0 16px",
-          }}
-        >
-          {t.modulesTitle}
-        </h2>
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {groups.map(({ groupId, topics }) => (
-            <div key={groupId}>
-              <div
-                style={{
-                  fontSize: 12,
-                  fontWeight: 700,
-                  color: "var(--ink-3)",
-                  marginBottom: 10,
-                }}
-              >
-                {TOPIC_GROUP_TITLES[groupId][locale]}
-              </div>
-              <ul
-                style={{
-                  listStyle: "none",
-                  margin: 0,
-                  padding: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                }}
-              >
-                {topics.map((topic) => (
-                  <li
-                    key={topic.slug}
-                    style={{
-                      border: "1px solid var(--line)",
-                      borderRadius: 12,
-                      padding: "14px 16px",
-                      background: "var(--bg-card)",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontSize: 17,
-                        fontWeight: 600,
-                        color: "var(--ink)",
-                      }}
-                    >
-                      {topic.title[locale]}
-                    </div>
-                    {(() => {
-                      const sum = stripDocsImportMarkers(topic.summary[locale])
-                      if (sum === null) return null
-                      return (
-                        <p
-                          style={{
-                            margin: "8px 0 12px",
-                            fontSize: 14,
-                            lineHeight: 1.55,
-                            color: "var(--ink-2)",
-                            whiteSpace: "pre-wrap",
-                          }}
-                        >
-                          {renderInlineMarkdown(sum, `intro-sum-${topic.slug}`)}
-                        </p>
-                      )
-                    })()}
-                    <div
-                      style={{
-                        display: "flex",
-                        flexWrap: "wrap",
-                        gap: "10px 16px",
-                        fontSize: 13,
-                        fontWeight: 600,
-                      }}
-                    >
-                      <Link
-                        href={learnTopicHref(locale, topic.slug)}
-                        data-testid={`learn-intro-topic-${topic.slug}`}
-                        style={{ color: "var(--accent-color)" }}
-                      >
-                        {t.read}
-                      </Link>
-                      {topic.quiz.length > 0 ? (
-                        <Link
-                          href={learnTopicQuizHref(locale, topic.slug)}
-                          data-testid={`learn-intro-quiz-${topic.slug}`}
-                          style={{ color: "var(--ink-3)" }}
-                        >
-                          {t.quiz}
-                        </Link>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </section>
+      <LearnIntroClient
+        locale={locale}
+        trackData={trackData}
+        groups={groupData}
+        allTopics={allTopics}
+        copy={{
+          tracksTitle: t.tracksTitle,
+          modulesTitle: t.modulesTitle,
+          read: t.read,
+          quiz: t.quiz,
+        }}
+      />
     </article>
   )
 }

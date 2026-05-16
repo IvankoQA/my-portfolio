@@ -153,9 +153,7 @@ type SandboxCtaProps = {
 }
 
 function SandboxCta({ isUk, isMobile, href }: Readonly<SandboxCtaProps>) {
-  const label = isUk
-    ? "Спробувати себе в ролі тестувальника"
-    : "Try yourself as a QA tester"
+  const label = isUk ? "Спробувати Sandbox" : "Try yourself as a QA tester"
 
   return (
     <Link
@@ -493,7 +491,7 @@ export default function Header() {
             {isDark ? <SunIcon /> : <MoonIcon />}
           </button>
 
-          {isMobile && !isLearnPage ? (
+          {!isLearnPage ? (
             <LearnMobileCta isUk={isUk} href={learnHref} />
           ) : null}
 
