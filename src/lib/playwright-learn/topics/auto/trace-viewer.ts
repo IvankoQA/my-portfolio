@@ -13,297 +13,479 @@ export const traceViewerTopic: PlaywrightTopic = {
     uk: "Переглядач трас",
   },
   summary: {
-    en: "Playwright Trace Viewer is a GUI tool that helps you explore recorded Playwright traces after the script has run. Traces are a great way for debugging your tests when they fail on CI. You can open traces [locally](#opening-trace-viewer) or in your browser on [trace.playwright.dev](https://trace.playwright.dev).",
-    uk: "Playwright Trace Viewer — це GUI-інструмент, який допомагає досліджувати записані траси Playwright після виконання сценарію. Траси зручні для налагодження тестів, коли вони падають на CI. Відкрити траси можна [локально](#opening-trace-viewer) або в браузері на [trace.playwright.dev](https://trace.playwright.dev).",
+    en: "The Trace Viewer is how I debug CI failures without reproducing locally. A trace is a complete recording of a test run: DOM snapshots at every action, all network requests, console logs, screenshots. I configure trace: 'on-first-retry' so traces only exist when a test actually fails.",
+    uk: "Trace Viewer — це як я дебажу CI-падіння не відтворюючи їх локально. Трейс — це повний запис виконання тесту: DOM-snapshot-и при кожній дії, всі мережеві запити, логи консолі, скриншоти. Я налаштовую trace: 'on-first-retry' щоб трейси існували тільки коли тест реально падає.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "recording-traces",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "Recording traces",
+        uk: "Запис трейсів",
       },
       paragraphs: [
         {
-          en: "Playwright Trace Viewer is a GUI tool that helps you explore recorded Playwright traces after the script has run. Traces are a great way for debugging your tests when they fail on CI. You can open traces [locally](#opening-trace-viewer) or in your browser on [trace.playwright.dev](https://trace.playwright.dev).",
-          uk: "Playwright Trace Viewer — це GUI-інструмент, який допомагає досліджувати записані траси Playwright після виконання сценарію. Траси зручні для налагодження тестів, коли вони падають на CI. Відкрити траси можна [локально](#opening-trace-viewer) або в браузері на [trace.playwright.dev](https://trace.playwright.dev).",
-        },
-      ],
-    },
-    {
-      id: "opening-trace-viewer",
-      title: {
-        en: "Opening Trace Viewer",
-        uk: "Відкриття Trace Viewer",
-      },
-      paragraphs: [
-        {
-          en: "You can open a saved trace using either the Playwright CLI or in the browser at [trace.playwright.dev](https://trace.playwright.dev). Make sure to add the full path to where your `trace.zip` file is located.",
-          uk: "Збережену трасу можна відкрити через Playwright CLI або в браузері на [trace.playwright.dev](https://trace.playwright.dev). Вкажіть повний шлях до файлу `trace.zip`.",
-        },
-        {
-          en: "### Using [trace.playwright.dev](https://trace.playwright.dev)",
-          uk: "### Використання [trace.playwright.dev](https://trace.playwright.dev)",
-        },
-        {
-          en: "[trace.playwright.dev](https://trace.playwright.dev) is a statically hosted variant of the Trace Viewer. You can upload a trace file using drag and drop or via the `Select file` button.",
-          uk: "[trace.playwright.dev](https://trace.playwright.dev) — це статично зібраний варіант Trace Viewer. Файл траси можна завантажити перетягуванням або кнопкою `Select file`.",
-        },
-        {
-          en: "Trace Viewer loads the trace entirely in your browser and does not transmit any data externally.",
-          uk: "Trace Viewer повністю завантажує трасу в вашому браузері і не передає дані назовні.",
-        },
-        {
-          en: "### Viewing remote traces",
-          uk: "### Перегляд віддалених трас",
-        },
-        {
-          en: "You can open remote traces directly using its URL. This makes it easy to view the remote trace without having to manually download the file from CI runs, for example.",
-          uk: "Віддалені траси можна відкрити безпосередньо за URL — зручно переглядати трасу без ручного завантаження файлу з CI тощо.",
-        },
-        {
-          en: "When using [trace.playwright.dev](https://trace.playwright.dev), you can also pass the URL of your uploaded trace at some accessible storage (e.g. inside your CI) as a query parameter. CORS (Cross-Origin Resource Sharing) rules might apply.",
-          uk: "На [trace.playwright.dev](https://trace.playwright.dev) можна також передати URL завантаженої траси з доступного сховища (наприклад у CI) як параметр запиту. Можуть діяти правила CORS (Cross-Origin Resource Sharing).",
+          en: "Five modes. I use `on-first-retry` on CI — records only when a test retries (which means it failed). No storage waste on passing tests. `retain-on-failure` is the alternative if you don't use retries but still want traces for failed tests.",
+          uk: "П'ять режимів. Я використовую `on-first-retry` на CI — записує тільки коли тест повторюється (що означає він впав). Не витрачає місце на тестах що проходять. `retain-on-failure` — альтернатива якщо не використовуєш retries але все одно хочеш трейси для тестів що падають.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
-          language: "bash",
-          code: "npx playwright show-trace path/to/trace.zip",
+          id: "trace-config",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  retries: process.env.CI ? 2 : 0,
+  use: {
+    // 'on-first-retry'    — тільки при першому повторі (рекомендую для CI)
+    // 'retain-on-failure' — записувати, видаляти якщо тест пройшов
+    // 'on'                — завжди (дорого за місцем, для локального дебагу)
+    // 'off'               — не записувати
+    trace: process.env.CI ? 'on-first-retry' : 'off',
+  },
+})`,
         },
         {
-          id: "cb-5",
+          id: "trace-cli",
           language: "bash",
-          code: "npx playwright show-trace https://example.com/trace.zip",
-        },
-        {
-          id: "cb-9",
-          language: "txt",
-          code: "https://trace.playwright.dev/?trace=https://demo.playwright.dev/reports/todomvc/data/e6099cadf79aa753d5500aa9508f9d1dbd87b5ee.zip",
+          code: `# Локальний запуск з трейсом — для дебагу конкретного тесту
+npx playwright test orders.spec.ts --trace on`,
         },
       ],
     },
     {
-      id: "recording-a-trace",
+      id: "opening-traces",
       title: {
-        en: "Recording a trace",
-        uk: "Запис траси",
+        en: "Opening traces",
+        uk: "Відкриття трейсів",
       },
       paragraphs: [
         {
-          en: "### Tracing locally",
-          uk: "### Локальний трасинг",
-        },
-        {
-          en: "To record a trace during development mode set the `--trace` flag to `on` when running your tests. You can also use [UI Mode](./test-ui-mode.md) for a better developer experience, as it traces each test automatically.",
-          uk: "Щоб записувати трасу під час розробки, запускайте тести з прапорцем `--trace` у значенні `on`. Також можна скористатися [UI Mode](./test-ui-mode.md) для зручнішого досвіду — там кожен тест трасується автоматично.",
-        },
-        {
-          en: "You can then open the HTML report and click on the trace icon to open the trace.",
-          uk: "Потім відкрийте HTML-звіт і натисніть іконку траси, щоб відкрити її.",
-        },
-        {
-          en: "### Tracing on CI",
-          uk: "### Трасинг на CI",
-        },
-        {
-          en: "Traces should be run on continuous integration on the first retry of a failed test\nby setting the `trace: 'on-first-retry'` option in the test configuration file. This will produce a `trace.zip` file for each test that was retried.",
-          uk: "У середовищі CI траси варто вмикати на першому повторному запуску невдалого тесту — для цього у файлі конфігурації встановіть `trace: 'on-first-retry'`. Для кожного такого повтору з’явиться файл `trace.zip`.",
-        },
-        {
-          en: "Available options to record a trace:\n- `'on-first-retry'` - Record a trace only when retrying a test for the first time.\n- `'on-all-retries'` - Record traces for all test retries.\n- `'off'` - Do not record a trace.\n- `'on'` - Record a trace for each test. (not recommended as it's performance heavy)\n- `'retain-on-failure'` - Record a trace for each test, but remove it from successful test runs.",
-          uk: "Доступні варіанти запису траси:\n- `'on-first-retry'` — записувати трасу лише під час першого повтору тесту.\n- `'on-all-retries'` — записувати траси для усіх повторів.\n- `'off'` — не записувати трасу.\n- `'on'` — записувати трасу для кожного тесту (не рекомендується через навантаження).\n- `'retain-on-failure'` — записувати трасу для кожного тесту, але видаляти після успішних прогонів.",
-        },
-        {
-          en: "You can also use `trace: 'retain-on-failure'` if you do not enable retries but still want traces for failed tests.",
-          uk: "Також можна використати `trace: 'retain-on-failure'`, якщо повтори вимкнені, але потрібні траси для невдалих тестів.",
-        },
-        {
-          en: "There are more granular options available, see [`property: TestOptions.trace`].",
-          uk: "Є детальніші опції — див. [`property: TestOptions.trace`].",
-        },
-        {
-          en: "If you are not using Playwright as a Test Runner, use the [`property: BrowserContext.tracing`] API instead.",
-          uk: "Якщо Playwright Test не використовується як раннер, застосовуйте API [`property: BrowserContext.tracing`].",
+          en: "Three ways to open a trace. From HTML report is the easiest — run the tests, open the report, click the trace icon next to a failed test. Directly by path if you have the `trace.zip` file. Online at trace.playwright.dev if you want to share with someone without installing Playwright.",
+          uk: "Три способи відкрити трейс. Через HTML-репорт — найпростіше: запусти тести, відкрий репорт, клацни іконку трейсу поруч з тестом що впав. Напряму за шляхом якщо маєш файл `trace.zip`. Онлайн на trace.playwright.dev якщо хочеш поділитися з кимось без встановлення Playwright.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-10",
+          id: "open-trace",
           language: "bash",
-          code: "npx playwright test --trace on",
-        },
-        {
-          id: "cb-11",
-          language: "bash",
-          code: "npx playwright show-report",
-        },
-        {
-          id: "cb-12",
-          language: "js",
-          code: "\nexport default defineConfig({\n  retries: 1,\n  use: {\n    trace: 'on-first-retry',\n  },\n});",
-        },
-        {
-          id: "cb-13",
-          language: "js",
-          code: "const browser = await chromium.launch();\nconst context = await browser.newContext();\n\n// Start tracing before creating / navigating a page.\nawait context.tracing.start({ screenshots: true, snapshots: true });\n\nconst page = await context.newPage();\nawait page.goto('https://playwright.dev');\n\n// Stop tracing and export it into a zip archive.\nawait context.tracing.stop({ path: 'trace.zip' });",
+          code: `# Відкрити трейс з HTML-репорту
+npx playwright show-report
+
+# Відкрити трейс напряму за шляхом
+npx playwright show-trace test-results/my-test/trace.zip
+
+# Або перетягнути .zip на trace.playwright.dev`,
         },
       ],
     },
     {
-      id: "run-trace-only-on-failure",
+      id: "navigating-trace",
       title: {
-        en: "Run trace only on failure",
-        uk: "Трасу лише при збої",
+        en: "Reading a trace — workflow I use",
+        uk: "Читання трейсу — workflow що я використовую",
+      },
+      diagram: {
+        mermaid: `flowchart LR
+  subgraph TV["Trace Viewer"]
+    direction TB
+    TL["Timeline strip\n(blue=action, green=nav, red=failure)"]
+    TL --> ACT["Actions panel\nhover → DOM snapshot"]
+    TL --> NET["Network tab\nrequests & responses"]
+    TL --> CON["Console tab\nerrors & warnings"]
+    TL --> LOG["Log tab\nactionability checks"]
+  end`,
+        caption: {
+          en: "Click the red marker on the timeline to jump to the failure point, then use Actions and Network to diagnose why",
+          uk: "Клацніть червоний маркер на таймлайні щоб перейти до точки падіння, потім використовуйте Actions і Network для діагностики",
+        },
       },
       paragraphs: [
         {
-          en: "Prefer `trace: 'on-first-retry'` or `trace: 'retain-on-failure'` in `playwright.config.ts` so CI keeps traces for failing tests without recording every passing run.",
-          uk: "У `playwright.config.ts` використовуйте `trace: 'on-first-retry'` або `trace: 'retain-on-failure'`, щоб на CI зберігати траси для невдалих тестів без запису кожного успішного прогону.",
+          en: "My debugging flow: find the red marker on the timeline (where the test failed) → look at the failing assertion in the Actions panel → click it to see the Before/After DOM snapshots → check what the page actually looked like vs what I expected → if the DOM is right but the test failed, switch to Network tab to see what API responded.",
+          uk: "Мій процес дебагу: знайти червоний маркер на таймлайні (де тест впав) → подивитися на перевірку що впала в панелі Actions → клацнути щоб побачити Before/After DOM-snapshot-и → перевірити як сторінка виглядала насправді проти того що очікував → якщо DOM правильний але тест впав — перейти на вкладку Network щоб подивитися що відповів API.",
         },
-      ],
-      codeBlocks: [
         {
-          id: "cb-trace-fail",
-          language: "js",
-          code: "export default defineConfig({\n  use: {\n    trace: 'retain-on-failure',\n  },\n});",
+          en: "**Timeline** — top strip with colored blocks: blue for actions, green for navigations. Red marker = failure point. Drag the slider to select a range and filter all other tabs to that timeframe.",
+          uk: "**Timeline** — верхня смуга з кольоровими блоками: синій для дій, зелений для навігацій. Червоний маркер = точка падіння. Тягни слайдер щоб вибрати діапазон і відфільтрувати всі інші вкладки за цим часом.",
+        },
+        {
+          en: "**Actions panel** — every locator call, click, fill. Hover to see DOM snapshot. Double-click to pin and filter Network/Console to that action. **Log tab** — what Playwright was waiting for, which actionability checks ran.",
+          uk: "**Панель Actions** — кожен виклик локатора, клік, заповнення. Наводь курсор щоб бачити DOM-snapshot. Подвійний клік щоб закріпити і відфільтрувати Network/Console по цій дії. **Вкладка Log** — чого чекав Playwright, які перевірки actionability виконувалися.",
         },
       ],
     },
     {
-      id: "trace-viewer-features",
+      id: "dom-snapshots",
       title: {
-        en: "Trace Viewer features",
-        uk: "Можливості Trace Viewer",
+        en: "DOM snapshots — Before, Action, After",
+        uk: "DOM-snapshot-и — Before, Action, After",
       },
       paragraphs: [
         {
-          en: "### Actions",
-          uk: "### Дії (Actions)",
+          en: "For each action, Playwright stores three snapshots: Before (the state before the action), Action (the moment of the click/fill — shows exactly where Playwright clicked), and After (the state after). The Action snapshot is the one that reveals 'Playwright was clicking here, not there'.",
+          uk: "Для кожної дії Playwright зберігає три snapshot-и: Before (стан до дії), Action (момент кліку/заповнення — показує точно куди клікнув Playwright), і After (стан після). Snapshot Action — той що розкриває 'Playwright клікав тут, а не там'.",
         },
         {
-          en: "In the Actions tab you can see what locator was used for every action and how long each one took to run. Hover over each action of your test and visually see the change in the DOM snapshot. Go back and forward in time and click an action to inspect and debug. Use the Before and After tabs to visually see what happened before and after the action.",
-          uk: "На вкладці Actions видно, який локатор використано для кожної дії та скільки вона тривала. Наведіть курсор на дію тесту й перегляньте зміну в DOM-знімку. Переміщайтеся в часі та клацайте дію для аналізу й налагодження. Вкладки Before і After показують стан до й після дії.",
+          en: "You can also pop out the DOM snapshot into a separate browser window and use DevTools to inspect the HTML and CSS — useful when the visual snapshot isn't enough to understand the layout.",
+          uk: "Також можна відкрити DOM-snapshot у окремому вікні браузера і використати DevTools для інспекції HTML і CSS — корисно коли візуального snapshot-у недостатньо щоб зрозуміти верстку.",
+        },
+      ],
+    },
+    {
+      id: "sharing-traces",
+      title: {
+        en: "Sharing traces from CI",
+        uk: "Ділитися трейсами з CI",
+      },
+      paragraphs: [
+        {
+          en: "Traces are uploaded as CI artifacts alongside the HTML report. Team members can download the zip from GitHub Actions → workflow run → Artifacts section. Or you can open a trace remotely by passing its URL to `npx playwright show-trace`.",
+          uk: "Трейси завантажуються як CI-артефакти разом з HTML-репортом. Члени команди можуть скачати zip з GitHub Actions → запуск workflow → розділ Artifacts. Або можна відкрити трейс віддалено передаючи його URL в `npx playwright show-trace`.",
         },
         {
-          en: "**Selecting each action reveals:**\n- Action snapshots\n- Action log\n- Source code location",
-          uk: "**Після вибору дії відображається:**\n- знімки дії (snapshots)\n- журнал дії\n- місце у вихідному коді",
-        },
-        {
-          en: "### Screenshots",
-          uk: "### Знімки екрана (Screenshots)",
-        },
-        {
-          en: "When tracing with the [`option: Tracing.start.screenshots`] option turned on (default), each trace records a screencast and renders it as a film strip. You can hover over the film strip to see a magnified image of for each action and state which helps you easily find the action you want to inspect.",
-          uk: "Якщо під час трасингу ввімкнено [`option: Tracing.start.screenshots`] (за замовчуванням так), у трасі зберігається скрінкаст і показується як плівка кадрів. Наведіть курсор на плівку, щоб збільшити кадр для кожної дії та стану — так легше знайти потрібну дію.",
-        },
-        {
-          en: "Double click on an action to see the time range for that action. You can use the slider in the timeline to increase the actions selected and these will be shown in the Actions tab and all console logs and network logs will be filtered to only show the logs for the actions selected.",
-          uk: "Подвійний клік по дії показує часовий діапазон цієї дії. Повзунок на шкалі часу розширює вибір дій — на вкладці Actions з’являться відповідні дії, а журнали консолі та мережі відфільтруються лише для вибраних дій.",
-        },
-        {
-          en: "### Snapshots",
-          uk: "### Знімки DOM (Snapshots)",
-        },
-        {
-          en: "When tracing with the [`option: Tracing.start.snapshots`] option turned on (default), Playwright captures a set of complete DOM snapshots for each action. Depending on the type of the action, it will capture:",
-          uk: "Якщо ввімкнено [`option: Tracing.start.snapshots`] (за замовчуванням), Playwright зберігає повні DOM-знімки для кожної дії. Залежно від типу дії фіксується:",
-        },
-        {
-          en: "| Type | Description |\n|------|-------------|\n|Before|A snapshot at the time action is called.|\n|Action|A snapshot at the moment of the performed input. This type of snapshot is especially useful when exploring where exactly Playwright clicked.|\n|After|A snapshot after the action.|",
-          uk: "| Тип | Опис |\n|------|------|\n|Before|Знімок на момент виклику дії.|\n|Action|Знімок у момент введення (кліку тощо). Особливо корисно, щоб побачити, куди саме клікнув Playwright.|\n|After|Знімок після виконання дії.|",
-        },
-        {
-          en: "Here is what the typical Action snapshot looks like:",
-          uk: "Типовий вигляд знімка типу Action:",
-        },
-        {
-          en: "Notice how it highlights both, the DOM Node as well as the exact click position.",
-          uk: "Підсвічуються і вузол DOM, і точна позиція кліку.",
-        },
-        {
-          en: "### Source",
-          uk: "### Вихідний код (Source)",
-        },
-        {
-          en: "When you click on an action in the sidebar, the line of code for that action is highlighted in the source panel.",
-          uk: "Коли ви обираєте дію на бічній панелі, відповідний рядок коду підсвічується на вкладці Source.",
-        },
-        {
-          en: "### Call",
-          uk: "### Виклик (Call)",
-        },
-        {
-          en: "The call tab shows you information about the action such as the time it took, what locator was used, if in strict mode and what key was used.",
-          uk: "Вкладка Call показує тривалість дії, використаний локатор, чи ввімкнено strict mode і яку клавішу було використано.",
-        },
-        {
-          en: "### Log",
-          uk: "### Журнал (Log)",
-        },
-        {
-          en: "See a full log of your test to better understand what Playwright is doing behind the scenes such as scrolling into view, waiting for element to be visible, enabled and stable and performing actions such as click, fill, press etc.",
-          uk: "Повний журнал тесту допомагає зрозуміти, що Playwright робить «за лаштунками»: прокрутку до видимості, очікування видимості, увімкненості й стабільності елемента, виконання click, fill, press тощо.",
-        },
-        {
-          en: "### Errors",
-          uk: "### Помилки (Errors)",
-        },
-        {
-          en: "If your test fails you will see the error messages for each test in the Errors tab. The timeline will also show a red line highlighting where the error occurred. You can also click on the source tab to see on which line of the source code the error is.",
-          uk: "Якщо тест упав, повідомлення про помилку з’являться на вкладці Errors; на шкалі часу буде червона позначка. На вкладці Source видно рядок коду з помилкою.",
-        },
-        {
-          en: "### Console",
-          uk: "### Консоль (Console)",
-        },
-        {
-          en: "See console logs from the browser as well as from your test. Different icons are displayed to show you if the console log came from the browser or from the test file.",
-          uk: "Показуються записи консолі з браузера й з тесту; різні піктограми відрізняють повідомлення браузера від повідомлень тестового файлу.",
-        },
-        {
-          en: "Double click on an action from your test in the actions sidebar. This will filter the console to only show the logs that were made during that action. Click the *Show all* button to see all console logs again.",
-          uk: "Подвійний клік по дії на бічній панелі відфільтрує консоль лише записами цієї дії. Кнопка *Show all* знову показує всі записи.",
-        },
-        {
-          en: "Use the timeline to filter actions, by clicking a start point and dragging to an ending point. The console tab will also be filtered to only show the logs that were made during the actions selected.",
-          uk: "На шкалі часу виділіть діапазон клацанням і перетягуванням — вкладка Console покаже лише записи за вибрані дії.",
-        },
-        {
-          en: "### Network",
-          uk: "### Мережа (Network)",
-        },
-        {
-          en: "The Network tab shows you all the network requests that were made during your test. You can sort by different types of requests, status code, method, request, content type, duration and size. Click on a request to see more information about it such as the request headers, response headers, request body and response body.",
-          uk: "Вкладка Network містить усі мережеві запити під час тесту. Можна сортувати за типом, кодом стану, методом, URL, типом вмісту, тривалістю та розміром. Клік по запиту відкриває заголовки запиту й відповіді, тіло запиту та відповіді.",
-        },
-        {
-          en: "Double click on an action from your test in the actions sidebar. This will filter the network requests to only show the requests that were made during that action. Click the *Show all* button to see all network requests again.",
-          uk: "Подвійний клік по дії на бічній панелі залишить лише запити, зроблені під час цієї дії. *Show all* повертає повний список.",
-        },
-        {
-          en: "Use the timeline to filter actions, by clicking a start point and dragging to an ending point. The network tab will also be filtered to only show the network requests that were made during the actions selected.",
-          uk: "Виділення інтервалу на шкалі часу відфільтрує й вкладку Network за вибраними діями.",
-        },
-        {
-          en: "### Metadata",
-          uk: "### Метадані (Metadata)",
-        },
-        {
-          en: "Next to the Actions tab you will find the Metadata tab which will show you more information on your test such as the Browser, viewport size, test duration and more.",
-          uk: "Поруч із вкладкою Actions — вкладка Metadata: браузер, розмір в’юпорту, тривалість тесту та інші дані.",
-        },
-        {
-          en: "### Attachments",
-          uk: "### Вкладення (Attachments)",
-        },
-        {
-          en: "The \"Attachments\" tab allows you to explore attachments. If you're doing [visual regression testing](./test-snapshots.md), you'll be able to compare screenshots by examining the image diff, the actual image and the expected image. When you click on the expected image you can use the slider to slide one image over the other so you can easily see the differences in your screenshots.",
-          uk: "На вкладці «Attachments» переглядають вкладення. Для [візуального регресійного тестування](./test-snapshots.md) можна порівняти знімки: diff, фактичний і очікуваний. На очікуваному знімку повзунок накладає зображення одне на одне, щоб побачити відмінності.",
+          en: "Note: traces can contain auth tokens and test user credentials — treat them as sensitive data and don't post to public Slack channels.",
+          uk: "Увага: трейси можуть містити auth-токени і облікові дані тестових юзерів — поводься з ними як з чутливими даними і не постить у публічні Slack-канали.",
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "A test fails on CI with 'element not found'. You have a trace. What's the first thing to check?",
+        uk: "Тест падає на CI з 'element not found'. У тебе є трейс. Що перевіряти першим?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Check the Console tab for JavaScript errors that might have broken the page",
+            uk: "Перевірити вкладку Console на JavaScript-помилки що могли зламати сторінку",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Find the red failure marker on the timeline, click the failing action, check the Before/After DOM snapshots to see what was actually on the page",
+            uk: "Знайти червоний маркер падіння на таймлайні, клацнути дію що впала, перевірити Before/After DOM-snapshot-и щоб побачити що реально було на сторінці",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Check the Network tab to see if the page loaded correctly",
+            uk: "Перевірити вкладку Network щоб побачити чи сторінка завантажилась правильно",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Look at the Log tab to see which locator Playwright tried to match",
+            uk: "Переглянути вкладку Log щоб побачити який локатор Playwright намагався зіставити",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The red marker on the timeline takes you directly to the failure point. The DOM snapshot at that action shows you exactly what was on the page — whether the element was missing entirely, had different text, was hidden, or was behind another element. The console and network tabs are useful secondary checks but the DOM snapshot is the most direct answer for 'element not found'.",
+        uk: "Червоний маркер на таймлайні веде тебе прямо до точки падіння. DOM-snapshot при цій дії показує точно що було на сторінці — чи елемент був повністю відсутній, мав інший текст, був захований, або знаходився за іншим елементом. Вкладки консолі і мережі корисні як другорядні перевірки але DOM-snapshot — найпряміша відповідь на 'element not found'.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "Which trace recording mode is recommended for CI and why?",
+        uk: "Який режим запису трейсів рекомендований для CI і чому?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "trace: 'on' — always record so you have traces for every test whether it passes or fails",
+            uk: "trace: 'on' — завжди записуй щоб мати трейси для кожного тесту незалежно від результату",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "trace: 'on-first-retry' — records only when a test actually fails (requires a retry), balancing debugging usefulness with storage cost",
+            uk: "trace: 'on-first-retry' — записує лише коли тест реально падає (вимагає повтору), балансуючи корисність для дебагу з вартістю зберігання",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "trace: 'off' — traces slow down CI and the HTML report is enough for debugging",
+            uk: "trace: 'off' — трейси сповільнюють CI і HTML-звіту достатньо для дебагу",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "trace: 'retain-on-failure' — records everything and discards only after a test passes, maximizing coverage",
+            uk: "trace: 'retain-on-failure' — записує все і видаляє лише після проходження тесту, максимізуючи покриття",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`on-first-retry` is recommended for CI because: (1) it only records traces for tests that fail — a test that passes on the first attempt generates no trace and uses no storage; (2) with `retries: 2`, a flaky failure still gets captured. `retain-on-failure` is the alternative when you don't use retries but still want traces for failures. `trace: 'on'` records for every test — expensive on large suites. The five modes are: `off`, `on`, `on-first-retry`, `retain-on-failure`, and `on-all-retries`.",
+        uk: "`on-first-retry` рекомендований для CI тому що: (1) записує трейси лише для тестів що падають — тест що проходить з першої спроби не генерує трейс і не використовує місце; (2) з `retries: 2` нестабільне падіння все одно захоплюється. `retain-on-failure` — альтернатива коли не використовуєш повтори але все одно хочеш трейси для падінь. `trace: 'on'` записує для кожного тесту — дорого для великих наборів. П'ять режимів: `off`, `on`, `on-first-retry`, `retain-on-failure` і `on-all-retries`.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "You downloaded a trace.zip from CI but don't have Playwright installed locally. How can you view the trace?",
+        uk: "Ти скачав trace.zip з CI але не маєш Playwright встановленого локально. Як переглянути трейс?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Unzip the file and open index.html in any browser",
+            uk: "Розпакуй файл і відкрий index.html в будь-якому браузері",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Open trace.playwright.dev in a browser and drag the .zip file onto it",
+            uk: "Відкрий trace.playwright.dev в браузері і перетягни .zip файл на нього",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Use npx playwright show-trace — npx downloads Playwright temporarily",
+            uk: "Використовуй npx playwright show-trace — npx тимчасово завантажує Playwright",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Traces can only be viewed by whoever recorded them — they're machine-specific",
+            uk: "Трейси може переглядати лише той хто їх записав — вони прив'язані до конкретної машини",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "trace.playwright.dev is a web-based trace viewer that works entirely in the browser — no Playwright installation required. Drag and drop the `trace.zip` file onto the page. It's also the easiest way to share a trace with someone: send them the zip, they open trace.playwright.dev and drag it in. The viewer is hosted by Playwright and fully processes the trace client-side. If Playwright is installed, `npx playwright show-trace` also works for local viewing.",
+        uk: "trace.playwright.dev — вебовий переглядач трейсів що працює повністю в браузері без встановленого Playwright. Перетягни файл `trace.zip` на сторінку. Це також найпростіший спосіб поділитися трейсом: надіш zip, вони відкривають trace.playwright.dev і перетягують. Переглядач хоститься Playwright і повністю обробляє трейс на стороні клієнта. Якщо Playwright встановлений — `npx playwright show-trace` також працює для локального перегляду.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "In the Trace Viewer, what does the 'Action' DOM snapshot show (as opposed to 'Before' and 'After')?",
+        uk: "У Trace Viewer що показує DOM-snapshot 'Action' (на відміну від 'Before' і 'After')?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The page state when the test started",
+            uk: "Стан сторінки коли тест почався",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "The exact moment of the click or fill — shows precisely where Playwright's action landed, highlighted in the snapshot",
+            uk: "Точний момент кліку або заповнення — показує саме куди потрапила дія Playwright, підсвічено в snapshot",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The DOM tree parsed from the locator selector used in that action",
+            uk: "DOM-дерево розпарсене з селектора локатора використаного в цій дії",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The accessibility tree at the time of the action",
+            uk: "Дерево доступності в момент дії",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Each action in the trace has three DOM snapshots: **Before** (the page state before the action began), **Action** (the moment of the click/fill — Playwright highlights exactly where it interacted with the page), and **After** (the page state after the action completed). The Action snapshot is the most useful for 'why did Playwright click the wrong thing?': it shows the actual click target highlighted in context, revealing if Playwright clicked an obscured element, a different position than expected, or the correct element when the locator resolved.",
+        uk: "Кожна дія у трейсі має три DOM-snapshot-и: **Before** (стан сторінки до початку дії), **Action** (момент кліку/заповнення — Playwright підсвічує точно де він взаємодіяв зі сторінкою), і **After** (стан сторінки після завершення дії). Snapshot Action найкорисніший для питання 'чому Playwright клікнув не те?': показує фактичну ціль кліку підсвіченою в контексті, розкриваючи чи Playwright клікнув на перекритий елемент, іншу позицію ніж очікувалося, або правильний елемент коли локатор розрішився.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "What information does the 'Log' tab in Trace Viewer show?",
+        uk: "Яку інформацію показує вкладка 'Log' у Trace Viewer?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The raw browser console output during the test",
+            uk: "Сирий вивід консолі браузера під час тесту",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "What Playwright was waiting for — which actionability checks ran, which locator it tried to match, and the sequence of retries",
+            uk: "Чого чекав Playwright — які перевірки actionability виконувалися, який локатор намагався зіставити і послідовність повторів",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The test source code with each line highlighted as it executed",
+            uk: "Вихідний код тесту з підсвіченим кожним рядком під час виконання",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Network request/response pairs associated with the selected action",
+            uk: "Пари запит/відповідь мережі пов'язані з вибраною дією",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The Log tab shows Playwright's internal decision process for the selected action: which actionability checks it ran (visible? enabled? in viewport? stable?), whether retries happened, and the final outcome. For a failed `click`, the log might show 'waiting for element to be visible' with a sequence of attempts — telling you the element was never found, was covered, or had a CSS issue. This is complementary to the DOM snapshot: the snapshot shows what was there, the log shows what Playwright was doing about it.",
+        uk: "Вкладка Log показує внутрішній процес прийняття рішень Playwright для вибраної дії: які перевірки actionability виконувалися (видимий? увімкнений? у viewport? стабільний?), чи відбувалися повтори і кінцевий результат. Для невдалого `click` лог може показати 'waiting for element to be visible' з послідовністю спроб — повідомляючи що елемент ніколи не знайдено, перекритий або має CSS-проблему. Це доповнює DOM-snapshot: snapshot показує що там було, лог показує що Playwright з цим робив.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "A teammate shares a trace.zip from a CI failure. You know it contains auth tokens from the test user. What should you be careful about?",
+        uk: "Колега ділиться trace.zip з CI-падіння. Ти знаєш що він містить auth-токени тестового юзера. Про що слід бути обережним?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Nothing — test environment credentials are disposable and not sensitive",
+            uk: "Ні про що — облікові дані тестового середовища одноразові і не є чутливими",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Don't post the trace to public Slack channels or GitHub issues — auth tokens visible in the trace could be used to access the test environment",
+            uk: "Не постив трейс у публічні Slack-канали або GitHub issues — auth-токени видимі в трейсі можуть бути використані для доступу до тестового середовища",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Playwright automatically redacts auth tokens from traces before saving",
+            uk: "Playwright автоматично видаляє auth-токени з трейсів перед збереженням",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Only traces from production runs contain real credentials — CI test credentials are auto-rotated",
+            uk: "Лише трейси з продакшн-запусків містять реальні облікові дані — CI-облікові дані тестів автоматично ротуються",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Traces capture everything the browser did during the test — including cookies, localStorage (where auth tokens live), and network request headers with `Authorization: Bearer ...` values. The Playwright docs explicitly warn about this. Don't post trace files to public GitHub issues, public Slack channels, or any other public-facing system. Treat them like logs from production: share only with team members who need them, in private channels. Even test environment tokens are worth protecting — they often have write access to test databases.",
+        uk: "Трейси захоплюють все що браузер робив під час тесту — включаючи cookies, localStorage (де зберігаються auth-токени) і заголовки мережевих запитів зі значеннями `Authorization: Bearer ...`. Документація Playwright явно попереджає про це. Не постив файли трейсів у публічні GitHub issues, публічні Slack-канали або будь-яку іншу публічну систему. Поводься з ними як з логами з продакшну: діли лише з членами команди яким вони потрібні, у приватних каналах. Навіть токени тестового середовища варто захищати — вони часто мають доступ на запис до тестових баз даних.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "What does the colored timeline at the top of Trace Viewer represent?",
+        uk: "Що представляє кольоровий таймлайн у верхній частині Trace Viewer?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "CPU and memory usage during the test run",
+            uk: "Використання CPU і пам'яті під час виконання тесту",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "A chronological view of actions and navigations — blue blocks for Playwright actions, green for navigations, with a red marker at the point of failure",
+            uk: "Хронологічний вигляд дій і навігацій — сині блоки для дій Playwright, зелені для навігацій, з червоним маркером у точці падіння",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Network waterfall — each bar represents a network request",
+            uk: "Мережевий waterfall — кожна смужка представляє мережевий запит",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Test steps as defined in test.step() blocks",
+            uk: "Кроки тесту як визначені у блоках test.step()",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The timeline strip at the top of Trace Viewer is a chronological view of the test run. Blue blocks represent Playwright actions (clicks, fills, assertions), green represents page navigations. The red marker indicates where the test failed. You can drag the slider to select a time range — all other tabs (Network, Console, Actions) filter to events within the selected range. This makes it easy to focus on what happened around the failure point without scrolling through the entire trace.",
+        uk: "Смуга таймлайну у верхній частині Trace Viewer — хронологічний вигляд виконання тесту. Сині блоки представляють дії Playwright (кліки, заповнення, assertions), зелені — навігації сторінки. Червоний маркер вказує де тест впав. Ти можеш тягнути слайдер щоб вибрати часовий діапазон — всі інші вкладки (Network, Console, Actions) фільтруються до подій у вибраному діапазоні. Це дозволяє легко сфокусуватися на тому що відбувалося навколо точки падіння без прокрутки всього трейсу.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "You click an action in the Actions panel and the DOM snapshot shows the page but the layout looks wrong. What can you do to inspect the CSS more closely?",
+        uk: "Ти клікаєш дію в панелі Actions і DOM-snapshot показує сторінку але верстка виглядає неправильно. Що можна зробити щоб детальніше перевірити CSS?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Use the Trace Viewer's built-in CSS inspector on the right side panel",
+            uk: "Використовуй вбудований CSS-інспектор Trace Viewer на правій бічній панелі",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Pop out the DOM snapshot into a separate browser window — you can then open DevTools and inspect the HTML and CSS",
+            uk: "Відкрий DOM-snapshot у окремому вікні браузера — потім можна відкрити DevTools і перевірити HTML і CSS",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Export the snapshot as HTML and open it in the browser",
+            uk: "Експортуй snapshot як HTML і відкрий в браузері",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The DOM snapshot is read-only — you can't inspect CSS in Trace Viewer",
+            uk: "DOM-snapshot доступний лише для читання — CSS не можна перевірити в Trace Viewer",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The DOM snapshot panel in Trace Viewer has a 'pop out' button that opens the snapshot in a separate browser tab. In that separate tab, you have full access to browser DevTools — you can inspect the HTML, view computed CSS, measure element dimensions, and even run JavaScript against the snapshot. This is invaluable for layout debugging: you can see exactly why an element had `display: none` or was positioned off-screen at the moment of failure.",
+        uk: "Панель DOM-snapshot у Trace Viewer має кнопку 'pop out' що відкриває snapshot в окремій вкладці браузера. У тій окремій вкладці маєш повний доступ до DevTools браузера — можна перевіряти HTML, переглядати обчислений CSS, вимірювати розміри елементів і навіть запускати JavaScript проти snapshot. Це безцінно для дебагу верстки: можна побачити точно чому елемент мав `display: none` або був позиціонований за межами екрана в момент падіння.",
+      },
+    },
+  ],
 }

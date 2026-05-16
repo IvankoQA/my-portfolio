@@ -4,8 +4,8 @@ export const gettingStartedCliTopic: PlaywrightTopic = {
   slug: "getting-started-cli",
   groupId: "getting-started",
   order: 210,
-  level: "beginner",
-  trackOrder: 2,
+  level: "intermediate",
+  trackOrder: 26,
   sourceDoc: "getting-started-cli.md",
   officialDocsUrl: "https://playwright.dev/docs/getting-started-cli",
   title: {
@@ -13,417 +13,493 @@ export const gettingStartedCliTopic: PlaywrightTopic = {
     uk: "Агенти для кодування",
   },
   summary: {
-    en: "Playwright comes with `playwright-cli`, a command-line interface for browser automation designed for coding agents. It provides token-efficient browser control through concise CLI commands and installable skills, making it ideal for agents that need to balance browser automation with large codebases and reasoning within limited context windows.",
-    uk: "Playwright постачає `playwright-cli` — інтерфейс командного рядка для автоматизації браузера, орієнтований на агентів для кодування. Він дає економний за токенами контроль браузера через стислі команди CLI та встановлювані skills, що зручно, коли треба поєднати автоматизацію браузера з великою кодовою базою й обмеженим контекстом моделі.",
+    en: "playwright-cli is a token-efficient browser automation CLI built for coding agents like Claude Code. Instead of loading full tool schemas and accessibility trees into the model context, it exposes concise commands: open, click, type, screenshot, snapshot. Each command outputs minimal state.",
+    uk: "playwright-cli — це token-efficient CLI для автоматизації браузера, побудований для агентів типу Claude Code. Замість завантаження повних схем інструментів і дерев доступності в контекст моделі — надає стислі команди: open, click, type, screenshot, snapshot. Кожна команда виводить мінімальний стан.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "what-is-playwright-cli",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "What playwright-cli is and why it exists",
+        uk: "Що таке playwright-cli і навіщо він існує",
       },
       paragraphs: [
         {
-          en: "Playwright comes with `playwright-cli`, a command-line interface for browser automation designed for coding agents. It provides token-efficient browser control through concise CLI commands and installable skills, making it ideal for agents that need to balance browser automation with large codebases and reasoning within limited context windows.",
-          uk: "Playwright постачає `playwright-cli` — інтерфейс командного рядка для автоматизації браузера, орієнтований на агентів для кодування. Він дає економний за токенами контроль браузера через стислі команди CLI та встановлювані skills, що зручно, коли треба поєднати автоматизацію браузера з великою кодовою базою й обмеженим контекстом моделі.",
+          en: "Regular Playwright MCP exposes full browser state to the model — useful for deep exploration, but expensive in tokens. `playwright-cli` takes the opposite approach: short commands, minimal output, designed for agents that need to balance browser automation with large codebases and limited context windows.",
+          uk: "Звичайний Playwright MCP надає повний стан браузера моделі — корисно для глибокого дослідження, але дорого в токенах. `playwright-cli` йде протилежним шляхом: короткі команди, мінімальний вивід, розроблено для агентів що поєднують автоматизацію браузера з великою кодовою базою і обмеженим контекстом.",
         },
         {
-          en: "### `playwright-cli` vs Playwright MCP",
-          uk: "### `playwright-cli` проти Playwright MCP",
-        },
-        {
-          en: "- **`playwright-cli`** is best for **coding agents** (Claude Code, GitHub Copilot, etc.) that favor token-efficient, skill-based workflows. CLI commands avoid loading large tool schemas and verbose accessibility trees into the model context.\n- **MCP** is best for specialized agentic loops that benefit from persistent state and iterative reasoning over page structure, such as exploratory automation or long-running autonomous workflows. See the [MCP getting started guide](./getting-started-mcp.md).",
-          uk: "- **`playwright-cli`** зручний для **агентів для кодування** (Claude Code, GitHub Copilot тощо), які надають перевагу економним за токенами сценаріям на базі skills. Команди CLI не підвантажують великі схеми інструментів і розлогі дерева доступності в контекст моделі.\n- **MCP** краще підходить для спеціалізованих агентних циклів із постійним станом і ітеративним міркуванням над структурою сторінки — наприклад, розвідувальна автоматизація або довгі автономні сценарії.\n\nДив. [посібник зі старту MCP](./getting-started-mcp.md).",
-        },
-      ],
-    },
-    {
-      id: "prerequisites",
-      title: {
-        en: "Prerequisites",
-        uk: "Передумови",
-      },
-      paragraphs: [
-        {
-          en: "Before you begin, make sure you have the following installed:\n- [Node.js](https://nodejs.org/) 18 or newer\n- A coding agent: Claude Code, GitHub Copilot, or similar",
-          uk: "Перед початком переконайтеся, що встановлено:\n- [Node.js](https://nodejs.org/) 18 або новіше\n- агента для кодування: Claude Code, GitHub Copilot або аналог",
-        },
-      ],
-    },
-    {
-      id: "installation",
-      title: {
-        en: "Installation",
-        uk: "Встановлення",
-      },
-      paragraphs: [
-        {
-          en: "Install `playwright-cli` globally:",
-          uk: "Глобальне встановлення `playwright-cli`:",
-        },
-        {
-          en: "Alternatively, install `@playwright/cli` as a local dependency and use `npx`:",
-          uk: "Або встановіть `@playwright/cli` як локальну залежність і використовуйте `npx`:",
-        },
-        {
-          en: "### Installing skills",
-          uk: "### Встановлення skills",
-        },
-        {
-          en: "Coding agents like Claude Code and GitHub Copilot can use locally installed skills for richer context about available commands:",
-          uk: "Агенти на кшталт Claude Code і GitHub Copilot можуть використовувати локально встановлені skills для кращого контексту щодо доступних команд:",
-        },
-        {
-          en: "### Skills-less operation",
-          uk: "### Робота без skills",
-        },
-        {
-          en: "You can also point your agent at the CLI directly and let it discover commands on its own:",
-          uk: "Можна також направити агента безпосередньо на CLI — він сам знайде команди:",
+          en: "Use `playwright-cli` when: the agent is working on a codebase and occasionally needs to check something in the browser. Use MCP when: the agent needs to explore page structure deeply and reason over it iteratively.",
+          uk: "Використовуй `playwright-cli` коли: агент працює з кодовою базою і час від часу потребує перевірити щось у браузері. Використовуй MCP коли: агент потребує глибоко досліджувати структуру сторінки і ітеративно міркувати над нею.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
+          id: "install",
           language: "bash",
-          code: "npm install -g @playwright/cli@latest\nplaywright-cli --help",
-        },
-        {
-          id: "cb-2",
-          language: "bash",
-          code: "npx playwright-cli --help",
-        },
-        {
-          id: "cb-3",
-          language: "bash",
-          code: "playwright-cli install --skills",
-        },
-        {
-          id: "cb-4",
-          language: "txt",
-          code: 'Test the "add todo" flow on https://demo.playwright.dev/todomvc using playwright-cli.\nCheck playwright-cli --help for available commands.',
-        },
-      ],
-    },
-    {
-      id: "first-steps",
-      title: {
-        en: "First Steps",
-        uk: "Перші кроки",
-      },
-      paragraphs: [
-        {
-          en: "### Interactive demo",
-          uk: "### Інтерактивне демо",
-        },
-        {
-          en: "Try asking your coding agent:",
-          uk: "Спробуйте запитати свого агента для кодування:",
-        },
-        {
-          en: "### Manual walkthrough",
-          uk: "### Ручний прохід",
-        },
-        {
-          en: "You can also run commands manually to see how the CLI works:",
-          uk: "Команди можна виконувати вручну, щоб побачити, як працює CLI:",
-        },
-        {
-          en: "After each command, the CLI outputs a snapshot of the current page state:",
-          uk: "Після кожної команди CLI виводить знімок поточного стану сторінки:",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-5",
-          language: "txt",
-          code: "Use playwright skills to test https://demo.playwright.dev/todomvc/.\nTake screenshots for all successful and failing scenarios.",
-        },
-        {
-          id: "cb-6",
-          language: "bash",
-          code: 'playwright-cli open https://demo.playwright.dev/todomvc/ --headed\nplaywright-cli type "Buy groceries"\nplaywright-cli press Enter\nplaywright-cli type "Water flowers"\nplaywright-cli press Enter\nplaywright-cli check e21\nplaywright-cli screenshot',
-        },
-        {
-          id: "cb-7",
-          language: "txt",
-          code: "### Page\n- Page URL: https://demo.playwright.dev/todomvc/#/\n- Page Title: React • TodoMVC\n### Snapshot\n[Snapshot](.playwright-cli/page-2026-02-14T19-22-42-679Z.yml)",
+          code: `# Встановити глобально
+npm install -g @playwright/cli@latest
+
+# Або через npx (без глобального встановлення)
+npx playwright-cli --help
+
+# Встановити skills для кращого контексту в агентах
+playwright-cli install --skills`,
         },
       ],
     },
     {
       id: "core-commands",
       title: {
-        en: "Core Commands",
+        en: "Core commands",
         uk: "Основні команди",
       },
       paragraphs: [
         {
-          en: "### Interacting with pages",
-          uk: "### Взаємодія зі сторінками",
-        },
-        {
-          en: "### Targeting elements",
-          uk: "### Вибір елементів",
-        },
-        {
-          en: "Use element refs from snapshots to target elements:",
-          uk: "Використовуйте посилання на елементи (refs) із знімків:",
-        },
-        {
-          en: "You can also use CSS or role selectors:",
-          uk: "Також можна застосовувати CSS-селектори або селектори за роллю:",
-        },
-        {
-          en: "### Screenshots and snapshots",
-          uk: "### Знімки екрана та структури сторінки",
-        },
-        {
-          en: "### Navigation",
-          uk: "### Навігація",
-        },
-        {
-          en: "### Keyboard and mouse",
-          uk: "### Клавіатура й миша",
-        },
-        {
-          en: "### Tabs",
-          uk: "### Вкладки",
-        },
-        {
-          en: "### Network",
-          uk: "### Мережа",
-        },
-        {
-          en: "### Storage",
-          uk: "### Сховище",
-        },
-        {
-          en: "### DevTools",
-          uk: "### DevTools",
+          en: "The most common commands I use when asking an agent to test something in the browser:",
+          uk: "Найпоширеніші команди які я використовую коли прошу агента протестувати щось у браузері:",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-8",
+          id: "basic-flow",
           language: "bash",
-          code: "playwright-cli open [url]               # open browser, optionally navigate to url\nplaywright-cli goto                # navigate to a url\nplaywright-cli click  [button]     # click an element\nplaywright-cli type               # type text into editable element\nplaywright-cli fill          # fill text into editable element\nplaywright-cli select       # select an option in a dropdown\nplaywright-cli check               # check a checkbox or radio button\nplaywright-cli uncheck             # uncheck a checkbox\nplaywright-cli hover               # hover over element\nplaywright-cli drag   # drag and drop between elements\nplaywright-cli upload             # upload files\nplaywright-cli close                    # close the page",
+          code: `# Відкрити сторінку
+playwright-cli open https://localhost:3000/orders
+
+# Взаємодіяти
+playwright-cli click "role=button[name=Create order]"
+playwright-cli fill "label=Item name" "Laptop Stand"
+playwright-cli press Enter
+
+# Перевірити стан
+playwright-cli snapshot         # структура сторінки (для агента)
+playwright-cli screenshot       # візуальний знімок
+
+# Навігація
+playwright-cli goto /orders/42
+playwright-cli go-back`,
         },
         {
-          id: "cb-9",
+          id: "element-refs",
           language: "bash",
-          code: "playwright-cli snapshot                 # get snapshot with element refs\nplaywright-cli click e15                # click using a ref",
-        },
-        {
-          id: "cb-10",
-          language: "bash",
-          code: 'playwright-cli click "#main > button.submit"\nplaywright-cli click "role=button[name=Submit]"\nplaywright-cli click "#footer >> role=button[name=Submit]"',
-        },
-        {
-          id: "cb-11",
-          language: "bash",
-          code: "playwright-cli snapshot                 # capture page snapshot\nplaywright-cli snapshot --filename=f    # save snapshot to specific file\nplaywright-cli screenshot               # screenshot of the current page\nplaywright-cli screenshot [ref]         # screenshot of a specific element\nplaywright-cli screenshot --filename=f  # save with specific filename\nplaywright-cli pdf                      # save page as PDF",
-        },
-        {
-          id: "cb-12",
-          language: "bash",
-          code: "playwright-cli go-back                  # go back\nplaywright-cli go-forward               # go forward\nplaywright-cli reload                   # reload the page",
-        },
-        {
-          id: "cb-13",
-          language: "bash",
-          code: "playwright-cli press               # press a key (e.g. Enter, ArrowLeft)\nplaywright-cli keydown             # key down\nplaywright-cli keyup               # key up\nplaywright-cli mousemove          # move mouse\nplaywright-cli mousedown [button]       # mouse button down\nplaywright-cli mouseup [button]         # mouse button up\nplaywright-cli mousewheel       # scroll",
-        },
-        {
-          id: "cb-14",
-          language: "bash",
-          code: "playwright-cli tab-list                 # list all tabs\nplaywright-cli tab-new [url]            # create a new tab\nplaywright-cli tab-select        # select a tab\nplaywright-cli tab-close [index]        # close a tab",
-        },
-        {
-          id: "cb-15",
-          language: "bash",
-          code: "playwright-cli requests                 # list network requests since page load\nplaywright-cli request             # show full details of a single request\nplaywright-cli route  [opts]   # mock network requests\nplaywright-cli route-list               # list active routes\nplaywright-cli unroute [pattern]        # remove routes",
-        },
-        {
-          id: "cb-16",
-          language: "bash",
-          code: "playwright-cli state-save [filename]    # save storage state (cookies, localStorage)\nplaywright-cli state-load     # load storage state\n\n# Cookies\nplaywright-cli cookie-list [--domain]   # list cookies\nplaywright-cli cookie-get         # get a cookie\nplaywright-cli cookie-set    # set a cookie\nplaywright-cli cookie-delete      # delete a cookie\nplaywright-cli cookie-clear             # clear all cookies\n\n# localStorage\nplaywright-cli localstorage-list        # list entries\nplaywright-cli localstorage-get    # get value\nplaywright-cli localstorage-set   # set value\nplaywright-cli localstorage-delete   # delete entry\nplaywright-cli localstorage-clear       # clear all",
-        },
-        {
-          id: "cb-17",
-          language: "bash",
-          code: "playwright-cli console [min-level]      # list console messages\nplaywright-cli eval  [ref]        # evaluate JavaScript on page\nplaywright-cli run-code           # run Playwright code snippet\nplaywright-cli tracing-start            # start trace recording\nplaywright-cli tracing-stop             # stop trace recording\nplaywright-cli video-start              # start video recording\nplaywright-cli video-chapter     # add chapter marker to video\nplaywright-cli video-stop --filename=f  # stop video recording",
+          code: `# snapshot повертає refs для кожного елементу
+playwright-cli snapshot
+# → [e15] Create order button
+# → [e22] Item name input
+
+# Використати ref для точного кліку
+playwright-cli click e15
+playwright-cli fill e22 "Laptop Stand"`,
         },
       ],
     },
     {
       id: "sessions",
       title: {
-        en: "Sessions",
-        uk: "Сесії",
+        en: "Sessions — keep browser state between commands",
+        uk: "Сесії — зберігати стан браузера між командами",
       },
       paragraphs: [
         {
-          en: "The CLI keeps the browser profile in memory by default — cookies and storage state are preserved between calls within a session but lost when the browser closes. Use `--persistent` to save the profile to disk.",
-          uk: "За замовчуванням CLI тримає профіль браузера в пам’яті: cookies і стан сховища зберігаються між викликами в межах сесії, але губляться після закриття браузера. Прапорець `--persistent` зберігає профіль на диску.",
-        },
-        {
-          en: "### Named sessions",
-          uk: "### Іменовані сесії",
-        },
-        {
-          en: "Run multiple browser instances for different projects:",
-          uk: "Запуск кількох екземплярів браузера для різних проєктів:",
-        },
-        {
-          en: "You can configure your coding agent to use a specific session:",
-          uk: "Можна налаштувати агента для кодування на використання певної сесії:",
-        },
-        {
-          en: "### Session management",
-          uk: "### Керування сесіями",
+          en: "By default, CLI keeps browser state in memory — cookies and localStorage persist between calls within a session but reset when the browser closes. Named sessions let you run multiple browsers for different contexts.",
+          uk: "За замовчуванням CLI зберігає стан браузера в пам'яті — cookies і localStorage зберігаються між викликами в межах сесії але скидаються коли браузер закривається. Іменовані сесії дозволяють запускати кілька браузерів для різних контекстів.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-18",
+          id: "sessions",
           language: "bash",
-          code: "playwright-cli open https://playwright.dev\nplaywright-cli -s=example open https://example.com --persistent\nplaywright-cli list                     # list all sessions",
-        },
-        {
-          id: "cb-19",
-          language: "bash",
-          code: "PLAYWRIGHT_CLI_SESSION=todo-app claude .",
-        },
-        {
-          id: "cb-20",
-          language: "bash",
-          code: "playwright-cli list                     # list all sessions\nplaywright-cli close-all                # close all browsers\nplaywright-cli kill-all                 # forcefully kill all browser processes\nplaywright-cli -s=name delete-data      # delete user data for a named session",
+          code: `# Іменована сесія — для ізоляції різних проєктів
+playwright-cli -s=crm open https://localhost:3000 --persistent
+playwright-cli -s=admin open https://localhost:3000/admin
+
+# Переглянути активні сесії
+playwright-cli list
+
+# Передати сесію агенту через env
+PLAYWRIGHT_CLI_SESSION=crm claude .`,
         },
       ],
     },
     {
       id: "monitoring",
       title: {
-        en: "Monitoring",
-        uk: "Моніторинг",
+        en: "Monitoring all sessions",
+        uk: "Моніторинг всіх сесій",
       },
       paragraphs: [
         {
-          en: "Use `playwright-cli show` to open a visual dashboard for observing and controlling all running browser sessions:",
-          uk: "Команда `playwright-cli show` відкриває візуальну панель для спостереження та керування всіма активними сесіями браузера:",
-        },
-        {
-          en: "The dashboard provides:",
-          uk: "Панель містить:",
-        },
-        {
-          en: "- **Session grid** — all active sessions grouped by workspace, each with a live screencast preview, session name, current URL, and page title. Click any session to zoom in.\n- **Session detail** — a live view of the selected session with tab bar, navigation controls, and full remote control. Click into the viewport to take over mouse and keyboard; press Escape to release.",
-          uk: "- **Сітка сесій** — усі активні сесії згруповані за робочим простором; для кожної є попередній перегляд screencast, ім’я сесії, поточний URL і заголовок сторінки. Клік по сесії збільшує її.\n- **Деталі сесії** — живий вигляд обраної сесії з панеллю вкладок, навігацією і повним віддаленим керуванням. Клік у viewport передає керування мишею та клавіатурою; Escape — звільняє.",
+          en: "`playwright-cli show` opens a visual dashboard in the browser where you can see all running sessions with live screencasts. You can click into any session to take over mouse and keyboard control.",
+          uk: "`playwright-cli show` відкриває візуальну панель у браузері де видно всі запущені сесії з live screencasts. Можна клацнути на будь-яку сесію щоб перейняти контроль мишкою і клавіатурою.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-21",
+          id: "monitor",
           language: "bash",
-          code: "playwright-cli show",
+          code: `# Відкрити панель моніторингу
+playwright-cli show`,
         },
       ],
     },
     {
-      id: "configuration",
+      id: "asking-agent",
       title: {
-        en: "Configuration",
-        uk: "Налаштування",
+        en: "How to ask a coding agent to use playwright-cli",
+        uk: "Як просити агента використовувати playwright-cli",
       },
       paragraphs: [
         {
-          en: "### Headed mode",
-          uk: "### Режим з інтерфейсом (headed)",
-        },
-        {
-          en: "The CLI runs headless by default. To see the browser:",
-          uk: "За замовчуванням CLI працює у headless. Щоб бачити браузер:",
-        },
-        {
-          en: "### Browser selection",
-          uk: "### Вибір браузера",
-        },
-        {
-          en: "### Configuration file",
-          uk: "### Файл конфігурації",
-        },
-        {
-          en: "For advanced settings, use a JSON config file:",
-          uk: "Для розширених параметрів використовуйте JSON-файл конфігурації:",
-        },
-        {
-          en: "The CLI also loads `.playwright/cli.config.json` automatically if present. The config file supports browser options, context options, network rules, timeouts, and more. Run `playwright-cli --help` for the full list of options.",
-          uk: "CLI автоматично підвантажує `.playwright/cli.config.json`, якщо файл існує. У конфігурації підтримуються опції браузера та контексту, мережеві правила, таймаути тощо. Повний список — у `playwright-cli --help`.",
-        },
-        {
-          en: "### Browser extension",
-          uk: "### Розширення браузера",
-        },
-        {
-          en: "Connect to your existing browser tabs instead of launching a new browser:",
-          uk: "Підключення до вже відкритих вкладок замість запуску нового браузера:",
-        },
-        {
-          en: "This requires the [Playwright Extension](https://github.com/microsoft/playwright/blob/main/packages/extension/README.md) to be installed.",
-          uk: "Потрібно встановити [розширення Playwright](https://github.com/microsoft/playwright/blob/main/packages/extension/README.md).",
+          en: "The simplest way: just describe what to test and mention playwright-cli. The agent will discover commands via `playwright-cli --help` or use installed skills.",
+          uk: "Найпростіший спосіб: просто опиши що протестувати і згадай playwright-cli. Агент знайде команди через `playwright-cli --help` або використає встановлені skills.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-22",
-          language: "bash",
-          code: "playwright-cli open https://playwright.dev --headed",
-        },
-        {
-          id: "cb-23",
-          language: "bash",
-          code: "playwright-cli open --browser=chrome    # use specific browser\nplaywright-cli open --browser=firefox\nplaywright-cli open --browser=webkit\nplaywright-cli open --browser=msedge",
-        },
-        {
-          id: "cb-24",
-          language: "bash",
-          code: "playwright-cli --config path/to/config.json open example.com",
-        },
-        {
-          id: "cb-25",
-          language: "bash",
-          code: "playwright-cli attach --extension",
-        },
-      ],
-    },
-    {
-      id: "quick-reference",
-      title: {
-        en: "Quick Reference",
-        uk: "Швидка довідка",
-      },
-      paragraphs: [
-        {
-          en: '| Action                    | Command                                             |\n| ------------------------- | --------------------------------------------------- |\n| **Install CLI**           | `npm install -g @playwright/cli@latest`             |\n| **Install skills**        | `playwright-cli install --skills`                   |\n| **Open a page**           | `playwright-cli open https://example.com`           |\n| **Click an element**      | `playwright-cli click e15`                          |\n| **Type text**             | `playwright-cli type "hello world"`                 |\n| **Take a screenshot**     | `playwright-cli screenshot`                         |\n| **Get page snapshot**     | `playwright-cli snapshot`                           |\n| **Run headed**            | `playwright-cli open https://example.com --headed`  |\n| **Use Firefox**           | `playwright-cli open --browser=firefox`             |\n| **Monitor sessions**      | `playwright-cli show`                               |',
-          uk: '| Дія                       | Команда                                             |\n| ------------------------- | --------------------------------------------------- |\n| **Встановити CLI**        | `npm install -g @playwright/cli@latest`             |\n| **Встановити skills**     | `playwright-cli install --skills`                   |\n| **Відкрити сторінку**     | `playwright-cli open https://example.com`           |\n| **Клік по елементу**      | `playwright-cli click e15`                          |\n| **Ввести текст**          | `playwright-cli type "hello world"`                 |\n| **Знімок екрана**         | `playwright-cli screenshot`                         |\n| **Знімок структури**      | `playwright-cli snapshot`                           |\n| **З інтерфейсом**         | `playwright-cli open https://example.com --headed`  |\n| **Firefox**               | `playwright-cli open --browser=firefox`             |\n| **Моніторинг сесій**      | `playwright-cli show`                               |',
-        },
-      ],
-    },
-    {
-      id: "what-s-next",
-      title: {
-        en: "What's Next",
-        uk: "Що далі",
-      },
-      paragraphs: [
-        {
-          en: "- [Write tests using web-first assertions, page fixtures, and locators](./writing-tests.md)\n- [Run your tests on CI](./ci-intro.md)\n- [Learn more about the Trace Viewer](./trace-viewer.md)",
-          uk: "- [Писати тести з web-first assertions, фікстурами сторінки та локаторами](./writing-tests.md)\n- [Запускати тести в CI](./ci-intro.md)\n- [Дізнатися більше про Trace Viewer](./trace-viewer.md)",
+          id: "agent-prompt",
+          language: "text",
+          code: `Протестуй flow створення замовлення на http://localhost:3000
+використовуючи playwright-cli.
+
+1. Відкрий /orders/new
+2. Заповни форму: Item = "Laptop Stand", Quantity = 2
+3. Підтвердь замовлення
+4. Перевір що з'явився banner "Order created"
+5. Зроби screenshot фінального стану`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "What's the main advantage of playwright-cli over Playwright MCP for coding agents?",
+        uk: "Яка головна перевага playwright-cli перед Playwright MCP для агентів для кодування?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "playwright-cli supports more browsers than MCP",
+            uk: "playwright-cli підтримує більше браузерів ніж MCP",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "playwright-cli uses fewer tokens — concise commands and minimal output instead of full accessibility trees",
+            uk: "playwright-cli використовує менше токенів — стислі команди і мінімальний вивід замість повних дерев доступності",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "playwright-cli is faster because it doesn't use a browser",
+            uk: "playwright-cli швидший бо не використовує браузер",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Token efficiency is the whole point. MCP exposes full page structure and tool schemas into the model context — useful for exploration but expensive. playwright-cli outputs just what the agent needs to proceed. When an agent is working on a codebase and needs to occasionally check browser behavior, burning the context on full accessibility trees hurts its ability to reason over code.",
+        uk: "Економія токенів — весь сенс. MCP надає повну структуру сторінки і схеми інструментів у контекст моделі — корисно для дослідження але дорого. playwright-cli виводить тільки те що агенту потрібно для продовження. Коли агент працює з кодовою базою і час від часу перевіряє поведінку браузера — витрачати контекст на повні дерева доступності шкодить його здатності міркувати про код.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "How do browser sessions work in playwright-cli within a single session?",
+        uk: "Як працюють сесії браузера в playwright-cli в межах однієї сесії?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Each command opens a fresh browser with no cookies or localStorage",
+            uk: "Кожна команда відкриває свіжий браузер без cookies або localStorage",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Browser state (cookies, localStorage) persists between commands within a session but resets when the browser closes",
+            uk: "Стан браузера (cookies, localStorage) зберігається між командами в межах сесії але скидається коли браузер закривається",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "All state is stored on disk and persists indefinitely until manually cleared",
+            uk: "Весь стан зберігається на диску і зберігається безстроково поки не буде вручну очищений",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Sessions in playwright-cli are stateless — you must pass auth tokens with every command",
+            uk: "Сесії в playwright-cli не мають стану — потрібно передавати токени авторизації з кожною командою",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Within a playwright-cli session, the browser keeps state in memory — cookies set by one command are available to the next command in the same session. This means a login done with 'playwright-cli fill' persists for subsequent 'playwright-cli click' calls. When the browser closes (or the session ends), state is lost. Named sessions (playwright-cli -s=name) allow running multiple isolated browsers simultaneously.",
+        uk: "В межах сесії playwright-cli браузер зберігає стан в пам'яті — cookies встановлені однією командою доступні наступній команді в тій же сесії. Це означає що логін виконаний через 'playwright-cli fill' зберігається для наступних викликів 'playwright-cli click'. Коли браузер закривається (або сесія завершується) стан втрачається. Іменовані сесії (playwright-cli -s=name) дозволяють одночасно запускати кілька ізольованих браузерів.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "What is the difference between 'playwright-cli snapshot' and 'playwright-cli screenshot'?",
+        uk: "Яка різниця між 'playwright-cli snapshot' і 'playwright-cli screenshot'?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "snapshot saves a full HTML file; screenshot saves a PNG — both are for human review",
+            uk: "snapshot зберігає повний HTML файл; screenshot зберігає PNG — обидва для людського перегляду",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "snapshot outputs a structured text representation of page elements (for agent reasoning); screenshot saves a visual PNG image (for human review or visual comparison)",
+            uk: "snapshot виводить структурований текстовий опис елементів сторінки (для міркування агента); screenshot зберігає візуальне PNG зображення (для людського перегляду або візуального порівняння)",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "They are identical — 'snapshot' is just an alias for 'screenshot'",
+            uk: "Вони ідентичні — 'snapshot' просто псевдонім для 'screenshot'",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "snapshot captures network requests; screenshot captures the DOM",
+            uk: "snapshot захоплює мережеві запити; screenshot захоплює DOM",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "snapshot outputs a structured accessibility-tree-like text representation of the page — element roles, text, and refs. This is what the AI agent reads to understand page structure without needing vision capabilities. screenshot produces a PNG image file, useful for human review or when you need to verify visual layout. In a token-efficient workflow, prefer snapshot over screenshot whenever possible.",
+        uk: "snapshot виводить структурований текстовий опис сторінки схожий на дерево доступності — ролі елементів, текст і refs. Це те що AI-агент читає щоб розуміти структуру сторінки без потреби у візуальних можливостях. screenshot створює PNG-файл зображення, корисний для людського перегляду або коли потрібно перевірити візуальний макет. В token-efficient workflow надавай перевагу snapshot над screenshot коли можливо.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "After running 'playwright-cli snapshot', you see output like '[e15] Create order button'. How do you click that element?",
+        uk: "Після запуску 'playwright-cli snapshot' бачиш вивід '[e15] Create order button'. Як клікнути на той елемент?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "playwright-cli click \"Create order button\"",
+            uk: "playwright-cli click \"Create order button\"",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "playwright-cli click e15",
+            uk: "playwright-cli click e15",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "playwright-cli click --ref=e15",
+            uk: "playwright-cli click --ref=e15",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "playwright-cli click \"role=button[name=Create order]\"",
+            uk: "playwright-cli click \"role=button[name=Create order]\"",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Refs like 'e15' in snapshot output are element references that playwright-cli uses for precise targeting. You pass the ref directly as the argument to 'click', 'fill', and other interaction commands. This avoids having to re-describe the locator — the agent reads the snapshot, picks the ref, and acts on it immediately. This is the core interaction pattern that makes playwright-cli efficient for agents.",
+        uk: "Refs типу 'e15' у виводі snapshot — це посилання на елементи які playwright-cli використовує для точного адресування. Ти передаєш ref напряму як аргумент до 'click', 'fill' та інших команд взаємодії. Це уникає необхідності повторно описувати локатор — агент читає snapshot, вибирає ref і одразу діє на нього. Це основний шаблон взаємодії що робить playwright-cli ефективним для агентів.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "What does 'playwright-cli show' open?",
+        uk: "Що відкриває 'playwright-cli show'?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "A terminal dashboard listing all CLI commands and their usage",
+            uk: "Термінальна панель що виводить всі CLI-команди та їх використання",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "A visual browser dashboard showing all running sessions with live screencasts, where you can take over mouse and keyboard control",
+            uk: "Візуальна панель браузера що показує всі запущені сесії з live screencasts, де можна перейняти контроль мишкою і клавіатурою",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The Playwright HTML test report for the last test run",
+            uk: "HTML-звіт тестів Playwright для останнього запуску",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "A JSON file with the current page state and active sessions",
+            uk: "JSON-файл з поточним станом сторінки і активними сесіями",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "'playwright-cli show' opens a visual monitoring dashboard in your default browser. It displays all currently running playwright-cli sessions with live screencast previews so you can see what each agent session is doing in real time. You can click into any session to take over with your own mouse and keyboard — useful for debugging or manually completing a step an agent got stuck on.",
+        uk: "'playwright-cli show' відкриває візуальну моніторингову панель у твоєму браузері за замовчуванням. Вона показує всі поточні запущені сесії playwright-cli з live screencast превью щоб бачити що робить кожна агентська сесія в реальному часі. Можна клацнути на будь-яку сесію щоб перейняти контроль своєю мишкою і клавіатурою — корисно для дебагу або ручного завершення кроку на якому агент застрягнув.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "When should you choose playwright-cli over writing standard Playwright tests?",
+        uk: "Коли варто вибирати playwright-cli замість написання стандартних тестів Playwright?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Always — playwright-cli is a superset of Playwright tests and replaces them entirely",
+            uk: "Завжди — playwright-cli є надмножиною тестів Playwright і повністю замінює їх",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "When a coding agent needs to occasionally check browser state while working on a codebase — playwright-cli keeps token cost low",
+            uk: "Коли агенту для кодування потрібно час від часу перевіряти стан браузера поки він працює з кодовою базою — playwright-cli тримає вартість токенів низькою",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Only for mobile device testing — playwright-cli has better mobile support than standard Playwright",
+            uk: "Тільки для тестування мобільних пристроїв — playwright-cli має кращу підтримку мобільних ніж стандартний Playwright",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "When tests need to run in parallel — playwright-cli handles parallelism automatically",
+            uk: "Коли тести потрібно запускати паралельно — playwright-cli автоматично обробляє паралелізм",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "playwright-cli fills a specific niche: coding agents that primarily work with code and only occasionally need to interact with a browser. For that use case, loading full MCP tool schemas and accessibility trees into the context is wasteful. playwright-cli's minimal output keeps the agent's context window available for code reasoning. For persistent test suites that run on CI, standard Playwright tests remain the right choice.",
+        uk: "playwright-cli займає конкретну нішу: агенти для кодування які переважно працюють з кодом і лише час від часу потребують взаємодії з браузером. Для цього випадку завантаження повних схем інструментів MCP і дерев доступності в контекст є марнотратним. Мінімальний вивід playwright-cli зберігає контекстне вікно агента доступним для міркування про код. Для постійних наборів тестів що виконуються на CI стандартні тести Playwright залишаються правильним вибором.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "How do you install playwright-cli and then install skills for better agent context?",
+        uk: "Як встановити playwright-cli і потім встановити skills для кращого контексту агента?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "npm install playwright-cli && playwright-cli --setup",
+            uk: "npm install playwright-cli && playwright-cli --setup",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "npm install -g @playwright/cli@latest && playwright-cli install --skills",
+            uk: "npm install -g @playwright/cli@latest && playwright-cli install --skills",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "npx @playwright/mcp@latest install && mcp install --skills",
+            uk: "npx @playwright/mcp@latest install && mcp install --skills",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "npm install @playwright/test && playwright install --skills",
+            uk: "npm install @playwright/test && playwright install --skills",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The package name is '@playwright/cli' (scoped under @playwright). Installing globally with -g makes 'playwright-cli' available as a shell command. The 'playwright-cli install --skills' command adds context files that help coding agents discover available commands and workflows without needing to explore the CLI manually.",
+        uk: "Назва пакету — '@playwright/cli' (у просторі імен @playwright). Глобальне встановлення через -g робить 'playwright-cli' доступним як shell-команда. Команда 'playwright-cli install --skills' додає контекстні файли які допомагають агентам для кодування знаходити доступні команди і workflows без необхідності досліджувати CLI вручну.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "You want an agent to test multiple users simultaneously — admin and a regular user — in isolated browser contexts. How do named sessions help?",
+        uk: "Хочеш щоб агент тестував кількох користувачів одночасно — адміна і звичайного користувача — в ізольованих браузерних контекстах. Як іменовані сесії допомагають?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Named sessions are not possible — playwright-cli only supports one browser at a time",
+            uk: "Іменовані сесії неможливі — playwright-cli підтримує лише один браузер одночасно",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Use 'playwright-cli -s=admin' and 'playwright-cli -s=user' — each named session runs its own isolated browser with separate cookies and localStorage",
+            uk: "Використовувати 'playwright-cli -s=admin' і 'playwright-cli -s=user' — кожна іменована сесія запускає свій ізольований браузер з окремими cookies і localStorage",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Open two terminal windows and run playwright-cli in each — they automatically use different browsers",
+            uk: "Відкрити два вікна терміналу і запустити playwright-cli в кожному — вони автоматично використовують різні браузери",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Pass --isolated to playwright-cli open to create a new incognito context each time",
+            uk: "Передати --isolated до playwright-cli open щоб щоразу створювати новий incognito контекст",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Named sessions (playwright-cli -s=<name>) spin up separate browser instances that are fully isolated from each other. The admin session has its own cookies, localStorage, and navigation state independent from the user session. You can also pass the session name to an agent via the PLAYWRIGHT_CLI_SESSION environment variable so it automatically uses the right session. This makes multi-user testing scenarios straightforward.",
+        uk: "Іменовані сесії (playwright-cli -s=<name>) запускають окремі екземпляри браузера які повністю ізольовані один від одного. Сесія адміна має власні cookies, localStorage і стан навігації незалежно від сесії користувача. Також можна передати назву сесії агенту через змінну середовища PLAYWRIGHT_CLI_SESSION щоб він автоматично використовував правильну сесію. Це робить сценарії тестування для кількох користувачів простими.",
+      },
+    },
+  ],
 }

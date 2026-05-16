@@ -4,8 +4,8 @@ export const gettingStartedMcpTopic: PlaywrightTopic = {
   slug: "getting-started-mcp",
   groupId: "getting-started",
   order: 215,
-  level: "beginner",
-  trackOrder: 4,
+  level: "intermediate",
+  trackOrder: 27,
   sourceDoc: "getting-started-mcp.md",
   officialDocsUrl: "https://playwright.dev/docs/getting-started-mcp",
   title: {
@@ -13,330 +13,472 @@ export const gettingStartedMcpTopic: PlaywrightTopic = {
     uk: "Playwright MCP",
   },
   summary: {
-    en: "The Playwright MCP server provides browser automation capabilities through the [Model Context Protocol](https://modelcontextprotocol.io), enabling LLMs to interact with web pages using structured accessibility snapshots. It works with VS Code, Cursor, Windsurf, Claude Desktop, and any other MCP client — no vision models required.",
-    uk: "Сервер Playwright MCP надає можливості автоматизації браузера через [Model Context Protocol](https://modelcontextprotocol.io), даючи LLM змогу взаємодіяти з вебсторінками за допомогою структурованих знімків доступності. Він працює з VS Code, Cursor, Windsurf, Claude Desktop і будь-яким іншим MCP-клієнтом — моделі зору не потрібні.",
+    en: "Playwright MCP lets AI assistants control a browser through the Model Context Protocol. Instead of processing screenshots, the model reads a structured accessibility tree — which elements exist, their roles, their text. Works with VS Code, Claude, Cursor, and any MCP client. No vision model required.",
+    uk: "Playwright MCP дозволяє AI-асистентам керувати браузером через Model Context Protocol. Замість обробки скриншотів — модель читає структуроване дерево доступності: які елементи є, їхні ролі, їхній текст. Працює з VS Code, Claude, Cursor і будь-яким MCP-клієнтом. Модель зору не потрібна.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "installation",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "Installation — add to your MCP client config",
+        uk: "Встановлення — додати до конфігу MCP-клієнта",
       },
       paragraphs: [
         {
-          en: "The Playwright MCP server provides browser automation capabilities through the [Model Context Protocol](https://modelcontextprotocol.io), enabling LLMs to interact with web pages using structured accessibility snapshots. It works with VS Code, Cursor, Windsurf, Claude Desktop, and any other MCP client — no vision models required.",
-          uk: "Сервер Playwright MCP надає можливості автоматизації браузера через [Model Context Protocol](https://modelcontextprotocol.io), даючи LLM змогу взаємодіяти з вебсторінками за допомогою структурованих знімків доступності. Він працює з VS Code, Cursor, Windsurf, Claude Desktop і будь-яким іншим MCP-клієнтом — моделі зору не потрібні.",
-        },
-      ],
-    },
-    {
-      id: "prerequisites",
-      title: {
-        en: "Prerequisites",
-        uk: "Передумови",
-      },
-      paragraphs: [
-        {
-          en: "Before you begin, make sure you have the following installed:\n- [Node.js](https://nodejs.org/) 18 or newer\n- An MCP client: VS Code, Cursor, Windsurf, Claude Code, Claude Desktop, or similar",
-          uk: "Перш ніж почати, переконайтеся, що у вас установлено:\n- [Node.js](https://nodejs.org/) 18 або новішу версію\n- MCP-клієнт: VS Code, Cursor, Windsurf, Claude Code, Claude Desktop або подібний",
-        },
-      ],
-    },
-    {
-      id: "getting-started",
-      title: {
-        en: "Getting Started",
-        uk: "Початок роботи",
-      },
-      paragraphs: [
-        {
-          en: "### Installation",
-          uk: "### Встановлення",
-        },
-        {
-          en: "Add the Playwright MCP server to your client using the standard configuration:",
-          uk: "Додайте сервер Playwright MCP до свого клієнта за допомогою стандартної конфігурації:",
-        },
-        {
-          en: "#### VS Code",
-          uk: "#### VS Code",
-        },
-        {
-          en: "Click one of the buttons below to install directly:",
-          uk: "Натисніть одну з кнопок нижче, щоб установити напряму:",
-        },
-        {
-          en: '[<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code" />](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D) [<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5" />](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D)',
-          uk: '[<img src="https://img.shields.io/badge/VS_Code-VS_Code?style=flat-square&label=Install%20Server&color=0098FF" alt="Install in VS Code" />](https://insiders.vscode.dev/redirect?url=vscode%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D) [<img alt="Install in VS Code Insiders" src="https://img.shields.io/badge/VS_Code_Insiders-VS_Code_Insiders?style=flat-square&label=Install%20Server&color=24bfa5" />](https://insiders.vscode.dev/redirect?url=vscode-insiders%3Amcp%2Finstall%3F%257B%2522name%2522%253A%2522playwright%2522%252C%2522command%2522%253A%2522npx%2522%252C%2522args%2522%253A%255B%2522%2540playwright%252Fmcp%2540latest%2522%255D%257D)',
-        },
-        {
-          en: "Or install via the VS Code CLI:",
-          uk: "Або встановіть через VS Code CLI:",
-        },
-        {
-          en: "#### Cursor",
-          uk: "#### Cursor",
-        },
-        {
-          en: "[](https://cursor.com/en/install-mcp?name=Playwright&config=eyJjb21tYW5kIjoibnB4IEBwbGF5d3JpZ2h0L21jcEBsYXRlc3QifQ%3D%3D)",
-          uk: "[](https://cursor.com/en/install-mcp?name=Playwright&config=eyJjb21tYW5kIjoibnB4IEBwbGF5d3JpZ2h0L21jcEBsYXRlc3QifQ%3D%3D)",
-        },
-        {
-          en: "Or go to `Cursor Settings` → `MCP` → `Add new MCP Server` and use command type with `npx @playwright/mcp@latest`.",
-          uk: "Або перейдіть до `Cursor Settings` → `MCP` → `Add new MCP Server` і використайте тип command з `npx @playwright/mcp@latest`.",
-        },
-        {
-          en: "#### Claude Code",
-          uk: "#### Claude Code",
-        },
-        {
-          en: "#### Claude Desktop",
-          uk: "#### Claude Desktop",
-        },
-        {
-          en: "Follow the MCP install [guide](https://modelcontextprotocol.io/quickstart/user) and use the standard config above.",
-          uk: "Дотримуйтесь [посібника](https://modelcontextprotocol.io/quickstart/user) зі встановлення MCP і використайте стандартну конфігурацію вище.",
-        },
-        {
-          en: "#### Other clients",
-          uk: "#### Інші клієнти",
-        },
-        {
-          en: "The standard configuration works with most MCP clients, including Windsurf, Cline, Goose, Kiro, Codex, Copilot CLI, and others. Consult your client's MCP documentation for where to place the config.",
-          uk: "Стандартна конфігурація працює з більшістю MCP-клієнтів, зокрема Windsurf, Cline, Goose, Kiro, Codex, Copilot CLI та іншими. Перегляньте MCP-документацію свого клієнта, щоб дізнатися, куди додати конфігурацію.",
-        },
-        {
-          en: "### First interaction",
-          uk: "### Перша взаємодія",
-        },
-        {
-          en: "Once the server is connected, ask your AI assistant to interact with a web page:",
-          uk: "Коли сервер підключено, попросіть свого AI-асистента взаємодіяти з вебсторінкою:",
-        },
-        {
-          en: "The assistant will use Playwright MCP tools to open the browser, navigate to the page, and interact with elements — all through structured accessibility snapshots rather than screenshots.",
-          uk: "Асистент використає інструменти Playwright MCP, щоб відкрити браузер, перейти на сторінку та взаємодіяти з елементами — усе через структуровані знімки доступності, а не скриншоти.",
+          en: "The same config works for most MCP clients. Add it to the appropriate config file for your client:",
+          uk: "Той самий конфіг підходить для більшості MCP-клієнтів. Додай його до відповідного файлу конфігурації свого клієнта:",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
+          id: "mcp-config",
           language: "json",
-          code: '{\n  "mcpServers": {\n    "playwright": {\n      "command": "npx",\n      "args": [\n        "@playwright/mcp@latest"\n      ]\n    }\n  }\n}',
+          code: `{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest"
+      ]
+    }
+  }
+}`,
         },
         {
-          id: "cb-2",
+          id: "claude-code",
           language: "bash",
-          code: 'code --add-mcp \'{"name":"playwright","command":"npx","args":["@playwright/mcp@latest"]}\'',
-        },
-        {
-          id: "cb-3",
-          language: "bash",
-          code: "claude mcp add playwright npx @playwright/mcp@latest",
-        },
-        {
-          id: "cb-4",
-          language: "txt",
-          code: "Navigate to https://demo.playwright.dev/todomvc and add a few todo items.",
+          code: `# Claude Code — одна команда
+claude mcp add playwright npx @playwright/mcp@latest
+
+# VS Code — через CLI
+code --add-mcp '{"name":"playwright","command":"npx","args":["@playwright/mcp@latest"]}'`,
         },
       ],
     },
     {
-      id: "core-features",
+      id: "how-it-works",
       title: {
-        en: "Core Features",
-        uk: "Основні можливості",
+        en: "How it works — accessibility tree, not screenshots",
+        uk: "Як це працює — дерево доступності, не скриншоти",
       },
       paragraphs: [
         {
-          en: "### Accessibility snapshots",
-          uk: "### Знімки доступності",
-        },
-        {
-          en: "Playwright MCP operates on the page's accessibility tree, not pixels. When a tool runs, it returns a structured snapshot showing the page elements, their roles, and text content. The LLM uses element references from these snapshots to interact with the page:",
-          uk: "Playwright MCP працює з деревом доступності сторінки, а не з пікселями. Коли запускається інструмент, він повертає структурований знімок, що показує елементи сторінки, їхні ролі та текстовий вміст. LLM використовує посилання на елементи з цих знімків для взаємодії зі сторінкою:",
-        },
-        {
-          en: "The LLM reads this snapshot and uses `ref=e5` to type into the textbox or `ref=e10` to check the checkbox.",
-          uk: "LLM читає цей знімок і використовує `ref=e5`, щоб вводити текст у поле, або `ref=e10`, щоб позначити прапорець.",
-        },
-        {
-          en: "### Interacting with pages",
-          uk: "### Взаємодія зі сторінками",
-        },
-        {
-          en: "Playwright MCP provides tools for all common browser interactions:",
-          uk: "Playwright MCP надає інструменти для всіх поширених взаємодій із браузером:",
-        },
-        {
-          en: "-   **Navigation**: Open URLs, go back/forward, reload pages.\n-   **Clicking and typing**: Click elements, type text, fill forms, select dropdowns.\n-   **Screenshots**: Capture the current page or specific elements for visual verification.\n-   **Keyboard and mouse**: Press keys, hover, drag and drop.\n-   **Dialogs**: Accept or dismiss browser dialogs.\n-   **Tabs**: Create, close, and switch between browser tabs.",
-          uk: "-   **Навігація**: відкривати URL, переходити назад/уперед, перезавантажувати сторінки.\n-   **Кліки та введення**: натискати елементи, вводити текст, заповнювати форми, вибирати значення зі списків.\n-   **Скриншоти**: знімати поточну сторінку або окремі елементи для візуальної перевірки.\n-   **Клавіатура й миша**: натискати клавіші, наводити курсор, перетягувати елементи.\n-   **Діалоги**: приймати або відхиляти браузерні діалоги.\n-   **Вкладки**: створювати, закривати й перемикатися між вкладками браузера.",
-        },
-        {
-          en: "### Running Playwright code",
-          uk: "### Запуск коду Playwright",
-        },
-        {
-          en: "For complex interactions that go beyond individual tool calls, use the `browser_run_code_unsafe` tool to execute Playwright scripts directly. This tool runs arbitrary JavaScript in the Playwright server process and is RCE-equivalent — only enable it for trusted MCP clients:",
-          uk: "Для складних взаємодій, що виходять за межі окремих викликів інструментів, використовуйте `browser_run_code_unsafe`, щоб виконувати скрипти Playwright напряму. Цей інструмент запускає довільний JavaScript у процесі сервера Playwright і еквівалентний RCE — вмикайте його лише для довірених MCP-клієнтів:",
-        },
-        {
-          en: "### Network monitoring and mocking",
-          uk: "### Моніторинг та імітація мережі",
-        },
-        {
-          en: "Inspect network traffic and mock API responses:",
-          uk: "Переглядайте мережевий трафік і імітуйте API-відповіді:",
-        },
-        {
-          en: "-   **View network requests**: List all requests made since page load.\n-   **Mock routes**: Set up URL pattern matching to return custom responses.\n-   **Console messages**: Access browser console output for debugging.",
-          uk: "-   **Перегляд мережевих запитів**: отримуйте список усіх запитів, зроблених після завантаження сторінки.\n-   **Імітація маршрутів**: налаштовуйте зіставлення URL-шаблонів, щоб повертати власні відповіді.\n-   **Повідомлення консолі**: отримуйте доступ до виводу браузерної консолі для налагодження.",
-        },
-        {
-          en: "### Storage state",
-          uk: "### Стан сховища",
-        },
-        {
-          en: "Save and restore browser state including cookies and localStorage:",
-          uk: "Зберігайте й відновлюйте стан браузера, зокрема cookies і localStorage:",
-        },
-        {
-          en: "-   **Save state**: Persist authentication and session data to a file.\n-   **Restore state**: Load previously saved state into a new session.\n-   **Cookie management**: List, get, set, and delete individual cookies.",
-          uk: "-   **Збереження стану**: записуйте дані автентифікації та сесії у файл.\n-   **Відновлення стану**: завантажуйте раніше збережений стан у нову сесію.\n-   **Керування cookies**: переглядайте, отримуйте, задавайте й видаляйте окремі cookies.",
+          en: "When a tool runs, it returns a structured snapshot of the page — elements with their roles, text, and refs. The model uses those refs to interact. No need to parse pixel positions or describe what it 'sees' in an image.",
+          uk: "Коли інструмент запускається — він повертає структурований snapshot сторінки: елементи з їхніми ролями, текстом і refs. Модель використовує ті refs для взаємодії. Не потрібно парсити позиції пікселів або описувати що 'видно' на зображенні.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-5",
-          language: "txt",
-          code: '- heading "todos" [level=1]\n- textbox "What needs to be done?" [ref=e5]\n- listitem:\n  - checkbox "Toggle Todo" [ref=e10]\n  - text: "Buy groceries"',
+          id: "snapshot-example",
+          language: "text",
+          code: `// Приклад того що бачить модель після browser_snapshot
+- heading "Orders" [level=1]
+- textbox "Search orders" [ref=e5]
+- button "Create order" [ref=e8]
+- listitem:
+  - text "ORD-042 — Laptop Stand"
+  - button "Edit" [ref=e15]
+
+// Модель може відразу: browser_click ref=e8`,
         },
+      ],
+    },
+    {
+      id: "what-you-can-do",
+      title: {
+        en: "What you can ask the AI to do",
+        uk: "Що можна попросити AI зробити",
+      },
+      paragraphs: [
         {
-          id: "cb-6",
-          language: "txt",
-          code: "Run this Playwright code to verify the todo count:\nasync (page) => {\n  const count = await page.getByTestId('todo-count').textContent();\n  return count;\n}",
+          en: "After connecting MCP, just describe what you need in natural language. The assistant picks the right tools automatically.",
+          uk: "Після підключення MCP — просто описуй що потрібно природною мовою. Асистент сам підбирає правильні інструменти.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "prompts",
+          language: "text",
+          code: `// Тестування flow
+Перейди на http://localhost:3000/orders і перевір що таблиця
+замовлень відображається з правильними колонками.
+
+// Заповнення форм
+Відкрий /orders/new, заповни форму: Item = "Laptop Stand",
+Quantity = 2, натисни Create. Перевір що з'явився success banner.
+
+// Мокування API
+Замокай GET /api/orders щоб повертав порожній масив.
+Перевір що сторінка показує "No orders yet" замість таблиці.
+
+// Дебаг
+Відкрий /dashboard і перевір наявність JavaScript-помилок
+в консолі браузера.`,
         },
       ],
     },
     {
       id: "configuration",
       title: {
-        en: "Configuration",
-        uk: "Конфігурація",
+        en: "Configuration options",
+        uk: "Опції конфігурації",
       },
       paragraphs: [
         {
-          en: "### Headed mode",
-          uk: "### Режим із видимим браузером",
-        },
-        {
-          en: "By default, Playwright MCP runs the browser in headed mode so you can see what's happening. To run headless:",
-          uk: "За замовчуванням Playwright MCP запускає браузер у режимі з видимим вікном, щоб ви бачили, що відбувається. Щоб запустити безголовий режим:",
-        },
-        {
-          en: "### Browser selection",
-          uk: "### Вибір браузера",
-        },
-        {
-          en: "Choose which browser to use:",
-          uk: "Виберіть, який браузер використовувати:",
-        },
-        {
-          en: "Supported values: `chrome`, `firefox`, `webkit`, `msedge`.",
-          uk: "Підтримувані значення: `chrome`, `firefox`, `webkit`, `msedge`.",
-        },
-        {
-          en: "### User profile",
-          uk: "### Профіль користувача",
-        },
-        {
-          en: "Playwright MCP supports three profile modes:",
-          uk: "Playwright MCP підтримує три режими профілю:",
-        },
-        {
-          en: "-   **Persistent (default)**: Login state and cookies are preserved between sessions. The profile is stored in `ms-playwright/mcp-{channel}-{workspace-hash}` in your platform's cache directory, so different projects get separate profiles automatically. Override with `--user-data-dir`.\n-   **Isolated**: Each session starts fresh. Pass `--isolated` to enable. You can load initial state with `--storage-state`.\n-   **Browser extension**: Connect to your existing browser tabs with the [Playwright Extension](https://github.com/microsoft/playwright/blob/main/packages/extension/README.md). Pass `--extension` to enable.",
-          uk: "-   **Постійний (типово)**: стан входу й cookies зберігаються між сесіями. Профіль зберігається в `ms-playwright/mcp-{channel}-{workspace-hash}` у директорії кешу вашої платформи, тож різні проєкти автоматично отримують окремі профілі. Перевизначити можна через `--user-data-dir`.\n-   **Ізольований**: кожна сесія починається з чистого стану. Передайте `--isolated`, щоб увімкнути. Початковий стан можна завантажити через `--storage-state`.\n-   **Розширення браузера**: підключайтеся до наявних вкладок браузера через [Playwright Extension](https://github.com/microsoft/playwright/blob/main/packages/extension/README.md). Передайте `--extension`, щоб увімкнути.",
-        },
-        {
-          en: "### Configuration file",
-          uk: "### Файл конфігурації",
-        },
-        {
-          en: "For advanced configuration, use a JSON config file:",
-          uk: "Для розширеної конфігурації використовуйте JSON-файл конфігурації:",
-        },
-        {
-          en: "The config file supports browser options, context options, network rules, timeouts, and more. See the [Playwright MCP repository](https://github.com/microsoft/playwright-mcp/blob/main/config.d.ts) for the full schema.",
-          uk: "Файл конфігурації підтримує параметри браузера, параметри контексту, мережеві правила, таймаути тощо. Повну схему дивіться в [репозиторії Playwright MCP](https://github.com/microsoft/playwright-mcp/blob/main/config.d.ts).",
-        },
-        {
-          en: "### Standalone server",
-          uk: "### Окремий сервер",
-        },
-        {
-          en: "When running a headed browser on a system without a display or from IDE worker processes, start the MCP server separately with HTTP transport:",
-          uk: "Коли запускаєте браузер із видимим вікном у системі без дисплея або з робочих процесів IDE, запустіть MCP-сервер окремо з HTTP-транспортом:",
-        },
-        {
-          en: "Then point your MCP client to the HTTP endpoint:",
-          uk: "Потім спрямуйте MCP-клієнт на HTTP-ендпоїнт:",
+          en: "By default: headed browser (you can see it), persistent profile (cookies preserved between sessions). Override with flags in the `args` array.",
+          uk: "За замовчуванням: браузер з вікном (ти його бачиш), постійний профіль (cookies зберігаються між сесіями). Перевизнач через прапорці в масиві `args`.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-7",
+          id: "config-options",
           language: "json",
-          code: '{\n  "mcpServers": {\n    "playwright": {\n      "command": "npx",\n      "args": [\n        "@playwright/mcp@latest",\n        "--headless"\n      ]\n    }\n  }\n}',
-        },
-        {
-          id: "cb-8",
-          language: "json",
-          code: '{\n  "mcpServers": {\n    "playwright": {\n      "command": "npx",\n      "args": [\n        "@playwright/mcp@latest",\n        "--browser=firefox"\n      ]\n    }\n  }\n}',
-        },
-        {
-          id: "cb-9",
-          language: "bash",
-          code: "npx @playwright/mcp@latest --config path/to/config.json",
-        },
-        {
-          id: "cb-10",
-          language: "bash",
-          code: "npx @playwright/mcp@latest --port 8931",
-        },
-        {
-          id: "cb-11",
-          language: "json",
-          code: '{\n  "mcpServers": {\n    "playwright": {\n      "url": "http://localhost:8931/mcp"\n    }\n  }\n}',
-        },
-      ],
-    },
-    {
-      id: "quick-reference",
-      title: {
-        en: "Quick Reference",
-        uk: "Короткий довідник",
-      },
-      paragraphs: [
-        {
-          en: '| Action                    | How to do it                                                  |\n| ------------------------- | ------------------------------------------------------------- |\n| **Install server**        | Add standard config to your MCP client                        |\n| **Navigate to a page**    | Ask: "Go to https://example.com"                              |\n| **Click an element**      | Ask: "Click the Submit button"                                |\n| **Fill a form**           | Ask: "Fill in the email field with test@example.com"          |\n| **Take a screenshot**     | Ask: "Take a screenshot of the page"                          |\n| **Run Playwright code**   | Ask: "Run this Playwright code: ..."                          |\n| **Mock an API**           | Ask: "Mock the /api/users endpoint to return ..."             |\n| **Use headed mode**       | Default. Pass `--headless` to disable                         |\n| **Choose a browser**      | Pass `--browser=firefox` in args                              |',
-          uk: '| Дія                       | Як це зробити                                                 |\n| ------------------------- | ------------------------------------------------------------- |\n| **Встановити сервер**     | Додайте стандартну конфігурацію до MCP-клієнта                |\n| **Перейти на сторінку**   | Попросіть: "Перейди на https://example.com"                   |\n| **Натиснути елемент**     | Попросіть: "Натисни кнопку Submit"                            |\n| **Заповнити форму**       | Попросіть: "Заповни поле email значенням test@example.com"    |\n| **Зробити скриншот**      | Попросіть: "Зроби скриншот сторінки"                          |\n| **Запустити код Playwright** | Попросіть: "Запусти цей код Playwright: ..."                  |\n| **Імітувати API**         | Попросіть: "Імітуй ендпоїнт /api/users, щоб він повертав ..." |\n| **Використати режим із видимим браузером** | Типово. Передайте `--headless`, щоб вимкнути                  |\n| **Вибрати браузер**       | Передайте `--browser=firefox` в args                          |',
-        },
-      ],
-    },
-    {
-      id: "what-s-next",
-      title: {
-        en: "What's Next",
-        uk: "Що далі",
-      },
-      paragraphs: [
-        {
-          en: "-   [Write tests using web-first assertions, page fixtures, and locators](./writing-tests.md)\n-   [Run your tests on CI](./ci-intro.md)\n-   [Learn more about the Trace Viewer](./trace-viewer.md)",
-          uk: "-   [Пишіть тести з web-first перевірками, фікстурами сторінок і локаторами](./writing-tests.md)\n-   [Запускайте тести в CI](./ci-intro.md)\n-   [Дізнайтеся більше про Trace Viewer](./trace-viewer.md)",
+          code: `{
+  "mcpServers": {
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "@playwright/mcp@latest",
+        "--headless",         // без видимого вікна
+        "--browser=firefox",  // firefox замість chromium
+        "--isolated"          // кожна сесія з чистим станом
+      ]
+    }
+  }
+}`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "Why does Playwright MCP use an accessibility tree instead of screenshots to let the model interact with the page?",
+        uk: "Чому Playwright MCP використовує дерево доступності замість скриншотів щоб модель взаємодіяла зі сторінкою?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Screenshots are too large to transmit over MCP",
+            uk: "Скриншоти занадто великі для передачі через MCP",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "The accessibility tree is structured text — the model can read element refs and act on them without needing a vision model to parse pixel positions",
+            uk: "Дерево доступності — це структурований текст: модель може читати refs елементів і діяти з ними без потреби у vision-моделі для парсингу позицій пікселів",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Playwright can't take screenshots in MCP mode",
+            uk: "Playwright не може робити скриншоти в MCP-режимі",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The accessibility tree gives the model structured, reliable data: element roles, text, and refs like `ref=e15`. The model clicks `ref=e15` without needing to know pixel coordinates. Vision models that parse screenshots are slower, more expensive, and error-prone (they can misread positions or miss elements in complex layouts). The accessibility tree also works in headless mode where there's no visual output at all.",
+        uk: "Дерево доступності дає моделі структуровані надійні дані: ролі елементів, текст і refs типу `ref=e15`. Модель клацає `ref=e15` без необхідності знати пікселеві координати. Vision-моделі що парсять скриншоти — повільніші, дорожчі і схильні до помилок (можуть неправильно читати позиції або пропускати елементи в складних верстках). Дерево доступності також працює в headless-режимі де взагалі немає візуального виводу.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "What is the minimum config change needed to add Playwright MCP to a supported AI client?",
+        uk: "Яка мінімальна зміна конфігурації потрібна щоб додати Playwright MCP до підтримуваного AI-клієнта?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Install @playwright/mcp globally with npm and restart the client — no config change needed",
+            uk: "Встановити @playwright/mcp глобально через npm і перезапустити клієнт — зміна конфігурації не потрібна",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Add a 'playwright' entry under 'mcpServers' in the client's config file pointing to 'npx @playwright/mcp@latest'",
+            uk: "Додати запис 'playwright' під 'mcpServers' у файлі конфігурації клієнта що вказує на 'npx @playwright/mcp@latest'",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Set the PLAYWRIGHT_MCP=true environment variable and restart the AI client",
+            uk: "Встановити змінну середовища PLAYWRIGHT_MCP=true і перезапустити AI-клієнт",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Install the Playwright VS Code extension — it automatically registers MCP for all clients",
+            uk: "Встановити розширення Playwright для VS Code — воно автоматично реєструє MCP для всіх клієнтів",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Playwright MCP is configured by adding a JSON entry under 'mcpServers' in the client's config file. The entry specifies 'command: npx' and 'args: [\"@playwright/mcp@latest\"]'. For Claude Code this can be done with one CLI command: 'claude mcp add playwright npx @playwright/mcp@latest'. The same JSON config works across VS Code, Claude, Cursor, and other MCP-compatible clients.",
+        uk: "Playwright MCP налаштовується додаванням JSON-запису під 'mcpServers' у файлі конфігурації клієнта. Запис вказує 'command: npx' і 'args: [\"@playwright/mcp@latest\"]'. Для Claude Code це можна зробити однією CLI-командою: 'claude mcp add playwright npx @playwright/mcp@latest'. Той самий JSON-конфіг працює в VS Code, Claude, Cursor та інших MCP-сумісних клієнтах.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "After connecting Playwright MCP, what kinds of browser automation tools become available to the AI assistant?",
+        uk: "Після підключення Playwright MCP які інструменти автоматизації браузера стають доступними AI-асистенту?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Only navigation and screenshot — no interaction tools are exposed",
+            uk: "Тільки навігація і скриншот — жодних інструментів взаємодії не надається",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Navigation, clicking, form filling, snapshot, screenshot, API mocking, and console log reading — the full browser automation toolkit",
+            uk: "Навігація, кліки, заповнення форм, snapshot, screenshot, мокування API і читання логів консолі — повний набір інструментів автоматизації браузера",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Only read-only tools — MCP cannot interact with the page, only observe it",
+            uk: "Тільки інструменти тільки для читання — MCP не може взаємодіяти зі сторінкою, тільки спостерігати за нею",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The same tools as the Playwright test runner — including test assertions and fixtures",
+            uk: "Ті самі інструменти що й у test runner Playwright — включно з assertions тестів і fixtures",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Playwright MCP exposes the full browser automation toolkit as MCP tools: browser_navigate, browser_click, browser_fill, browser_snapshot, browser_screenshot, browser_network_intercept (for API mocking), browser_console_messages, and more. The AI assistant can navigate, interact with forms, assert page state via snapshots, intercept network requests, and inspect console errors — all through natural language instructions.",
+        uk: "Playwright MCP надає повний набір інструментів автоматизації браузера як MCP-інструменти: browser_navigate, browser_click, browser_fill, browser_snapshot, browser_screenshot, browser_network_intercept (для мокування API), browser_console_messages та інші. AI-асистент може навігувати, взаємодіяти з формами, перевіряти стан сторінки через snapshots, перехоплювати мережеві запити і перевіряти помилки консолі — все через інструкції природною мовою.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "What does adding '--headless' to the Playwright MCP args array change?",
+        uk: "Що змінює додавання '--headless' до масиву args Playwright MCP?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The MCP server itself runs without a head process — it uses less CPU",
+            uk: "Сам MCP-сервер запускається без head-процесу — використовує менше CPU",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "The browser runs without a visible window — useful for CI or when you don't need to watch the session",
+            uk: "Браузер запускається без видимого вікна — корисно для CI або коли не потрібно спостерігати за сесією",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Screenshots are disabled — only accessibility snapshots are available",
+            uk: "Скриншоти вимкнені — доступні тільки accessibility snapshots",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The AI model receives only text, not any visual output",
+            uk: "AI-модель отримує тільки текст, без жодного візуального виводу",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The --headless flag makes the browser run without creating a visible window. By default Playwright MCP uses a headed (visible) browser so you can watch the AI interact with the page. In headless mode the browser still processes pages and returns snapshots/screenshots — it just doesn't show a window on screen. This is the right choice for CI environments or unattended agent runs.",
+        uk: "Прапорець --headless змушує браузер запускатися без створення видимого вікна. За замовчуванням Playwright MCP використовує headed (видимий) браузер щоб можна було спостерігати як AI взаємодіє зі сторінкою. В headless-режимі браузер все одно обробляє сторінки і повертає snapshots/screenshots — просто не показує вікно на екрані. Це правильний вибір для CI-середовищ або автономних запусків агента.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "What does the '--isolated' flag do in the Playwright MCP configuration?",
+        uk: "Що робить прапорець '--isolated' у конфігурації Playwright MCP?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "It prevents the MCP server from accessing the file system",
+            uk: "Запобігає доступу MCP-сервера до файлової системи",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Each session starts with a clean browser state — no cookies or localStorage carried over from previous sessions",
+            uk: "Кожна сесія починається з чистим станом браузера — жодних cookies або localStorage перенесених з попередніх сесій",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "It runs the browser in a Docker container for security isolation",
+            uk: "Запускає браузер у Docker-контейнері для ізоляції безпеки",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "It disables network access so the browser can only load local files",
+            uk: "Вимикає мережевий доступ щоб браузер міг завантажувати тільки локальні файли",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "By default, Playwright MCP uses a persistent browser profile — cookies and localStorage are preserved between sessions (like a real browser). The --isolated flag changes this: each new session starts with a completely clean browser state. This is useful when you want predictable, reproducible sessions without interference from previous auth state or site data.",
+        uk: "За замовчуванням Playwright MCP використовує постійний профіль браузера — cookies і localStorage зберігаються між сесіями (як реальний браузер). Прапорець --isolated змінює це: кожна нова сесія починається з повністю чистим станом браузера. Це корисно коли потрібні передбачувані, відтворювані сесії без впливу попереднього auth-стану або даних сайту.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "In a browser_snapshot output, what are 'ref' values like 'ref=e8' used for?",
+        uk: "У виводі browser_snapshot для чого використовуються значення 'ref' типу 'ref=e8'?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "They are CSS class names that can be used as selectors in test code",
+            uk: "Це CSS-класи які можна використовувати як селектори в коді тестів",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "They are stable element identifiers the model uses to target specific elements in browser_click, browser_fill, and other interaction tools",
+            uk: "Це стабільні ідентифікатори елементів які модель використовує для адресації конкретних елементів у browser_click, browser_fill та інших інструментах взаємодії",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "They are internal Playwright IDs used only for debugging — you cannot use them in commands",
+            uk: "Це внутрішні ID Playwright що використовуються тільки для дебагу — не можна використовувати їх у командах",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "They reference line numbers in the page's source code",
+            uk: "Вони посилаються на номери рядків у вихідному коді сторінки",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Refs in snapshot output (like 'button \"Create order\" [ref=e8]') are stable element identifiers assigned by Playwright. The AI model reads the snapshot, identifies the element it wants to interact with by its ref, and passes that ref to the next tool call — e.g., browser_click with ref=e8. This allows precise targeting without pixel coordinates or fragile CSS selectors.",
+        uk: "Refs у виводі snapshot (типу 'button \"Create order\" [ref=e8]') — це стабільні ідентифікатори елементів призначені Playwright. AI-модель читає snapshot, визначає елемент з яким хоче взаємодіяти за його ref, і передає той ref наступному виклику інструменту — наприклад browser_click з ref=e8. Це дозволяє точне адресування без пікселевих координат або крихких CSS-селекторів.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "Which AI clients and editors are compatible with Playwright MCP?",
+        uk: "Які AI-клієнти та редактори сумісні з Playwright MCP?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Only Claude — MCP is an Anthropic-specific protocol",
+            uk: "Тільки Claude — MCP є протоколом специфічним для Anthropic",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Any MCP-compatible client: VS Code, Claude (desktop and Claude Code), Cursor, and others that support the Model Context Protocol",
+            uk: "Будь-який MCP-сумісний клієнт: VS Code, Claude (desktop і Claude Code), Cursor та інші що підтримують Model Context Protocol",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Only editors with a built-in browser extension — standalone AI assistants are not supported",
+            uk: "Тільки редактори з вбудованим розширенням браузера — автономні AI-асистенти не підтримуються",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Only CLI-based tools — graphical AI clients cannot connect to MCP servers",
+            uk: "Тільки CLI-інструменти — графічні AI-клієнти не можуть підключатися до MCP-серверів",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "MCP (Model Context Protocol) is an open protocol, not specific to any one AI provider. Playwright MCP works with any client that supports MCP: VS Code with Copilot, Claude desktop app, Claude Code CLI, Cursor, and others. The same JSON config block ('mcpServers') is recognized by all of them — only the config file location differs between clients.",
+        uk: "MCP (Model Context Protocol) — відкритий протокол, не специфічний для жодного одного AI-провайдера. Playwright MCP працює з будь-яким клієнтом що підтримує MCP: VS Code з Copilot, настільний додаток Claude, Claude Code CLI, Cursor та інші. Той самий JSON-блок конфігурації ('mcpServers') розпізнається всіма ними — відрізняється лише розташування файлу конфігурації між клієнтами.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "You want Playwright MCP to use Firefox instead of the default Chromium. How do you configure this?",
+        uk: "Хочеш щоб Playwright MCP використовував Firefox замість Chromium за замовчуванням. Як це налаштувати?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Set PLAYWRIGHT_BROWSER=firefox as an environment variable before starting the AI client",
+            uk: "Встановити змінну середовища PLAYWRIGHT_BROWSER=firefox перед запуском AI-клієнта",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Add '--browser=firefox' to the args array in the mcpServers config",
+            uk: "Додати '--browser=firefox' до масиву args у конфігурації mcpServers",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Install the Firefox MCP package separately: npx @playwright/mcp-firefox@latest",
+            uk: "Встановити пакет Firefox MCP окремо: npx @playwright/mcp-firefox@latest",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Browser selection is not configurable in Playwright MCP — it always uses Chromium",
+            uk: "Вибір браузера не налаштовується в Playwright MCP — він завжди використовує Chromium",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Browser and other options are passed as extra entries in the 'args' array alongside '@playwright/mcp@latest'. Adding '--browser=firefox' tells the MCP server to launch Firefox. Similarly '--browser=webkit' uses WebKit (Safari). This is part of the same config block — no separate package or environment variable needed.",
+        uk: "Браузер та інші параметри передаються як додаткові записи в масиві 'args' поруч з '@playwright/mcp@latest'. Додавання '--browser=firefox' каже MCP-серверу запускати Firefox. Аналогічно '--browser=webkit' використовує WebKit (Safari). Це частина того самого блоку конфігурації — не потрібен окремий пакет або змінна середовища.",
+      },
+    },
+  ],
 }

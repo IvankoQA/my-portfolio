@@ -13,392 +13,416 @@ export const authTopic: PlaywrightTopic = {
     uk: "Автентифікація",
   },
   summary: {
-    en: "Playwright executes tests in isolated environments called [browser contexts](./browser-contexts.md). This isolation model improves reproducibility and prevents cascading test failures. Tests can load existing authenticated state. This eliminates the need to authenticate in every test and speeds up test execution.",
-    uk: "Playwright запускає тести в ізольованих середовищах — [browser contexts](./browser-contexts.md). Це підвищує відтворюваність і запобігає ланцюговим падінням. Тести можуть підвантажувати вже збережений автентифікований стан, щоб не логінитися в кожному тесті й прискорити прогін.",
+    en: "Login once, run all tests already authenticated. Playwright saves browser state to a file and reuses it — no login flow repeated for every test.",
+    uk: "Залогінитися один раз — і всі тести стартують вже з сесією. Playwright зберігає стан браузера у файл і повторно використовує його.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "the-problem",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "The problem: login in every test",
+        uk: "Проблема: логін у кожному тесті",
+      },
+      diagram: {
+        mermaid: `sequenceDiagram
+  participant S as Setup project
+  participant F as Auth file
+  participant T as Tests (parallel)
+  S->>S: goto /login, fill, click
+  S->>F: storageState → user.json
+  T->>F: read user.json
+  T->>T: start already authenticated`,
+        caption: {
+          en: "Login once in setup, share the auth file across all tests",
+          uk: "Логін один раз у setup, auth файл ділиться між усіма тестами",
+        },
       },
       paragraphs: [
         {
-          en: "Playwright executes tests in isolated environments called [browser contexts](./browser-contexts.md). This isolation model improves reproducibility and prevents cascading test failures. Tests can load existing authenticated state. This eliminates the need to authenticate in every test and speeds up test execution.",
-          uk: "Playwright запускає тести в ізольованих середовищах — [browser contexts](./browser-contexts.md). Це підвищує відтворюваність і запобігає ланцюговим падінням. Тести можуть підвантажувати вже збережений автентифікований стан, щоб не логінитися в кожному тесті й прискорити прогін.",
+          en: "If you have 80 tests that all need to be logged in — and you log in at the start of each one — that's 80 login flows per run. Each login is a network round-trip, a page load, a form fill. On a real app this adds up fast.",
+          uk: "Якщо у тебе 80 тестів які всі потребують сесії — і ти логінишся на початку кожного — це 80 логінів за прогін. Кожен логін — це мережевий запит, завантаження сторінки, заповнення форми. На реальному застосунку це накопичується швидко.",
+        },
+        {
+          en: "The solution: log in once, save the browser state (cookies + localStorage) to a JSON file, and tell every test to start from that file. Playwright calls this `storageState`.",
+          uk: "Рішення: залогінитися один раз, зберегти стан браузера (cookies + localStorage) у JSON файл і сказати кожному тесту стартувати з цього файлу. Playwright називає це `storageState`.",
         },
       ],
     },
     {
-      id: "core-concepts",
+      id: "setup-project",
       title: {
-        en: "Core concepts",
-        uk: "Основні поняття",
+        en: "Recommended setup: auth setup project",
+        uk: "Рекомендований підхід: auth setup project",
       },
       paragraphs: [
         {
-          en: "Regardless of the authentication strategy you choose, you are likely to store authenticated browser state on the file system.",
-          uk: "Незалежно від обраної стратегії автентифікації, стан браузера зазвичай зберігають у файловій системі.",
+          en: "The cleanest approach: create a separate `setup` project that runs before your tests. It logs in and saves the state to `playwright/.auth/user.json`. Then every test project uses that file as its starting `storageState`.",
+          uk: "Найчистіший підхід: окремий проєкт `setup` що запускається перед тестами. Він логіниться і зберігає стан у `playwright/.auth/user.json`. Кожен тестовий проєкт використовує цей файл як стартовий `storageState`.",
         },
         {
-          en: "We recommend to create `playwright/.auth` directory and add it to your `.gitignore`. Your authentication routine will produce authenticated browser state and save it to a file in this `playwright/.auth` directory. Later on, tests will reuse this state and start already authenticated.",
-          uk: "Створіть каталог `playwright/.auth` і додайте його до `.gitignore`. Процедура логіну збере автентифікований стан браузера у файл у цьому каталозі; далі тести підхоплюватимуть цей стан і стартуватимуть уже з сесією.",
+          en: "First, create the directory and add it to `.gitignore` — you don't want auth files in your repo:",
+          uk: "Спочатку створи директорію і додай її до `.gitignore` — auth файли не потрібні в репозиторії:",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
+          id: "mkdir",
           language: "bash",
-          code: "mkdir -p playwright/.auth\necho $'\\nplaywright/.auth' >> .gitignore",
+          code: "mkdir -p playwright/.auth\necho '\\nplaywright/.auth' >> .gitignore",
         },
         {
-          id: "cb-2",
-          language: "batch",
-          code: 'md playwright\\.auth\necho. >> .gitignore\necho "playwright/.auth" >> .gitignore',
-        },
-        {
-          id: "cb-3",
-          language: "powershell",
-          code: 'New-Item -ItemType Directory -Force -Path playwright\\.auth\nAdd-Content -path .gitignore "`r`nplaywright/.auth"',
-        },
-      ],
-    },
-    {
-      id: "basic-shared-account-in-all-tests",
-      title: {
-        en: "Basic: shared account in all tests",
-        uk: "Базовий рівень: спільний обліковий запис у всіх тестах",
-      },
-      paragraphs: [
-        {
-          en: "This is the **recommended** approach for tests **without server-side state**. Authenticate once in the **setup project**, save the authentication state, and then reuse it to bootstrap each test already authenticated.",
-          uk: "**Рекомендовано** для тестів **без зміни серверного стану**: один раз автентифікуйтеся в **setup project**, збережіть стан і підвантажуйте його в кожному тесті.",
-        },
-        {
-          en: "**When to use**\n- When you can imagine all your tests running at the same time with the same account, without affecting each other.",
-          uk: "**Коли підходить**\n- Усі тести можуть одночасно працювати з одним обліковим записом і не заважати одне одному.",
-        },
-        {
-          en: "**When not to use**\n- Your tests modify server-side state. For example, one test checks the rendering of the settings page, while the other test is changing the setting, and you run tests in parallel. In this case, tests must use different accounts.\n- Your authentication is browser-specific.",
-          uk: "**Коли не підходить**\n- Тести змінюють серверний стан (наприклад, один рендерить сторінку налаштувань, інший змінює налаштування при паралельному запуску) — потрібні різні облікові записи.\n- Автентифікація прив’язана до конкретного браузера.",
-        },
-        {
-          en: "**Details**",
-          uk: "**Деталі**",
-        },
-        {
-          en: "Create `tests/auth.setup.ts` that will prepare authenticated browser state for all other tests.",
-          uk: "Створіть `tests/auth.setup.ts`, який підготує автентифікований стан браузера для інших тестів.",
-        },
-        {
-          en: "Create a new `setup` project in the config and declare it as a [dependency](./test-projects.md#dependencies) for all your testing projects. This project will always run and authenticate before all the tests. All testing projects should use the authenticated state as `storageState`.",
-          uk: "Додайте проєкт `setup` у конфіг і оголосіть його [залежністю](./test-projects.md#dependencies) для тестових проєктів. Він завжди виконається першим і виконає логін. Усі тестові проєкти мають використовувати збережений стан через `storageState`.",
-        },
-        {
-          en: "Tests start already authenticated because we specified `storageState` in the config.",
-          uk: "Тести стартують уже з сесією, бо в конфігу вказано `storageState`.",
-        },
-        {
-          en: "Note that you need to delete the stored state when it expires. If you don't need to keep the state between test runs, write the browser state under [`property: TestProject.outputDir`], which is automatically cleaned up before every test run.",
-          uk: "Коли термін дії стану минув — видаліть файл. Якщо стан не потрібен між прогонами, пишіть його в [`property: TestProject.outputDir`]: каталог очищується перед кожним запуском.",
-        },
-        {
-          en: "### Authenticating in UI mode",
-          uk: "### Автентифікація в UI mode",
-        },
-        {
-          en: "UI mode will not run the `setup` project by default to improve testing speed. We recommend to authenticate by manually running the `auth.setup.ts` from time to time, whenever existing authentication expires.",
-          uk: "У UI mode проєкт `setup` за замовчуванням не запускається (швидкість). Періодично вручну запускайте `auth.setup.ts`, коли сесія протермінується.",
-        },
-        {
-          en: "First [enable the `setup` project in the filters](./test-ui-mode#filtering-tests), then click the triangle button next to `auth.setup.ts` file, and then disable the `setup` project in the filters again.",
-          uk: "Спочатку [увімкніть `setup` у фільтрах](./test-ui-mode#filtering-tests), натисніть трикутник біля `auth.setup.ts`, потім знову вимкніть `setup` у фільтрах.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-4",
-          language: "js",
-          code: "\nconst authFile = path.join(__dirname, '../playwright/.auth/user.json');\n\nsetup('authenticate', async ({ page }) => {\n  // Perform authentication steps. Replace these actions with your own.\n  await page.goto('https://github.com/login');\n  await page.getByLabel('Username or email address').fill('username');\n  await page.getByLabel('Password').fill('password');\n  await page.getByRole('button', { name: 'Sign in' }).click();\n  // Wait until the page receives the cookies.\n  //\n  // Sometimes login flow sets cookies in the process of several redirects.\n  // Wait for the final URL to ensure that the cookies are actually set.\n  await page.waitForURL('https://github.com/');\n  // Alternatively, you can wait until the page reaches a state where all cookies are set.\n  await expect(page.getByRole('button', { name: 'View profile and more' })).toBeVisible();\n\n  // End of authentication steps.\n\n  await page.context().storageState({ path: authFile });\n});",
-        },
-        {
-          id: "cb-5",
-          language: "js",
-          code: "\nexport default defineConfig({\n  projects: [\n    // Setup project\n    { name: 'setup', testMatch: /.*\\.setup\\.ts/ },\n\n    {\n      name: 'chromium',\n      use: {\n        ...devices['Desktop Chrome'],\n        // Use prepared auth state.\n        storageState: 'playwright/.auth/user.json',\n      },\n      dependencies: ['setup'],\n    },\n\n    {\n      name: 'firefox',\n      use: {\n        ...devices['Desktop Firefox'],\n        // Use prepared auth state.\n        storageState: 'playwright/.auth/user.json',\n      },\n      dependencies: ['setup'],\n    },\n  ],\n});",
-        },
-        {
-          id: "cb-6",
-          language: "js",
-          code: "\ntest('test', async ({ page }) => {\n  // page is authenticated\n});",
-        },
-      ],
-    },
-    {
-      id: "moderate-one-account-per-parallel-worker",
-      title: {
-        en: "Moderate: one account per parallel worker",
-        uk: "Середній рівень: один обліковий запис на паралельного воркера",
-      },
-      paragraphs: [
-        {
-          en: "This is the **recommended** approach for tests that **modify server-side state**. In Playwright, worker processes run in parallel. In this approach, each parallel worker is authenticated once. All tests ran by worker are reusing the same authentication state. We will need multiple testing accounts, one per each parallel worker.",
-          uk: "**Рекомендовано**, коли тести **змінюють серверний стан**: воркери Playwright працюють паралельно; кожен воркер логіниться один раз і всі його тести ділять один `storageState`. Потрібно кілька тестових облікових записів — по одному на воркер.",
-        },
-        {
-          en: "**When to use**\n- Your tests modify shared server-side state. For example, one test checks the rendering of the settings page, while the other test is changing the setting.",
-          uk: "**Коли підходить**\n- Тести змінюють спільний серверний стан (наприклад, один перевіряє рендер налаштувань, інший їх змінює).",
-        },
-        {
-          en: "**When not to use**\n- Your tests do not modify any shared server-side state. In this case, all tests can use a single shared account.",
-          uk: "**Коли не підходить**\n- Немає спільних змін на сервері — достатньо одного спільного облікового запису.",
-        },
-        {
-          en: "**Details**",
-          uk: "**Деталі**",
-        },
-        {
-          en: "We will authenticate once per [worker process](./test-parallel.md#worker-processes), each with a unique account.",
-          uk: "Логін виконується один раз на [worker process](./test-parallel.md#worker-processes) з унікальним обліковим записом.",
-        },
-        {
-          en: "Create `playwright/fixtures.ts` file that will [override `storageState` fixture](./test-fixtures.md#overriding-fixtures) to authenticate once per worker. Use [`property: TestInfo.parallelIndex`] to differentiate between workers.",
-          uk: "Створіть `playwright/fixtures.ts` і [перевизначте фікстуру `storageState`](./test-fixtures.md#overriding-fixtures), щоб автентифікуватися раз на воркер. Розрізняйте воркери через [`property: TestInfo.parallelIndex`].",
-        },
-        {
-          en: "Now, each test file should import `test` from our fixtures file instead of `@playwright/test`. No changes are needed in the config.",
-          uk: "У файлах тестів імпортуйте `test` з вашого `fixtures`, а не з `@playwright/test`. Конфіг змінювати не обов’язково.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-7",
-          language: "js",
-          code: "\nexport * from '@playwright/test';\nexport const test = baseTest.extend({\n  // Use the same storage state for all tests in this worker.\n  storageState: ({ workerStorageState }, use) => use(workerStorageState),\n\n  // Authenticate once per worker with a worker-scoped fixture.\n  workerStorageState: [async ({ browser }, use) => {\n    // Use parallelIndex as a unique identifier for each worker.\n    const id = test.info().parallelIndex;\n    const fileName = path.resolve(test.info().project.outputDir, `.auth/${id}.json`);\n\n    if (fs.existsSync(fileName)) {\n      // Reuse existing authentication state if any.\n      await use(fileName);\n      return;\n    }\n\n    // Important: make sure we authenticate in a clean environment by unsetting storage state.\n    const page = await browser.newPage({ storageState: undefined });\n\n    // Acquire a unique account, for example create a new one.\n    // Alternatively, you can have a list of precreated accounts for testing.\n    // Make sure that accounts are unique, so that multiple team members\n    // can run tests at the same time without interference.\n    const account = await acquireAccount(id);\n\n    // Perform authentication steps. Replace these actions with your own.\n    await page.goto('https://github.com/login');\n    await page.getByLabel('Username or email address').fill(account.username);\n    await page.getByLabel('Password').fill(account.password);\n    await page.getByRole('button', { name: 'Sign in' }).click();\n    // Wait until the page receives the cookies.\n    //\n    // Sometimes login flow sets cookies in the process of several redirects.\n    // Wait for the final URL to ensure that the cookies are actually set.\n    await page.waitForURL('https://github.com/');\n    // Alternatively, you can wait until the page reaches a state where all cookies are set.\n    await expect(page.getByRole('button', { name: 'View profile and more' })).toBeVisible();\n\n    // End of authentication steps.\n\n    await page.context().storageState({ path: fileName });\n    await page.close();\n    await use(fileName);\n  }, { scope: 'worker' }],\n});",
-        },
-        {
-          id: "cb-8",
-          language: "js",
-          code: "// Important: import our fixtures.\n\ntest('test', async ({ page }) => {\n  // page is authenticated\n});",
-        },
-      ],
-    },
-    {
-      id: "signing-in-before-each-test",
-      title: {
-        en: "Signing in before each test",
-        uk: "Вхід перед кожним тестом",
-      },
-      paragraphs: [
-        {
-          en: "The Playwright API can [automate interaction](./input.md) with a login form.",
-          uk: "Playwright API може [автоматизувати взаємодію](./input.md) з формою входу.",
-        },
-        {
-          en: "The following example logs into GitHub. Once these steps are executed,\nthe browser context will be authenticated.",
-          uk: "Нижче — приклад входу в GitHub. Після цих кроків\nbrowser context буде автентифікований.",
-        },
-        {
-          en: "Redoing login for every test can slow down test execution. To mitigate that, reuse\nexisting authentication state instead.",
-          uk: "Повторний логін у кожному тесті сповільнює прогін. Краще повторно використовувати\nзбережений стан автентифікації.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-9",
+          id: "auth-setup",
           language: "ts",
-          code: "import { test, expect } from '@playwright/test';\n\ntest('sign in on GitHub', async ({ page }) => {\n  await page.goto('https://github.com/login');\n  await page.getByLabel('Username or email address').fill('username');\n  await page.getByLabel('Password').fill('password');\n  await page.getByRole('button', { name: 'Sign in' }).click();\n  await expect(page.getByRole('button', { name: 'View profile and more' })).toBeVisible();\n});",
-        },
-      ],
-    },
-    {
-      id: "reusing-signed-in-state",
-      title: {
-        en: "Reusing signed in state",
-        uk: "Повторне використання стану входу",
-      },
-      paragraphs: [
-        {
-          en: "Playwright provides a way to reuse the signed-in state in the tests. That way you can log\nin only once and then skip the log in step for all of the tests.",
-          uk: "Playwright дозволяє повторно використовувати стан входу в тестах: залогінитися один раз\nі пропускати крок входу в решті тестів.",
-        },
-        {
-          en: "Web apps use cookie-based or token-based authentication, where authenticated state is stored as [cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies), in [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Storage) or in [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). Playwright provides [`method: BrowserContext.storageState`] method that can be used to retrieve storage state from authenticated contexts and then create new contexts with prepopulated state.",
-          uk: "Вебзастосунки зберігають автентифікацію в [cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies), [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Storage) або [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). Метод [`method: BrowserContext.storageState`] зчитує стан з автентифікованого context і дозволяє створювати нові context з уже заповненим станом.",
-        },
-        {
-          en: "Cookies, local storage and IndexedDB state can be used across different browsers. They depend on your application's authentication model which may require some combination of cookies, local storage or IndexedDB.",
-          uk: "Cookies, local storage і IndexedDB можна переносити між браузерами залежно від моделі автентифікації застосунку (комбінація цих сховищ).",
+          code: `// tests/auth.setup.ts
+import { test as setup, expect } from '@playwright/test'
+import path from 'path'
+
+const authFile = path.join(__dirname, '../playwright/.auth/user.json')
+
+setup('authenticate', async ({ page }) => {
+  await page.goto('/login')
+  await page.getByLabel('Email').fill('admin@example.com')
+  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!)
+  await page.getByRole('button', { name: 'Sign in' }).click()
+
+  // Wait for redirect — cookies are set after this
+  await page.waitForURL('/dashboard')
+  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible()
+
+  // Save cookies + localStorage to file
+  await page.context().storageState({ path: authFile })
+})`,
         },
         {
-          en: "The following code snippet retrieves state from an authenticated context and creates a new context with that state.",
-          uk: "Фрагмент коду нижче зберігає стан з автентифікованого context і відкриває новий context з цим станом.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-13",
+          id: "config",
           language: "ts",
-          code: "// After interactive login in a test, persist cookies/storage to a file:\nawait page.context().storageState({ path: 'playwright/.auth/state.json' });\n\n// Later — open a new browser context with the same authentication:\nimport { chromium } from '@playwright/test';\n\nconst browser = await chromium.launch();\nconst context = await browser.newContext({\n  storageState: 'playwright/.auth/state.json',\n});\nconst newPage = await context.newPage();",
+          code: `// playwright.config.ts
+export default defineConfig({
+  projects: [
+    // This project runs first and produces playwright/.auth/user.json
+    { name: 'setup', testMatch: /.*\\.setup\\.ts/ },
+
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'playwright/.auth/user.json', // start every test authenticated
+      },
+      dependencies: ['setup'], // always run setup first
+    },
+  ],
+})`,
         },
       ],
     },
     {
-      id: "advanced-scenarios",
+      id: "per-worker-auth",
       title: {
-        en: "Advanced scenarios",
-        uk: "Складні сценарії",
+        en: "Multiple accounts for parallel tests",
+        uk: "Кілька акаунтів для паралельних тестів",
       },
       paragraphs: [
         {
-          en: "### Authenticate with API request",
-          uk: "### Автентифікація через API-запит",
+          en: "The shared auth file works great when tests only read data. If your tests modify server state (create orders, change settings), parallel tests will step on each other's changes when sharing one account. The fix: one account per parallel worker.",
+          uk: "Спільний auth файл добре працює коли тести тільки читають дані. Якщо тести змінюють стан сервера (створюють замовлення, змінюють налаштування) — паралельні тести будуть заважати один одному при спільному акаунті. Рішення: один акаунт на паралельний воркер.",
         },
         {
-          en: "**When to use**\n- Your web application supports authenticating via API that is easier/faster than interacting with the app UI.",
-          uk: "**Коли підходить**\n- Застосунок підтримує вхід через API швидше/простіше, ніж через UI.",
-        },
-        {
-          en: "**Details**",
-          uk: "**Деталі**",
-        },
-        {
-          en: "We will send the API request with [APIRequestContext] and then save authenticated state as usual.",
-          uk: "Надішліть запит через [APIRequestContext], потім збережіть стан так само, як при UI-логіні.",
-        },
-        {
-          en: "In the [setup project](#basic-shared-account-in-all-tests):",
-          uk: "У [setup project](#basic-shared-account-in-all-tests):",
-        },
-        {
-          en: "Alternatively, in a [worker fixture](#moderate-one-account-per-parallel-worker):",
-          uk: "Або в [worker fixture](#moderate-one-account-per-parallel-worker):",
-        },
-        {
-          en: "### Multiple signed in roles",
-          uk: "### Кілька ролей з різним входом",
-        },
-        {
-          en: "**When to use**\n- You have more than one role in your end to end tests, but you can reuse accounts across all tests.",
-          uk: "**Коли підходить**\n- У e2e є кілька ролей, але облікові записи можна повторно використовувати в усіх тестах.",
-        },
-        {
-          en: "**Details**",
-          uk: "**Деталі**",
-        },
-        {
-          en: "We will authenticate multiple times in the setup project.",
-          uk: "У setup project виконуємо кілька окремих входів.",
-        },
-        {
-          en: "After that, specify `storageState` for each test file or test group, **instead of** setting it in the config.",
-          uk: "Далі вказуйте `storageState` для кожного файла або групи тестів, **а не** глобально в конфігу.",
-        },
-        {
-          en: "See also about [authenticating in the UI mode](#authenticating-in-ui-mode).",
-          uk: "Див. також [автентифікацію в UI mode](#authenticating-in-ui-mode).",
-        },
-        {
-          en: "### Testing multiple roles together",
-          uk: "### Тестування кількох ролей разом",
-        },
-        {
-          en: "**When to use**\n- You need to test how multiple authenticated roles interact together, in a single test.",
-          uk: "**Коли підходить**\n- Потрібно перевірити взаємодію кількох автентифікованих ролей в одному тесті.",
-        },
-        {
-          en: "**Details**",
-          uk: "**Деталі**",
-        },
-        {
-          en: "Use multiple [BrowserContext]s and [Page]s with different storage states in the same test.",
-          uk: "У межах одного тесту використовуйте кілька [BrowserContext] і [Page] з різним `storageState`.",
-        },
-        {
-          en: "### Testing multiple roles with POM fixtures",
-          uk: "### Кілька ролей через POM-фікстури",
-        },
-        {
-          en: "**When to use**\n- You need to test how multiple authenticated roles interact together, in a single test.",
-          uk: "**Коли підходить**\n- Потрібно перевірити взаємодію кількох автентифікованих ролей в одному тесті.",
-        },
-        {
-          en: "**Details**",
-          uk: "**Деталі**",
-        },
-        {
-          en: "You can introduce fixtures that will provide a page authenticated as each role.",
-          uk: "Додайте фікстури, що повертають сторінку вже залогінену під кожну роль.",
-        },
-        {
-          en: "Below is an example that [creates fixtures](./test-fixtures.md#creating-a-fixture) for two [Page Object Models](./pom.md) - admin POM and user POM. It assumes `adminStorageState.json` and `userStorageState.json` files were created in the global setup.",
-          uk: "Нижче — приклад [створення фікстур](./test-fixtures.md#creating-a-fixture) для двох [Page Object Models](./pom.md): адмін і користувач. Передбачається, що файли `adminStorageState.json` і `userStorageState.json` створені в global setup.",
-        },
-        {
-          en: "### Session storage",
-          uk: "### Session storage",
-        },
-        {
-          en: "Reusing authenticated state covers [cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies), [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Storage) and [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) based authentication. Rarely, [session storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage) is used for storing information associated with the signed-in state. Session storage is specific to a particular domain and is not persisted across page loads. Playwright does not provide API to persist session storage, but the following snippet can be used to save/load session storage.",
-          uk: "Повторне використання стану покриває автентифікацію на [cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies), [local storage](https://developer.mozilla.org/en-US/docs/Web/API/Storage) і [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API). Рідше стан тримають у [session storage](https://developer.mozilla.org/en-US/docs/Web/API/Window/sessionStorage): він прив’язаний до домену й не переживає перезавантаження сторінки. Окремого API Playwright для збереження session storage немає, але можна зберегти/відновити вручну, як у фрагменті нижче.",
-        },
-        {
-          en: "### Avoid authentication in some tests",
-          uk: "### Обійти автентифікацію в окремих тестах",
-        },
-        {
-          en: "You can reset storage state in a test file to avoid authentication that was set up for the whole project.",
-          uk: "У файлі тесту можна скинути `storageState`, щоб не використовувати проєктний логін.",
+          en: "Each worker gets its own auth file named by its index (`0.json`, `1.json`, ...). The worker logs in once, saves state, and all its tests reuse that state.",
+          uk: "Кожен воркер отримує свій auth файл названий за індексом (`0.json`, `1.json`, ...). Воркер логіниться один раз, зберігає стан, і всі його тести використовують цей стан.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-17",
-          language: "js",
-          code: "\nconst authFile = 'playwright/.auth/user.json';\n\nsetup('authenticate', async ({ request }) => {\n  // Send authentication request. Replace with your own.\n  await request.post('https://github.com/login', {\n    form: {\n      'user': 'user',\n      'password': 'password'\n    }\n  });\n  await request.storageState({ path: authFile });\n});",
+          id: "worker-auth",
+          language: "ts",
+          code: `// playwright/fixtures.ts
+import { test as base, expect } from '@playwright/test'
+import fs from 'fs'
+import path from 'path'
+
+export const test = base.extend({
+  storageState: ({ workerStorageState }, use) => use(workerStorageState),
+
+  workerStorageState: [async ({ browser }, use) => {
+    const workerId = test.info().parallelIndex
+    const authFile = path.resolve(
+      test.info().project.outputDir,
+      \`.auth/\${workerId}.json\`
+    )
+
+    if (fs.existsSync(authFile)) {
+      await use(authFile)
+      return
+    }
+
+    // First run for this worker — log in and save
+    const page = await browser.newPage({ storageState: undefined })
+    await page.goto('/login')
+    await page.getByLabel('Email').fill(\`worker\${workerId}@example.com\`)
+    await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!)
+    await page.getByRole('button', { name: 'Sign in' }).click()
+    await page.waitForURL('/dashboard')
+    await page.context().storageState({ path: authFile })
+    await page.close()
+    await use(authFile)
+  }, { scope: 'worker' }],
+})`,
         },
+      ],
+    },
+    {
+      id: "api-auth",
+      title: {
+        en: "Faster: authenticate via API",
+        uk: "Швидше: автентифікація через API",
+      },
+      paragraphs: [
         {
-          id: "cb-18",
-          language: "js",
-          code: "\nexport * from '@playwright/test';\nexport const test = baseTest.extend({\n  // Use the same storage state for all tests in this worker.\n  storageState: ({ workerStorageState }, use) => use(workerStorageState),\n\n  // Authenticate once per worker with a worker-scoped fixture.\n  workerStorageState: [async ({}, use) => {\n    // Use parallelIndex as a unique identifier for each worker.\n    const id = test.info().parallelIndex;\n    const fileName = path.resolve(test.info().project.outputDir, `.auth/${id}.json`);\n\n    if (fs.existsSync(fileName)) {\n      // Reuse existing authentication state if any.\n      await use(fileName);\n      return;\n    }\n\n    // Important: make sure we authenticate in a clean environment by unsetting storage state.\n    const context = await request.newContext({ storageState: undefined });\n\n    // Acquire a unique account, for example create a new one.\n    // Alternatively, you can have a list of precreated accounts for testing.\n    // Make sure that accounts are unique, so that multiple team members\n    // can run tests at the same time without interference.\n    const account = await acquireAccount(id);\n\n    // Send authentication request. Replace with your own.\n    await context.post('https://github.com/login', {\n      form: {\n        'user': 'user',\n        'password': 'password'\n      }\n    });\n\n    await context.storageState({ path: fileName });\n    await context.dispose();\n    await use(fileName);\n  }, { scope: 'worker' }],\n});",
+          en: "If your app has a login API endpoint, you can skip the browser form entirely and get a token or session cookie directly via an HTTP request. This is much faster than driving a login form through the UI.",
+          uk: "Якщо твій застосунок має API ендпоінт для логіну — можна пропустити браузерну форму і отримати токен або session cookie напряму через HTTP запит. Це значно швидше ніж вводити форму через UI.",
         },
+      ],
+      codeBlocks: [
         {
-          id: "cb-19",
-          language: "js",
-          code: "\nconst adminFile = 'playwright/.auth/admin.json';\n\nsetup('authenticate as admin', async ({ page }) => {\n  // Perform authentication steps. Replace these actions with your own.\n  await page.goto('https://github.com/login');\n  await page.getByLabel('Username or email address').fill('admin');\n  await page.getByLabel('Password').fill('password');\n  await page.getByRole('button', { name: 'Sign in' }).click();\n  // Wait until the page receives the cookies.\n  //\n  // Sometimes login flow sets cookies in the process of several redirects.\n  // Wait for the final URL to ensure that the cookies are actually set.\n  await page.waitForURL('https://github.com/');\n  // Alternatively, you can wait until the page reaches a state where all cookies are set.\n  await expect(page.getByRole('button', { name: 'View profile and more' })).toBeVisible();\n\n  // End of authentication steps.\n\n  await page.context().storageState({ path: adminFile });\n});\n\nconst userFile = 'playwright/.auth/user.json';\n\nsetup('authenticate as user', async ({ page }) => {\n  // Perform authentication steps. Replace these actions with your own.\n  await page.goto('https://github.com/login');\n  await page.getByLabel('Username or email address').fill('user');\n  await page.getByLabel('Password').fill('password');\n  await page.getByRole('button', { name: 'Sign in' }).click();\n  // Wait until the page receives the cookies.\n  //\n  // Sometimes login flow sets cookies in the process of several redirects.\n  // Wait for the final URL to ensure that the cookies are actually set.\n  await page.waitForURL('https://github.com/');\n  // Alternatively, you can wait until the page reaches a state where all cookies are set.\n  await expect(page.getByRole('button', { name: 'View profile and more' })).toBeVisible();\n\n  // End of authentication steps.\n\n  await page.context().storageState({ path: userFile });\n});",
+          id: "api-auth-code",
+          language: "ts",
+          code: `// tests/auth.setup.ts — API login approach
+import { test as setup, request } from '@playwright/test'
+
+const authFile = 'playwright/.auth/user.json'
+
+setup('authenticate via API', async ({ }) => {
+  const apiCtx = await request.newContext()
+
+  const response = await apiCtx.post('/api/auth/login', {
+    data: {
+      email: 'admin@example.com',
+      password: process.env.TEST_PASSWORD,
+    }
+  })
+
+  // Save cookies from the API response to the auth file
+  await apiCtx.storageState({ path: authFile })
+  await apiCtx.dispose()
+})`,
         },
+      ],
+    },
+    {
+      id: "multiple-roles",
+      title: {
+        en: "Multiple roles: admin and user",
+        uk: "Кілька ролей: адмін і користувач",
+      },
+      paragraphs: [
         {
-          id: "cb-20",
-          language: "js",
-          code: "\ntest.use({ storageState: 'playwright/.auth/admin.json' });\n\ntest('admin test', async ({ page }) => {\n  // page is authenticated as admin\n});\n\ntest.describe(() => {\n  test.use({ storageState: 'playwright/.auth/user.json' });\n\n  test('user test', async ({ page }) => {\n    // page is authenticated as a user\n  });\n});",
+          en: "If your app has roles (admin, manager, viewer), create a separate auth file for each. Then in the test fixture, pick the right file based on what the test needs.",
+          uk: "Якщо в застосунку є ролі (адмін, менеджер, читач) — створи окремий auth файл для кожної. У фікстурі тесту вибирай потрібний файл залежно від того що потрібно тесту.",
         },
+      ],
+      codeBlocks: [
         {
-          id: "cb-21",
-          language: "js",
-          code: "\ntest('admin and user', async ({ browser }) => {\n  // adminContext and all pages inside, including adminPage, are signed in as \"admin\".\n  const adminContext = await browser.newContext({ storageState: 'playwright/.auth/admin.json' });\n  const adminPage = await adminContext.newPage();\n\n  // userContext and all pages inside, including userPage, are signed in as \"user\".\n  const userContext = await browser.newContext({ storageState: 'playwright/.auth/user.json' });\n  const userPage = await userContext.newPage();\n\n  // ... interact with both adminPage and userPage ...\n\n  await adminContext.close();\n  await userContext.close();\n});",
-        },
-        {
-          id: "cb-22",
-          language: "js",
-          code: '\n// Page Object Model for the "admin" page.\n// Here you can add locators and helper methods specific to the admin page.\nclass AdminPage {\n  // Page signed in as "admin".\n  page: Page;\n\n  // Example locator pointing to "Welcome, Admin" greeting.\n  greeting: Locator;\n\n  constructor(page: Page) {\n    this.page = page;\n    this.greeting = page.locator(\'#greeting\');\n  }\n}\n\n// Page Object Model for the "user" page.\n// Here you can add locators and helper methods specific to the user page.\nclass UserPage {\n  // Page signed in as "user".\n  page: Page;\n\n  // Example locator pointing to "Welcome, User" greeting.\n  greeting: Locator;\n\n  constructor(page: Page) {\n    this.page = page;\n    this.greeting = page.locator(\'#greeting\');\n  }\n}\n\n// Declare the types of your fixtures.\ntype MyFixtures = {\n  adminPage: AdminPage;\n  userPage: UserPage;\n};\n\nexport * from \'@playwright/test\';\nexport const test = base.extend({\n  adminPage: async ({ browser }, use) => {\n    const context = await browser.newContext({ storageState: \'playwright/.auth/admin.json\' });\n    const adminPage = new AdminPage(await context.newPage());\n    await use(adminPage);\n    await context.close();\n  },\n  userPage: async ({ browser }, use) => {\n    const context = await browser.newContext({ storageState: \'playwright/.auth/user.json\' });\n    const userPage = new UserPage(await context.newPage());\n    await use(userPage);\n    await context.close();\n  },\n});',
-        },
-        {
-          id: "cb-23",
-          language: "js",
-          code: "// Import test with our new fixtures.\n\n// Use adminPage and userPage fixtures in the test.\ntest('admin and user', async ({ adminPage, userPage }) => {\n  // ... interact with both adminPage and userPage ...\n  await expect(adminPage.greeting).toHaveText('Welcome, Admin');\n  await expect(userPage.greeting).toHaveText('Welcome, User');\n});",
-        },
-        {
-          id: "cb-24",
-          language: "js",
-          code: "// Get session storage and store as env variable\nconst sessionStorage = await page.evaluate(() => JSON.stringify(sessionStorage));\nfs.writeFileSync('playwright/.auth/session.json', sessionStorage, 'utf-8');\n\n// Set session storage in a new context\nconst sessionStorage = JSON.parse(fs.readFileSync('playwright/.auth/session.json', 'utf-8'));\nawait context.addInitScript(storage => {\n  if (window.location.hostname === 'example.com') {\n    for (const [key, value] of Object.entries(storage))\n      window.sessionStorage.setItem(key, value);\n  }\n}, sessionStorage);",
-        },
-        {
-          id: "cb-29",
-          language: "js",
-          code: "\n// Reset storage state for this file to avoid being authenticated\ntest.use({ storageState: { cookies: [], origins: [] } });\n\ntest('not signed in test', async ({ page }) => {\n  // ...\n});",
+          id: "multi-role",
+          language: "ts",
+          code: `// playwright.config.ts — два проєкти з різними ролями
+projects: [
+  { name: 'setup', testMatch: /.*\\.setup\\.ts/ },
+
+  {
+    name: 'admin tests',
+    use: { storageState: 'playwright/.auth/admin.json' },
+    dependencies: ['setup'],
+    testMatch: '**/admin/**/*.spec.ts',
+  },
+  {
+    name: 'user tests',
+    use: { storageState: 'playwright/.auth/user.json' },
+    dependencies: ['setup'],
+    testMatch: '**/user/**/*.spec.ts',
+  },
+]`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "What does Playwright's storageState save?",
+        uk: "Що зберігає storageState в Playwright?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Only session cookies",
+            uk: "Лише session cookies",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Cookies, localStorage and sessionStorage",
+            uk: "Cookies, localStorage і sessionStorage",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The full browser cache including images",
+            uk: "Повний кеш браузера включно з зображеннями",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`storageState` captures cookies, localStorage and sessionStorage — everything that maintains browser-side session state. It doesn't include the network cache or IndexedDB.",
+        uk: "`storageState` зберігає cookies, localStorage і sessionStorage — все що підтримує сесію на стороні браузера. Мережевий кеш і IndexedDB не включаються.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "You have 60 tests. Most just read data, but 5 create new records. What's the best auth strategy?",
+        uk: "У тебе 60 тестів. Більшість читають дані, але 5 створюють нові записи. Яка краща стратегія auth?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Log in at the start of every test",
+            uk: "Логінитися на початку кожного тесту",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Shared auth file for all tests",
+            uk: "Спільний auth файл для всіх тестів",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Separate auth per parallel worker",
+            uk: "Окремий auth на кожний паралельний воркер",
+          },
+        },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "When tests create/modify records, they can interfere with each other when sharing one account in parallel. One account per worker ensures each worker operates in its own data space.",
+        uk: "Коли тести створюють або змінюють записи, вони можуть заважати одне одному при спільному акаунті в паралелі. Один акаунт на воркер гарантує що кожен воркер працює у своєму просторі даних.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "Where should the playwright/.auth directory be added to avoid committing session tokens to the repository?",
+        uk: "Куди потрібно додати директорію playwright/.auth щоб уникнути коміту токенів сесії в репозиторій?",
+      },
+      options: [
+        { id: "a", label: { en: ".npmignore", uk: ".npmignore" } },
+        { id: "b", label: { en: ".gitignore", uk: ".gitignore" } },
+        { id: "c", label: { en: ".dockerignore", uk: ".dockerignore" } },
+        { id: "d", label: { en: "playwright.config.ts excludes field", uk: "поле excludes у playwright.config.ts" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The playwright/.auth directory contains JSON files with cookies and localStorage — real session data that should never be committed. Adding it to .gitignore ensures the auth files are only on the local machine or CI runner and are never pushed to the repository.",
+        uk: "Директорія playwright/.auth містить JSON-файли з cookies та localStorage — справжні дані сесії які ніколи не повинні потрапляти в коміт. Додавання до .gitignore гарантує що auth-файли залишаються лише на локальній машині або CI-рунері і ніколи не пушаться в репозиторій.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "How do you tell a test project in playwright.config.ts to start every browser context already authenticated?",
+        uk: "Як вказати тест-проєкту в playwright.config.ts щоб кожен browser context стартував вже авторизованим?",
+      },
+      options: [
+        { id: "a", label: { en: "Set authFile: 'playwright/.auth/user.json' in the project use block", uk: "Встановити authFile: 'playwright/.auth/user.json' в блоці use проєкту" } },
+        { id: "b", label: { en: "Set storageState: 'playwright/.auth/user.json' in the project use block", uk: "Встановити storageState: 'playwright/.auth/user.json' в блоці use проєкту" } },
+        { id: "c", label: { en: "Import the JSON file and pass it to page.context().addCookies()", uk: "Імпортувати JSON-файл і передати його в page.context().addCookies()" } },
+        { id: "d", label: { en: "Set sessionFile: 'playwright/.auth/user.json' in the global use block", uk: "Встановити sessionFile: 'playwright/.auth/user.json' в глобальному блоці use" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The `storageState` option in the project's `use` block tells Playwright to load the given JSON file into every browser context before any test in that project runs. This restores cookies and localStorage so the test starts fully authenticated without going through the login UI.",
+        uk: "Опція `storageState` в блоці `use` проєкту говорить Playwright завантажити вказаний JSON-файл у кожний browser context перед будь-яким тестом у цьому проєкті. Це відновлює cookies та localStorage, тому тест стартує повністю авторизованим без проходження через UI логіну.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "In playwright.config.ts, which property on a test project ensures the setup project runs before it?",
+        uk: "Яка властивість тест-проєкту в playwright.config.ts гарантує що setup-проєкт виконається раніше нього?",
+      },
+      options: [
+        { id: "a", label: { en: "requires: ['setup']", uk: "requires: ['setup']" } },
+        { id: "b", label: { en: "before: ['setup']", uk: "before: ['setup']" } },
+        { id: "c", label: { en: "dependencies: ['setup']", uk: "dependencies: ['setup']" } },
+        { id: "d", label: { en: "runAfter: ['setup']", uk: "runAfter: ['setup']" } },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "The `dependencies` array on a project lists other project names that must complete successfully before this project starts. If the dependency project fails, the dependent project is skipped entirely. This is the standard way to ensure a setup project (login, seed data) runs before the main browser tests.",
+        uk: "Масив `dependencies` на проєкті перераховує назви інших проєктів які мають успішно завершитися перш ніж цей проєкт стартує. Якщо залежний проєкт падає — поточний проєкт пропускається повністю. Це стандартний спосіб гарантувати що setup-проєкт (логін, заповнення даних) виконується перед основними браузерними тестами.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "Why is authenticating via an API endpoint faster than driving the login form through the browser UI?",
+        uk: "Чому автентифікація через API-ендпоінт швидша ніж заповнення форми логіну через браузерний UI?",
+      },
+      options: [
+        { id: "a", label: { en: "The API skips TLS handshake so the connection is faster", uk: "API пропускає TLS-handshake тому з'єднання швидше" } },
+        { id: "b", label: { en: "API auth avoids launching a browser page, loading assets, and simulating user interactions — it's a single HTTP request", uk: "API-авторизація уникає запуску сторінки браузера, завантаження ресурсів і симуляції дій користувача — це єдиний HTTP-запит" } },
+        { id: "c", label: { en: "Playwright caches API responses so subsequent runs skip the request entirely", uk: "Playwright кешує відповіді API тому наступні запуски пропускають запит повністю" } },
+        { id: "d", label: { en: "API auth uses a different browser process that starts faster", uk: "API-авторизація використовує інший процес браузера який стартує швидше" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "UI login requires launching a browser page, loading all its assets (HTML, CSS, JS), and then simulating typed keystrokes and button clicks. An API login is a direct HTTP POST — no page load, no DOM rendering, no user input simulation. The result is the same (a session cookie), but it arrives in milliseconds instead of seconds.",
+        uk: "UI-логін вимагає запуску сторінки браузера, завантаження всіх її ресурсів (HTML, CSS, JS), і потім симуляції натискань клавіш та кнопок. API-логін — це прямий HTTP POST: без завантаження сторінки, без рендерингу DOM, без симуляції вводу. Результат той самий (session cookie) але приходить за мілісекунди а не секунди.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "Your app has admin and regular user roles. How do you handle multiple auth files in playwright.config.ts?",
+        uk: "Твій застосунок має ролі адміна і звичайного користувача. Як обробити кілька auth-файлів у playwright.config.ts?",
+      },
+      options: [
+        { id: "a", label: { en: "Use one storageState file and switch roles inside each test using page.evaluate()", uk: "Використовувати один storageState-файл і перемикати ролі всередині кожного тесту через page.evaluate()" } },
+        { id: "b", label: { en: "Create a separate test project per role, each with its own storageState path pointing to a different auth file", uk: "Створити окремий тест-проєкт для кожної ролі, кожен зі своїм шляхом storageState що вказує на інший auth-файл" } },
+        { id: "c", label: { en: "Store all roles in one JSON file and pick the role with an environment variable", uk: "Зберегти всі ролі в одному JSON-файлі і вибирати роль через змінну середовища" } },
+        { id: "d", label: { en: "Pass a roles array to the storageState option", uk: "Передати масив ролей в опцію storageState" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Each role gets its own auth file (admin.json, user.json) produced by a setup step that logs in as that role. Each test project points its `storageState` to the appropriate file and optionally uses `testMatch` to run only tests relevant to that role. This keeps role-specific tests cleanly separated and each test project starts already authenticated as the right user.",
+        uk: "Кожна роль отримує власний auth-файл (admin.json, user.json), створений кроком setup який логіниться під цією роллю. Кожен тест-проєкт вказує свій `storageState` на відповідний файл і опціонально використовує `testMatch` щоб запускати лише тести відповідні цій ролі. Це тримає рольово-специфічні тести чітко розділеними і кожен тест-проєкт стартує вже авторизованим як правильний користувач.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "What testMatch pattern is typically used on the setup project to match only auth setup files?",
+        uk: "Який патерн testMatch зазвичай використовується на setup-проєкті щоб знаходити лише auth setup-файли?",
+      },
+      options: [
+        { id: "a", label: { en: "/.*\\.spec\\.ts/", uk: "/.*\\.spec\\.ts/" } },
+        { id: "b", label: { en: "/.*\\.setup\\.ts/", uk: "/.*\\.setup\\.ts/" } },
+        { id: "c", label: { en: "/.*\\.before\\.ts/", uk: "/.*\\.before\\.ts/" } },
+        { id: "d", label: { en: "'**/*.config.ts'", uk: "'**/*.config.ts'" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "By convention Playwright setup files are named with a `.setup.ts` suffix (e.g. `auth.setup.ts`). Using `testMatch: /.*\\.setup\\.ts/` ensures the setup project picks up only those files and not regular `.spec.ts` test files. This keeps the setup and test projects cleanly separated.",
+        uk: "За угодою setup-файли Playwright іменуються з суфіксом `.setup.ts` (наприклад `auth.setup.ts`). Використання `testMatch: /.*\\.setup\\.ts/` гарантує що setup-проєкт підбирає лише ці файли а не звичайні `.spec.ts` тест-файли. Це тримає setup і тест-проєкти чітко розділеними.",
+      },
+    },
+  ],
 }

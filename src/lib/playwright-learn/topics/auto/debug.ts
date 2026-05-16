@@ -13,430 +13,510 @@ export const debugTopic: PlaywrightTopic = {
     uk: "Дебаг тестів",
   },
   summary: {
-    en: "Debug Playwright tests in VS Code, the Inspector, and Chrome DevTools — with a TypeScript-first workflow.",
-    uk: "Дебаг тестів Playwright у VS Code, Inspector і Chrome DevTools — з акцентом на TypeScript.",
+    en: "When a test fails and you can't tell why, these are the tools to reach for — starting with the simplest and going deeper.",
+    uk: "Коли тест падає і незрозуміло чому — ось інструменти в порядку від простого до глибокого.",
   },
   sections: [
     {
-      id: "vs-code-debugger",
+      id: "ui-mode",
       title: {
-        en: "VS Code debugger",
-        uk: "Дебагер VS Code",
+        en: "Start with UI mode",
+        uk: "Починай з UI mode",
       },
       paragraphs: [
         {
-          en: "We recommend using the [VS Code Extension](./getting-started-vscode.md) for debugging for a better developer experience. With the VS Code extension you can debug your tests right in VS Code, see error messages, set breakpoints and step through your tests.",
-          uk: "Для дебагу зручно [розширення VS Code](./getting-started-vscode.md): помилки в редакторі, breakpoints, покроковий прохід тесту.",
-        },
-        {
-          en: "### Error Messages",
-          uk: "### Повідомлення про помилки",
-        },
-        {
-          en: "If your test fails VS Code will show you error messages right in the editor showing what was expected, what was received as well as a complete call log.",
-          uk: "Якщо тест падає, VS Code покаже очікуване й фактичне значення та повний call log прямо в редакторі.",
-        },
-        {
-          en: "### Live Debugging",
-          uk: "### Живий дебаг",
-        },
-        {
-          en: "You can debug your test live in VS Code. After running a test with the `Show Browser` option checked, click on any of the locators in VS Code and it will be highlighted in the Browser window. Playwright will also show you if there are multiple matches.",
-          uk: "Можна дебажити «вживу»: увімкніть `Show Browser`, клікніть по локатору в коді — він підсвітиться у вікні браузера; видно також кілька збігів.",
-        },
-        {
-          en: "You can also edit the locators in VS Code and Playwright will show you the changes live in the browser window.",
-          uk: "Редагування локатора в VS Code одразу відображається в браузері.",
-        },
-        {
-          en: "### Picking a Locator",
-          uk: "### Підбір локатора",
-        },
-        {
-          en: "Pick a [locator](./locators.md) and copy it into your test file by clicking the **Pick locator** button from the testing sidebar. Then in the browser click the element you require and it will now show up in the **Pick locator** box in VS Code. Press 'enter' on your keyboard to copy the locator into the clipboard and then paste anywhere in your code. Or press 'escape' if you want to cancel.",
-          uk: "Натисніть **Pick locator** у панелі тестів, клікніть потрібний елемент у браузері — рядок з’явиться в полі **Pick locator** у VS Code. Enter копіює в буфер, Escape скасовує. Детальніше про [locators](./locators.md).",
-        },
-        {
-          en: "Playwright will look at your page and figure out the best locator, prioritizing [role, text and test id locators](./locators.md). If Playwright finds multiple elements matching the locator, it will improve the locator to make it resilient and uniquely identify the target element, so you don't have to worry about failing tests due to locators.",
-          uk: "Playwright підбере стійкий локатор з пріоритетом [role, text і test id](./locators.md); за кількох збігів уточнить вираз, щоб унікально вказати на елемент.",
-        },
-        {
-          en: "### Run in Debug Mode",
-          uk: "### Запуск у режимі дебагу",
-        },
-        {
-          en: "To set a breakpoint click next to the line number where you want the breakpoint to be until a red dot appears. Run the tests in debug mode by right clicking on the line next to the test you want to run.",
-          uk: "Клікніть ліворуч від номера рядка, щоб з’явилася червона крапка (breakpoint). Правий клік біля тесту — запуск у debug mode.",
-        },
-        {
-          en: "A browser window will open and the test will run and pause at where the breakpoint is set. You can step through the tests, pause the test and rerun the tests from the menu in VS Code.",
-          uk: "Відкриється браузер, виконання зупиниться на breakpoint. Далі — кроки, пауза й повторний запуск з меню VS Code.",
-        },
-        {
-          en: "### Debug Tests Using Chrome DevTools",
-          uk: "### Дебаг через Chrome DevTools",
-        },
-        {
-          en: "Instead of using `Debug Test`, choose `Run Test` in VS Code. With `Show Browser` enabled, the browser session is reused, letting you open Chrome DevTools for continuous debugging of your tests and the web application.",
-          uk: "Замість `Debug Test` оберіть `Run Test` і `Show Browser`: сесія браузера лишається відкритою, можна користуватися Chrome DevTools для дебагу тесту й застосунку.",
-        },
-        {
-          en: "### Debug in different Browsers",
-          uk: "### Дебаг у різних браузерах",
-        },
-        {
-          en: "By default, debugging is done using the Chromium profile. You can debug your tests on different browsers by right clicking on the debug icon in the testing sidebar and clicking on the 'Select Default Profile' option from the dropdown.",
-          uk: "За замовчуванням використовується профіль Chromium. Інший браузер — правий клік по іконці дебагу в сайдбарі тестів → «Select Default Profile».",
-        },
-        {
-          en: "Then choose the test profile you would like to use for debugging your tests. Each time you run your test in debug mode it will use the profile you selected. You can run tests in debug mode by right clicking the line number where your test is and selecting 'Debug Test' from the menu.",
-          uk: "Оберіть профіль — він використовуватиметься при кожному debug. Запуск: правий клік на номері рядка тесту → Debug Test.",
-        },
-        {
-          en: "To learn more about debugging, see [Debugging in Visual Studio Code](https://code.visualstudio.com/docs/editor/debugging).",
-          uk: "Докладніше: [Debugging in Visual Studio Code](https://code.visualstudio.com/docs/editor/debugging).",
-        },
-      ],
-    },
-    {
-      id: "playwright-inspector",
-      title: {
-        en: "Playwright Inspector",
-        uk: "Playwright Inspector",
-      },
-      paragraphs: [
-        {
-          en: "The Playwright Inspector is a GUI tool to help you debug your Playwright tests. It allows you to step through your tests, live edit locators, pick locators and see actionability logs.",
-          uk: "Playwright Inspector — графічний інструмент для дебагу: покроковий прохід, живе редагування та підбір локаторів, логи actionability.",
-        },
-        {
-          en: "### Run in debug mode",
-          uk: "### Запуск у режимі дебагу",
-        },
-        {
-          en: "Run your tests with the `--debug` flag to open the inspector. This configures Playwright for debugging and opens the inspector. Additional useful defaults are configured when `--debug` is used:",
-          uk: "Запустіть тести з `--debug` — відкриється Inspector і ввімкнуться типові налаштування для дебагу:",
-        },
-        {
-          en: "- Browsers launch in headed mode\n- Default timeout is set to 0 (= no timeout)",
-          uk: "- Браузер у headed-режимі\n- Таймаут за замовчуванням 0 (без обмеження)",
-        },
-        {
-          en: "#### Debug all tests on all browsers",
-          uk: "#### Усі тести в усіх браузерах",
-        },
-        {
-          en: "To debug all tests run the test command with the `--debug` flag. This will run tests one by one, and open the inspector and a browser window for each test.",
-          uk: "`--debug` для всіх тестів: вони йдуть по одному, для кожного відкриваються Inspector і вікно браузера.",
-        },
-        {
-          en: "#### Debug one test on all browsers",
-          uk: "#### Один тест у всіх браузерах",
-        },
-        {
-          en: "To debug one test on a specific line, run the test command followed by the name of the test file and the line number of the test you want to debug, followed by the `--debug` flag. This will run a single test in each browser configured in your [`playwright.config`](./test-projects.md#configure-projects-for-multiple-browsers) and open the inspector.",
-          uk: "Вкажіть файл і номер рядка тесту та `--debug` — один тест прогониться в кожному браузері з [`playwright.config`](./test-projects.md#configure-projects-for-multiple-browsers) з відкритим Inspector.",
-        },
-        {
-          en: "#### Debug on a specific browser",
-          uk: "#### Один браузер / проєкт",
-        },
-        {
-          en: "In Playwright you can configure projects in your [`playwright.config`](./test-projects.md#configure-projects-for-multiple-browsers). Once configured you can then debug your tests on a specific browser or mobile viewport using the `--project` flag followed by the name of the project configured in your `playwright.config`.",
-          uk: "У [`playwright.config`](./test-projects.md#configure-projects-for-multiple-browsers) задайте проєкти, потім `--project=<ім’я>` для дебагу в конкретному браузері або viewport.",
-        },
-        {
-          en: "#### Debug one test on a specific browser",
-          uk: "#### Один тест у конкретному браузері",
-        },
-        {
-          en: "To run one test on a specific browser add the name of the test file and the line number of the test you want to debug as well as the `--project` flag followed by the name of the project.",
-          uk: "Комбінуйте файл:рядок тесту з `--project=<ім’я проєкту>`.",
-        },
-        {
-          en: "### Run in debug mode from the terminal",
-          uk: "### Запуск у режимі дебагу з терміналу",
-        },
-        {
-          en: "Set the `PWDEBUG` environment variable to run your Playwright tests in debug mode. This\nconfigures Playwright for debugging and opens the inspector. Additional useful defaults are configured when `PWDEBUG=1` is set:",
-          uk: "Змінна середовища `PWDEBUG=1` увімкне дебаг і Inspector з тими самими корисними дефолтами:",
-        },
-        {
-          en: "- Browsers launch in headed mode\n- Default timeout is set to 0 (= no timeout)",
-          uk: "- Браузер у headed-режимі\n- Таймаут за замовчуванням 0 (без обмеження)",
-        },
-        {
-          en: "#### Configure source location (Java)",
-          uk: "#### Шлях до вихідного коду (Java)",
-        },
-        {
-          en: "To tell Playwright where to look for the source code that you are debugging, pass\na list of the source directories via `PLAYWRIGHT_JAVA_SRC` environment variable. Paths in\nthe list should be separated by : on macOS and Linux, and by ; on Windows.",
-          uk: "Щоб Inspector мапив стек на Java-файли, задайте каталоги в `PLAYWRIGHT_JAVA_SRC` (розділювач `:` на macOS/Linux, `;` на Windows).",
-        },
-        {
-          en: "### Stepping through your tests",
-          uk: "### Покроковий прохід",
-        },
-        {
-          en: "You can play, pause or step through each action of your test using the toolbar at the top of the Inspector. You can see the current action highlighted in the test code, and matching elements highlighted in the browser window.",
-          uk: "Панель Inspector: play/pause/крок. Поточна дія підсвічена в коді, збіги — у вікні браузера.",
-        },
-        {
-          en: "### Run a test from a specific breakpoint",
-          uk: "### Зупинка на `page.pause()`",
-        },
-        {
-          en: "To speed up the debugging process you can add a [`method: Page.pause`] method to your test. This way you won't have to step through each action of your test to get to the point where you want to debug.",
-          uk: "Додайте [`method: Page.pause`], щоб одразу зупинитися в потрібному місці без покрокового проходу всього тесту.",
-        },
-        {
-          en: 'Once you add a `page.pause()` call, run your tests in debug mode. Clicking the "Resume" button in the Inspector will run the test and only stop on the `page.pause()`.',
-          uk: "Після `page.pause()` запустіть дебаг; кнопка Resume докрутить тест до наступного `page.pause()`.",
-        },
-        {
-          en: "### Live editing locators",
-          uk: "### Живе редагування локаторів",
-        },
-        {
-          en: "While running in debug mode you can live edit the locators. Next to the 'Pick Locator' button there is a field showing the [locator](./locators.md) that the test is paused on. You can edit this locator directly in the **Pick Locator** field, and matching elements will be highlighted in the browser window.",
-          uk: "У дебаг-режимі редагуйте [локатор](./locators.md) у полі **Pick Locator** — збіги одразу видно в браузері.",
-        },
-        {
-          en: "### Picking locators",
-          uk: "### Підбір локаторів",
-        },
-        {
-          en: "While debugging, you might need to choose a more resilient locator. You can do this by clicking on the **Pick Locator** button and hovering over any element in the browser window. While hovering over an element you will see the code needed to locate this element highlighted below. Clicking an element in the browser will add the locator into the field where you can then either tweak it or copy it into your code.",
-          uk: "**Pick Locator** + наведення на елемент показує код локатора; клік додає його в поле для правок або копіювання.",
-        },
-        {
-          en: "Playwright will look at your page and figure out the best locator, prioritizing [role, text and test id locators](./locators.md). If Playwright finds multiple elements matching the locator, it will improve the locator to make it resilient and uniquely identify the target element, so you don't have to worry about failing tests due to locators.",
-          uk: "Playwright підбере стійкий локатор з пріоритетом [role, text і test id](./locators.md); за потреби уточнить вираз для унікального збігу.",
-        },
-        {
-          en: "### Actionability logs",
-          uk: "### Логи actionability",
-        },
-        {
-          en: "By the time Playwright has paused on a click action, it has already performed [actionability checks](./actionability.md) that can be found in the log. This can help you understand what happened during your test and what Playwright did or tried to do. The log tells you if the element was visible, enabled and stable, if the locator resolved to an element, scrolled into view, and so much more. If actionability can't be reached, it will show the action as pending.",
-          uk: "Після паузи на кліку в логах видно [перевірки actionability](./actionability.md): видимість, enabled, стабільність, прокрутка в зону видимості тощо. Якщо умови не виконані — дія в статусі pending.",
+          en: "UI mode is the first tool I open when a test fails. It shows a timeline of every action, a DOM snapshot at each step, network requests, and console output — all in one view. You can rewind to any point and see exactly what the page looked like.",
+          uk: "UI mode — перший інструмент що я відкриваю коли тест падає. Він показує таймлайн кожної дії, DOM снепшот на кожному кроці, мережеві запити і консоль — все в одному вікні. Можна перемотати до будь-якого моменту і побачити як саме виглядала сторінка.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
+          id: "ui-mode",
           language: "bash",
-          code: "npx playwright test --debug",
-        },
-        {
-          id: "cb-2",
-          language: "bash",
-          code: "npx playwright test example.spec.ts:10 --debug",
-        },
-        {
-          id: "cb-3",
-          language: "bash",
-          code: 'npx playwright test --project=chromium --debug\nnpx playwright test --project="Mobile Safari" --debug\nnpx playwright test --project="Microsoft Edge" --debug',
-        },
-        {
-          id: "cb-4",
-          language: "bash",
-          code: "npx playwright test example.spec.ts:10 --project=webkit --debug",
-        },
-        {
-          id: "cb-14",
-          language: "js",
-          code: "await page.pause();",
+          code: `npx playwright test --ui
+
+# Або конкретний файл
+npx playwright test tests/orders.spec.ts --ui`,
         },
       ],
     },
     {
-      id: "trace-viewer",
+      id: "headed-debug",
       title: {
-        en: "Trace Viewer",
-        uk: "Trace Viewer",
+        en: "Run headed with --debug",
+        uk: "Запуск headed з --debug",
       },
       paragraphs: [
         {
-          en: "Playwright [Trace Viewer](/trace-viewer.md) is a GUI tool that lets you explore recorded Playwright traces of your tests. You can go back and forward through each action on the left side, and visually see what was happening during the action. In the middle of the screen, you can see a DOM snapshot for the action. On the right side you can see action details, such as time, parameters, return value and log. You can also explore console messages, network requests and the source code.",
-          uk: "[Trace Viewer](/trace-viewer.md) у Playwright — інтерфейс для перегляду записаних трейсів: зліва кроки туди-назад, по центру знімок DOM на дію, справа час, параметри, повернене значення й лог; також консоль, мережа та вихідний код.",
-        },
-        {
-          en: "To learn more about how to record traces and use the Trace Viewer, check out the [Trace Viewer](/trace-viewer.md) guide.",
-          uk: "Як записувати трейси й користуватися переглядачем — у посібнику [Trace Viewer](/trace-viewer.md).",
-        },
-      ],
-    },
-    {
-      id: "browser-developer-tools",
-      title: {
-        en: "Browser Developer Tools",
-        uk: "Інструменти розробника браузера",
-      },
-      paragraphs: [
-        {
-          en: "When running in Debug Mode with `PWDEBUG=console`, a `playwright` object is available in the Developer tools console. Developer tools can help you to:",
-          uk: "З `PWDEBUG=console` у консолі DevTools доступний об’єкт `playwright`. Це допомагає:",
-        },
-        {
-          en: "- Inspect the DOM tree and **find element selectors**\n- **See console logs** during execution (or learn how to [read logs via API](./api/class-page.md#page-event-console))\n- Check **network activity** and other developer tools features",
-          uk: "- Переглядати DOM і **підбирати селектори**\n- **Бачити логи консолі** під час виконання (або [читати логи через API](./api/class-page.md#page-event-console))\n- Дивитися **мережу** та інші можливості DevTools",
-        },
-        {
-          en: "To debug your tests using the browser developer tools, start by setting a breakpoint in your test to pause the execution using the [`method: Page.pause`] method.",
-          uk: "Для дебагу через DevTools поставте паузу в тесті через [`method: Page.pause`].",
-        },
-        {
-          en: "Once you have set a breakpoint in your test, you can then run your test with `PWDEBUG=console`.",
-          uk: "Потім запустіть тести з `PWDEBUG=console`.",
-        },
-        {
-          en: "Once Playwright launches the browser window, you can open the developer tools.\nThe `playwright` object will be available in the console panel.",
-          uk: "Після відкриття вікна браузера відкрийте DevTools — об’єкт `playwright` з’явиться в консолі.",
-        },
-        {
-          en: "#### playwright.$(selector)",
-          uk: "#### playwright.$(selector)",
-        },
-        {
-          en: "Query the Playwright selector, using the actual Playwright query engine, for example:",
-          uk: "Запит селектора рушієм Playwright, наприклад:",
-        },
-        {
-          en: "#### playwright.$$(selector)",
-          uk: "#### playwright.$$(selector)",
-        },
-        {
-          en: "Same as `playwright.$`, but returns all matching elements.",
-          uk: "Як `playwright.$`, але повертає усі збіги.",
-        },
-        {
-          en: "#### playwright.inspect(selector)",
-          uk: "#### playwright.inspect(selector)",
-        },
-        {
-          en: "Reveal element in the Elements panel.",
-          uk: "Показати елемент на панелі Elements.",
-        },
-        {
-          en: "#### playwright.locator(selector)",
-          uk: "#### playwright.locator(selector)",
-        },
-        {
-          en: "Create a locator and query matching elements, for example:",
-          uk: "Створити локатор і знайти елементи, наприклад:",
-        },
-        {
-          en: "#### playwright.selector(element)",
-          uk: "#### playwright.selector(element)",
-        },
-        {
-          en: "Generates selector for the given element. For example, select an element in the Elements panel and pass `$0`:",
-          uk: "Генерує селектор для елемента: виділіть вузол у Elements і передайте `$0`:",
+          en: "`--debug` opens Playwright Inspector alongside a visible browser. The test pauses at the start and you step through it manually — action by action. Useful when you need to see exactly which element gets clicked or what state the page is in at a specific moment.",
+          uk: "`--debug` відкриває Playwright Inspector поруч з видимим браузером. Тест ставиться на паузу на початку і ти проходиш його вручну — дія за дією. Корисно коли треба точно побачити який елемент кликається або в якому стані сторінка в конкретний момент.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-19",
-          language: "js",
-          code: "await page.pause();",
-        },
-        {
-          id: "cb-24",
+          id: "debug-flag",
           language: "bash",
-          code: "PWDEBUG=console npx playwright test",
-        },
-        {
-          id: "cb-25",
-          language: "batch",
-          code: "set PWDEBUG=console\nnpx playwright test",
-        },
-        {
-          id: "cb-26",
-          language: "powershell",
-          code: '$env:PWDEBUG="console"\nnpx playwright test',
-        },
-        {
-          id: "cb-36",
-          language: "bash",
-          code: "playwright.$('.auth-form >> text=Log in');\n\nLog in",
-        },
-        {
-          id: "cb-37",
-          language: "bash",
-          code: "playwright.$$('li >> text=John')\n\n[, , , ]",
-        },
-        {
-          id: "cb-38",
-          language: "bash",
-          code: "playwright.inspect('text=Log in')",
-        },
-        {
-          id: "cb-39",
-          language: "bash",
-          code: "playwright.locator('.auth-form', { hasText: 'Log in' });\n\nLocator ()\n  - element: button\n  - elements: [button]",
-        },
-        {
-          id: "cb-40",
-          language: "bash",
-          code: 'playwright.selector($0)\n\n"div[id="glow-ingress-block"] >> text=/.*Hello.*/"',
+          code: `# Запустити з дебагером
+npx playwright test tests/orders.spec.ts --debug
+
+# Або конкретний тест
+npx playwright test --debug -g "filter shows pending orders"`,
         },
       ],
     },
     {
-      id: "verbose-api-logs",
+      id: "breakpoints",
       title: {
-        en: "Verbose API logs",
-        uk: "Детальні логи API",
+        en: "Breakpoints in the test",
+        uk: "Breakpoints в тесті",
       },
       paragraphs: [
         {
-          en: "Playwright supports verbose logging with the `DEBUG` environment variable.",
-          uk: "Детальне логування вмикається змінною середовища `DEBUG`.",
+          en: "`await page.pause()` stops the test at that exact line and opens Playwright Inspector. Unlike `--debug` (which pauses at the start), `pause()` lets you run until a specific moment — skip the boring setup and stop right where the problem is.",
+          uk: "`await page.pause()` зупиняє тест на тій конкретній лінії і відкриває Playwright Inspector. На відміну від `--debug` (що ставить паузу на початку), `pause()` дозволяє виконати нудний сетап і зупинитись прямо там де є проблема.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-41",
-          language: "bash",
-          code: "DEBUG=pw:api npx playwright test",
-        },
-        {
-          id: "cb-42",
-          language: "batch",
-          code: "set DEBUG=pw:api\nnpx playwright test",
-        },
-        {
-          id: "cb-43",
-          language: "powershell",
-          code: '$env:DEBUG="pw:api"\nnpx playwright test',
+          id: "pause",
+          language: "ts",
+          code: `test('filter orders', async ({ page }) => {
+  await page.goto('/orders')
+  await page.getByRole('combobox', { name: 'Статус' }).selectOption('pending')
+
+  // Зупинити тут і подивитися що відбулося
+  await page.pause()
+
+  await expect(page.getByRole('row')).toHaveCount(5)
+})`,
         },
       ],
     },
     {
-      id: "headed-mode",
+      id: "vs-code",
       title: {
-        en: "Headed mode",
-        uk: "Режим з видимим вікном (headed)",
+        en: "VS Code extension",
+        uk: "Розширення VS Code",
       },
       paragraphs: [
         {
-          en: "Playwright runs browsers in headless mode by default. To change this behavior,\nuse `headless: false` as a launch option.",
-          uk: "За замовчуванням браузер у headless. Щоб бачити вікно,\nпередайте `headless: false` при запуску.",
+          en: "With the Playwright VS Code extension, you can run and debug tests without leaving the editor. Click the triangle next to a test name to run it, or right-click for \"Debug test\" to step through with breakpoints. The extension also has a **Pick locator** button — click it, then click any element in the browser, and the best locator is copied to your clipboard.",
+          uk: "З розширенням Playwright для VS Code можна запускати і дебажити тести не виходячи з редактора. Клікни трикутник поруч з назвою тесту щоб запустити, або правою кнопкою для \"Debug test\" щоб проходити з breakpoints. У розширенні також є кнопка **Pick locator** — натисни її, потім клікни на елемент в браузері, і найкращий локатор скопіюється в буфер.",
+        },
+      ],
+    },
+    {
+      id: "traces",
+      title: {
+        en: "Traces for CI failures",
+        uk: "Traces для падінь на CI",
+      },
+      paragraphs: [
+        {
+          en: "When a test fails on CI and you can't reproduce locally, traces are the answer. A trace is a zip file containing every action, DOM snapshot, screenshot, network call and console log from the test run. Enable it in the config and Playwright saves it automatically on failure.",
+          uk: "Коли тест падає на CI і не відтворюється локально — traces це відповідь. Trace — це zip файл що містить кожну дію, DOM снепшот, скріншот, мережевий запит і лог консолі за весь прогін тесту. Увімкни в конфізі і Playwright автоматично зберігає їх при падінні.",
         },
         {
-          en: "You can also use the [`option: BrowserType.launch.slowMo`] option\nto slow down execution (by N milliseconds per operation) and follow along while debugging.",
-          uk: "Опція [`option: BrowserType.launch.slowMo`]\nсповільнює кожну операцію на N мс — зручно стежити під час дебагу.",
+          en: "Open a saved trace with `npx playwright show-trace path/to/trace.zip` — it opens the same Trace Viewer you know from UI mode, but for the CI run.",
+          uk: "Відкрий збережений trace через `npx playwright show-trace path/to/trace.zip` — відкриється той самий Trace Viewer що ти знаєш з UI mode, але для прогону на CI.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-53",
-          language: "js",
-          code: "// Chromium, Firefox, or WebKit\nawait chromium.launch({ headless: false, slowMo: 100 });",
+          id: "trace-config",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    // Зберігати trace тільки при першому retry (найефективніший варіант)
+    trace: 'on-first-retry',
+
+    // Або завжди (більший розмір артефактів)
+    // trace: 'on',
+  },
+})`,
+        },
+        {
+          id: "show-trace",
+          language: "bash",
+          code: `# Відкрити trace локально
+npx playwright show-trace test-results/orders-filter/trace.zip
+
+# Або завантажити на trace.playwright.dev (публічний перегляд)`,
+        },
+      ],
+    },
+    {
+      id: "console-network",
+      title: {
+        en: "Check console and network in tests",
+        uk: "Консоль і мережа в тестах",
+      },
+      paragraphs: [
+        {
+          en: "You can listen to console messages and network requests directly in a test. This helps when the UI looks correct but something in the background is going wrong — an error logged to console, a failed API call, or a redirect that shouldn't happen.",
+          uk: "Можна слухати консольні повідомлення і мережеві запити прямо в тесті. Це допомагає коли UI виглядає нормально але щось у фоні йде не так — помилка в консолі, падіння API запиту або редирект якого не повинно бути.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "console-network",
+          language: "ts",
+          code: `test('no JS errors on dashboard load', async ({ page }) => {
+  const errors: string[] = []
+
+  // Збираємо JS помилки
+  page.on('console', msg => {
+    if (msg.type() === 'error') {
+      errors.push(msg.text())
+    }
+  })
+
+  // Збираємо failed запити
+  page.on('response', res => {
+    if (!res.ok()) {
+      errors.push(\`\${res.status()} \${res.url()}\`)
+    }
+  })
+
+  await page.goto('/dashboard')
+  await expect(page.getByRole('main')).toBeVisible()
+
+  expect(errors).toHaveLength(0)
+})`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "You want to pause the test at a specific line to inspect the browser state. What do you use?",
+        uk: "Хочеш зупинити тест на конкретній лінії щоб перевірити стан браузера. Що використовуєш?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "npx playwright test --debug (starts paused at the beginning)",
+            uk: "npx playwright test --debug (стартує на паузі на початку)",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "await page.pause() at the exact line",
+            uk: "await page.pause() на конкретній лінії",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "await page.waitForTimeout(99999) to freeze the test",
+            uk: "await page.waitForTimeout(99999) щоб заморозити тест",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`page.pause()` pauses exactly where you put it and opens Playwright Inspector. `--debug` pauses at the very start. `waitForTimeout` just sleeps and doesn't open any inspector.",
+        uk: "`page.pause()` ставить паузу рівно там де ти його поставив і відкриває Playwright Inspector. `--debug` ставить паузу на самому початку. `waitForTimeout` просто чекає і не відкриває жодного інспектора.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "What is the environment variable that launches Playwright with the Inspector attached from the very start of the run?",
+        uk: "Яка змінна середовища запускає Playwright з Inspector підключеним від самого початку запуску?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "DEBUG=playwright",
+            uk: "DEBUG=playwright",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "PWDEBUG=1",
+            uk: "PWDEBUG=1",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "PLAYWRIGHT_INSPECT=true",
+            uk: "PLAYWRIGHT_INSPECT=true",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "NODE_DEBUG=playwright",
+            uk: "NODE_DEBUG=playwright",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "PWDEBUG=1 is the dedicated Playwright environment variable. Setting it before running your test command (e.g. PWDEBUG=1 npx playwright test) opens Playwright Inspector automatically, runs the browser in headed mode, and pauses at the start — identical to the --debug CLI flag.",
+        uk: "PWDEBUG=1 — це спеціальна змінна середовища Playwright. Встановлення її перед командою запуску тестів (наприклад PWDEBUG=1 npx playwright test) автоматично відкриває Playwright Inspector, запускає браузер у headed режимі і ставить паузу на початку — ідентично до CLI-прапорця --debug.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "What is the key difference between UI mode (--ui) and running with --debug?",
+        uk: "В чому ключова різниця між UI mode (--ui) і запуском з --debug?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "--debug runs faster because it doesn't record a trace",
+            uk: "--debug працює швидше тому що не записує trace",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "UI mode shows a full timeline of actions, DOM snapshots, and network in a GUI you can scrub through; --debug opens Inspector and lets you step through the test live action by action",
+            uk: "UI mode показує повний таймлайн дій, DOM-знімки і мережу в GUI через який можна скролити; --debug відкриває Inspector і дозволяє проходити тест наживо дія за дією",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "UI mode only works for TypeScript tests; --debug works for any language",
+            uk: "UI mode працює тільки для TypeScript тестів; --debug працює для будь-якої мови",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "They are essentially the same tool with different launch commands",
+            uk: "Вони по суті один і той самий інструмент з різними командами запуску",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "UI mode is a comprehensive visual test runner that records the full test run and lets you review the timeline after execution — useful for post-mortem analysis. --debug (or PWDEBUG=1) launches Inspector and pauses the test at the start so you can step through it interactively in real time. They complement each other but serve different workflows.",
+        uk: "UI mode — це комплексний візуальний запускач тестів що записує повний прогін тесту і дозволяє переглядати таймлайн після виконання — корисний для посмертного аналізу. --debug (або PWDEBUG=1) запускає Inspector і ставить тест на паузу на початку щоб ти міг проходити його інтерактивно в реальному часі. Вони доповнюють один одного але слугують різним робочим процесам.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "What does Playwright Inspector show that makes it useful for debugging locator issues?",
+        uk: "Що показує Playwright Inspector що робить його корисним для дебагу проблем з локаторами?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The source map of the compiled TypeScript file",
+            uk: "Карту джерел скомпільованого TypeScript файлу",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "A list of all elements on the page that match the current locator, highlighted in the live browser",
+            uk: "Список всіх елементів на сторінці що відповідають поточному локатору, підсвічених у живому браузері",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The raw HTML source of the page at the time of failure",
+            uk: "Вихідний HTML сторінки на момент падіння",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The CPU and memory usage of each test step",
+            uk: "Використання CPU і пам'яті кожного кроку тесту",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Playwright Inspector highlights matching elements in the live browser as you type or select a locator. This makes it immediately obvious if a locator matches zero elements, one element, or too many. You can also use the Pick Locator button to click an element and get a suggested locator — perfect for fixing selector issues without guessing.",
+        uk: "Playwright Inspector підсвічує відповідні елементи в живому браузері коли ти вводиш або вибираєш локатор. Це одразу дає зрозуміти чи локатор відповідає нулю елементів, одному елементу або надто багатьом. Можна також використовувати кнопку Pick Locator щоб клікнути на елемент і отримати запропонований локатор — ідеально для виправлення проблем з селекторами без здогадок.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "With the VS Code Playwright extension, how do you add a breakpoint and step through a test?",
+        uk: "За допомогою розширення Playwright для VS Code як додати breakpoint і крок за кроком пройти тест?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Add await page.pause() calls in the code, then run normally",
+            uk: "Додати виклики await page.pause() в код, потім запустити звично",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Right-click the test name and choose 'Debug test'; VS Code debugger breakpoints in the .spec.ts file are then respected",
+            uk: "Клікнути правою кнопкою на назву тесту і вибрати 'Debug test'; breakpoints у .spec.ts файлі в дебагері VS Code тоді враховуються",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Set PWDEBUG=1 in the VS Code terminal and run the test",
+            uk: "Встановити PWDEBUG=1 в терміналі VS Code і запустити тест",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Install the Chrome DevTools extension separately for VS Code breakpoints to work",
+            uk: "Встановити розширення Chrome DevTools окремо щоб breakpoints VS Code працювали",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The VS Code Playwright extension integrates with the standard VS Code debugger. Right-click a test and choose 'Debug test' (or use the debug triangle button) to start a debug session where standard editor breakpoints in the spec file are active. This is more ergonomic than page.pause() because you get the full VS Code debug UI with variable inspection and call stack.",
+        uk: "Розширення Playwright для VS Code інтегрується зі стандартним дебагером VS Code. Клікни правою кнопкою на тест і вибери 'Debug test' (або використай кнопку debug трикутника) щоб розпочати debug-сесію де активні стандартні breakpoints редактора в spec-файлі. Це зручніше ніж page.pause() бо отримуєш повний debug UI VS Code з інспекцією змінних і стеком викликів.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "When is it best to use traces compared to running the test with --debug?",
+        uk: "Коли краще використовувати traces порівняно з запуском тесту з --debug?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Traces are better for local development; --debug is better for CI failures",
+            uk: "Traces краще для локальної розробки; --debug краще для падінь на CI",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Traces are better when the failure happens on CI and you can't reproduce it locally; --debug is better when you can run the test interactively",
+            uk: "Traces краще коли падіння трапляється на CI і ти не можеш відтворити його локально; --debug краще коли можна запустити тест інтерактивно",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "They are interchangeable — use whichever starts faster",
+            uk: "Вони взаємозамінні — використовуй той що стартує швидше",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Traces are only available in Playwright's paid enterprise plan",
+            uk: "Traces доступні тільки в платному enterprise плані Playwright",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Traces are a post-mortem tool: enable them in config (trace: 'on-first-retry'), run the suite on CI, then download and open the trace.zip to see exactly what happened — every action, DOM snapshot, network call, and console error. --debug requires the test to be runnable interactively; it won't help for CI-only failures you can't reproduce.",
+        uk: "Traces — це інструмент посмертного аналізу: увімкни їх в конфізі (trace: 'on-first-retry'), запусти сюіт на CI, потім завантаж і відкрий trace.zip щоб побачити що саме відбулося — кожну дію, DOM-знімок, мережевий запит і помилку консолі. --debug вимагає щоб тест можна було запустити інтерактивно; він не допоможе при падіннях тільки на CI які не вдається відтворити.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "You listen to page.on('console') in a test. What types of messages can you capture?",
+        uk: "Ти слухаєш page.on('console') в тесті. Які типи повідомлень можна перехопити?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Only console.error() messages from the browser",
+            uk: "Тільки повідомлення console.error() з браузера",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "All browser console output — log, info, warn, error, and debug — each with a type you can filter on",
+            uk: "Весь консольний вивід браузера — log, info, warn, error і debug — кожен з типом по якому можна фільтрувати",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Only network-related console messages like CORS errors",
+            uk: "Тільки мережеві консольні повідомлення як CORS помилки",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Console messages from the Playwright test runner itself, not from the browser",
+            uk: "Консольні повідомлення від самого Playwright test runner, а не з браузера",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "page.on('console', msg => ...) fires for every console message emitted by the browser page — console.log, console.warn, console.error, console.info, and console.debug. The ConsoleMessage object exposes msg.type() so you can filter for just errors. This is how you detect JavaScript exceptions that don't cause visible test failures.",
+        uk: "page.on('console', msg => ...) спрацьовує для кожного консольного повідомлення генерованого браузерною сторінкою — console.log, console.warn, console.error, console.info і console.debug. Об'єкт ConsoleMessage надає msg.type() щоб ти міг фільтрувати тільки помилки. Саме так виявляють JavaScript виключення що не викликають видимих падінь тесту.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "What is the fastest way to get a locator for an element you can see in the browser during a debug session?",
+        uk: "Який найшвидший спосіб отримати локатор для елемента видимого в браузері під час debug-сесії?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Inspect the element in Chrome DevTools and copy the CSS selector",
+            uk: "Перевірити елемент в Chrome DevTools і скопіювати CSS-селектор",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Use the Pick locator button in Playwright Inspector or VS Code extension — click the element and get the recommended locator copied to clipboard",
+            uk: "Використати кнопку Pick locator в Playwright Inspector або розширенні VS Code — клікнути на елемент і отримати рекомендований локатор скопійованим в буфер обміну",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Run npx playwright codegen and record a new test from scratch",
+            uk: "Запустити npx playwright codegen і записати новий тест з нуля",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Check the network tab for the element's data-testid attribute",
+            uk: "Перевірити вкладку мережі для атрибуту data-testid елемента",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The Pick locator feature in Playwright Inspector (also available in the VS Code extension) lets you hover or click any element in the paused browser and instantly see Playwright's recommended locator — prioritizing role, label, and test ID over CSS selectors. The locator is copied to clipboard. This is much faster than manually reading the DOM or re-running codegen.",
+        uk: "Функція Pick locator в Playwright Inspector (також доступна в розширенні VS Code) дозволяє навести курсор або клікнути на будь-який елемент у призупиненому браузері і одразу побачити рекомендований локатор Playwright — з пріоритетом ролі, мітки та test ID над CSS-селекторами. Локатор копіюється в буфер обміну. Це набагато швидше ніж вручну читати DOM або повторно запускати codegen.",
+      },
+    },
+  ],
 }

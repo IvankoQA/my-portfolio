@@ -13,224 +13,528 @@ export const apiTestingTopic: PlaywrightTopic = {
     uk: "Тестування API",
   },
   summary: {
-    en: "Playwright can be used to get access to the [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) API of your application.",
-    uk: "За допомогою Playwright можна звертатися до [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) API вашого застосунку.",
+    en: "Playwright can make HTTP requests directly from the test — no browser needed. Useful for setting up test data, calling REST APIs, and checking server-side state.",
+    uk: "Playwright може виконувати HTTP запити прямо з тесту — без браузера. Корисно для підготовки тестових даних, виклику REST API і перевірки стану на сервері.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "why-api-in-tests",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "Why call the API from tests",
+        uk: "Навіщо викликати API з тестів",
+      },
+      diagram: {
+        mermaid: `flowchart LR
+  T["Test"] --> R["request fixture\nAPIRequestContext"]
+  T --> P["page fixture\nPage"]
+  R -->|"POST /api/orders\nseed data fast"| SRV["Backend API"]
+  SRV -->|"data exists in DB"| P
+  P -->|"goto('/orders')\nassert UI shows order"| UI["Browser UI"]`,
+        caption: {
+          en: "Use the request fixture to seed data via API (fast), then use the page fixture to verify it in the UI",
+          uk: "Використовуйте фікстуру request для підготовки даних через API (швидко), потім page для перевірки в UI",
+        },
       },
       paragraphs: [
         {
-          en: "Playwright can be used to get access to the [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) API of\nyour application.",
-          uk: "За допомогою Playwright можна звертатися до [REST](https://en.wikipedia.org/wiki/Representational_state_transfer) API вашого застосунку.",
-        },
-        {
-          en: "Sometimes you may want to send requests to the server directly from Node.js without loading a page and running js code in it.\nA few examples where it may come in handy:\n- Test your server API.\n- Prepare server side state before visiting the web application in a test.\n- Validate server side post-conditions after running some actions in the browser.",
-          uk: "Іноді потрібно надсилати запити на сервер прямо з Node.js, не завантажуючи сторінку й не виконуючи на ній JavaScript.\nОсь кілька типових випадків:\n- перевірити API сервера;\n- підготувати стан на сервері перед переходом у вебзастосунок у тесті;\n- перевірити постумови на сервері після дій у браузері.",
-        },
-        {
-          en: "All of that could be achieved via [APIRequestContext] methods.",
-          uk: "Усе це можна зробити методами [APIRequestContext].",
+          en: "Browser tests are slow for setup. If your test needs 10 orders in the database before it runs, creating them through the UI takes 10 form submissions. Creating them via API takes 10 HTTP calls — 10-50x faster. I use API calls for three things in my tests:\n1. Seed test data before the UI test starts\n2. Call the API directly and verify the JSON response\n3. Check server state after a UI action (did the record actually get saved?)",
+          uk: "Браузерні тести — повільний спосіб підготовки. Якщо тест потребує 10 замовлень в базі перед запуском, їх створення через UI займе 10 відправок форм. Через API — 10 HTTP запитів, в 10-50 разів швидше. Я використовую API виклики в тестах для трьох речей:\n1. Підготовка тестових даних перед UI тестом\n2. Прямий виклик API і перевірка JSON відповіді\n3. Перевірка стану сервера після UI дії (чи запис дійсно збережено?)",
         },
       ],
     },
     {
-      id: "writing-api-test",
+      id: "request-fixture",
       title: {
-        en: "Writing API Test",
-        uk: "Написання API-тесту",
+        en: "The request fixture",
+        uk: "Фікстура request",
       },
       paragraphs: [
         {
-          en: "[APIRequestContext] can send all kinds of HTTP(S) requests over network.",
-          uk: "[APIRequestContext] може надсилати будь-які HTTP(S)-запити через мережу.",
-        },
-        {
-          en: "The following example demonstrates how to use Playwright to test issues creation via [GitHub API](https://docs.github.com/en/rest). The test suite will do the following:\n- Create a new repository before running tests.\n- Create a few issues and validate server state.\n- Delete the repository after running tests.",
-          uk: "Нижче показано, як за допомогою Playwright перевірити створення issues через [GitHub API](https://docs.github.com/en/rest). Набір тестів робить таке:\n- створює новий репозиторій перед запуском тестів;\n- створює кілька issues і перевіряє стан на сервері;\n- видаляє репозиторій після тестів.",
-        },
-        {
-          en: "### Configuration",
-          uk: "### Конфігурація",
-        },
-        {
-          en: "GitHub API requires authorization, so we'll configure the token once for all tests. While at it, we'll also set the `baseURL` to simplify the tests. You can either put them in the configuration file, or in the test file with `test.use()`.",
-          uk: "GitHub API вимагає авторизації, тому налаштуємо токен один раз для всіх тестів. Заодно задаємо `baseURL`, щоб спростити запити. Параметри можна винести в конфіг Playwright або задати у файлі тесту через `test.use()`.",
-        },
-        {
-          en: "**Proxy configuration**",
-          uk: "**Налаштування проксі**",
-        },
-        {
-          en: "If your tests need to run behind a proxy, you can specify this in the config and the `request` fixture\nwill pick it up automatically:",
-          uk: "Якщо тести мають ходити через проксі, вкажіть це в конфігурації — fixture `request`\nпідхопить налаштування автоматично:",
-        },
-        {
-          en: "### Writing tests",
-          uk: "### Написання тестів",
-        },
-        {
-          en: "Playwright Test comes with the built-in `request` fixture that respects configuration options like `baseURL` or `extraHTTPHeaders` we specified and is ready to send some requests.",
-          uk: "Playwright Test має вбудований fixture `request`, який враховує опції конфігурації (`baseURL`, `extraHTTPHeaders` тощо) і готовий надсилати HTTP-запити.",
-        },
-        {
-          en: "Now we can add a few tests that will create new issues in the repository.",
-          uk: "Далі можна додати тести, які створюватимуть нові issues в репозиторії.",
-        },
-        {
-          en: "### Setup and teardown",
-          uk: "### Підготовка та завершення",
-        },
-        {
-          en: "These tests assume that repository exists. You probably want to create a new one before running tests and delete it afterwards. Use `beforeAll` and `afterAll` hooks for that.",
-          uk: "Ці тести припускають, що репозиторій уже існує. Зазвичай його створюють перед тестами й видаляють після. Для цього зручно використати хуки `beforeAll` та `afterAll`.",
+          en: "Playwright Test gives you a `request` fixture in every test — it's an `APIRequestContext` that can make GET, POST, PUT, DELETE and other HTTP requests. It shares cookies with the test's browser context, so if you're logged in via the UI, the API calls are also authenticated.",
+          uk: "Playwright Test дає тобі фікстуру `request` у кожному тесті — це `APIRequestContext` що може виконувати GET, POST, PUT, DELETE та інші HTTP запити. Вона ділить cookies з browser context тесту, тому якщо ти залогінений через UI, API виклики теж автентифіковані.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    // All requests we send go to this API endpoint.\n    baseURL: 'https://api.github.com',\n    extraHTTPHeaders: {\n      // We set this header per GitHub guidelines.\n      'Accept': 'application/vnd.github.v3+json',\n      // Add authorization token to all requests.\n      // Assuming personal access token available in the environment.\n      'Authorization': `token ${process.env.API_TOKEN}`,\n    },\n  }\n});",
-        },
-        {
-          id: "cb-2",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    proxy: {\n      server: 'http://my-proxy:8080',\n      username: 'user',\n      password: 'secret'\n    },\n  }\n});",
-        },
-        {
-          id: "cb-3",
-          language: "js",
-          code: "const REPO = 'test-repo-1';\nconst USER = 'github-username';\n\ntest('should create a bug report', async ({ request }) => {\n  const newIssue = await request.post(`/repos/${USER}/${REPO}/issues`, {\n    data: {\n      title: '[Bug] report 1',\n      body: 'Bug description',\n    }\n  });\n  expect(newIssue.ok()).toBeTruthy();\n\n  const issues = await request.get(`/repos/${USER}/${REPO}/issues`);\n  expect(issues.ok()).toBeTruthy();\n  expect(await issues.json()).toContainEqual(expect.objectContaining({\n    title: '[Bug] report 1',\n    body: 'Bug description'\n  }));\n});\n\ntest('should create a feature request', async ({ request }) => {\n  const newIssue = await request.post(`/repos/${USER}/${REPO}/issues`, {\n    data: {\n      title: '[Feature] request 1',\n      body: 'Feature description',\n    }\n  });\n  expect(newIssue.ok()).toBeTruthy();\n\n  const issues = await request.get(`/repos/${USER}/${REPO}/issues`);\n  expect(issues.ok()).toBeTruthy();\n  expect(await issues.json()).toContainEqual(expect.objectContaining({\n    title: '[Feature] request 1',\n    body: 'Feature description'\n  }));\n});",
-        },
-        {
-          id: "cb-4",
-          language: "js",
-          code: "test.beforeAll(async ({ request }) => {\n  // Create a new repository\n  const response = await request.post('/user/repos', {\n    data: {\n      name: REPO\n    }\n  });\n  expect(response.ok()).toBeTruthy();\n});\n\ntest.afterAll(async ({ request }) => {\n  // Delete the repository\n  const response = await request.delete(`/repos/${USER}/${REPO}`);\n  expect(response.ok()).toBeTruthy();\n});",
+          id: "basic-request",
+          language: "ts",
+          code: `import { test, expect } from '@playwright/test'
+
+test('GET /api/orders returns list', async ({ request }) => {
+  const response = await request.get('/api/orders')
+
+  expect(response.status()).toBe(200)
+  const body = await response.json()
+  expect(body.orders).toBeInstanceOf(Array)
+  expect(body.total).toBeGreaterThanOrEqual(0)
+})
+
+test('POST /api/orders creates an order', async ({ request }) => {
+  const response = await request.post('/api/orders', {
+    data: {
+      item: 'Laptop',
+      quantity: 1,
+      customerId: 'cust-001',
+    },
+  })
+
+  expect(response.status()).toBe(201)
+  const order = await response.json()
+  expect(order.id).toBeTruthy()
+  expect(order.status).toBe('pending')
+})`,
         },
       ],
     },
     {
-      id: "using-request-context",
+      id: "seed-data",
       title: {
-        en: "Using request context",
-        uk: "Використання контексту запитів",
+        en: "Seed data before UI tests",
+        uk: "Підготовка даних перед UI тестами",
       },
       paragraphs: [
         {
-          en: "Behind the scenes, [`request` fixture](./api/class-fixtures#fixtures-request) will actually call [`method: APIRequest.newContext`]. You can always do that manually if you'd like more control. Below is a standalone script that does the same as `beforeAll` and `afterAll` from above.",
-          uk: "Усередині [`request` fixture](./api/class-fixtures#fixtures-request) фактично викликає [`method: APIRequest.newContext`]. Те саме можна зробити вручну, якщо потрібен більший контроль. Нижче — окремий скрипт, який повторює логіку `beforeAll` і `afterAll` з прикладу вище.",
+          en: "The most practical use: create test data via API, then verify it in the UI. This avoids clicking through forms just to set up a starting state. The UI test focuses on what it's actually testing.",
+          uk: "Найпрактичніше застосування: створити тестові дані через API, потім перевірити їх в UI. Це дозволяє не клікати по формах лише для підготовки стартового стану. UI тест фокусується на тому що він справді перевіряє.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-5",
-          language: "js",
-          code: "\nconst REPO = 'test-repo-1';\nconst USER = 'github-username';\n\n(async () => {\n  // Create a context that will issue http requests.\n  const context = await request.newContext({\n    baseURL: 'https://api.github.com',\n  });\n\n  // Create a repository.\n  await context.post('/user/repos', {\n    headers: {\n      'Accept': 'application/vnd.github.v3+json',\n      // Add GitHub personal access token.\n      'Authorization': `token ${process.env.API_TOKEN}`,\n    },\n    data: {\n      name: REPO\n    }\n  });\n\n  // Delete a repository.\n  await context.delete(`/repos/${USER}/${REPO}`, {\n    headers: {\n      'Accept': 'application/vnd.github.v3+json',\n      // Add GitHub personal access token.\n      'Authorization': `token ${process.env.API_TOKEN}`,\n    }\n  });\n})();",
+          id: "seed-and-test",
+          language: "ts",
+          code: `test('order appears in dashboard after creation', async ({ request, page }) => {
+  // Створюємо замовлення через API (швидко, без форм)
+  const res = await request.post('/api/orders', {
+    data: { item: 'Keyboard', quantity: 2 },
+  })
+  const { id: orderId } = await res.json()
+
+  // Перевіряємо в UI що воно з'явилось
+  await page.goto('/dashboard')
+  await expect(page.getByRole('row').filter({ hasText: orderId })).toBeVisible()
+})
+
+test('deleting from UI removes from API', async ({ request, page }) => {
+  // Seed через API
+  const res = await request.post('/api/orders', {
+    data: { item: 'Mouse', quantity: 1 },
+  })
+  const { id: orderId } = await res.json()
+
+  // Видаляємо через UI
+  await page.goto('/orders')
+  await page.getByRole('row').filter({ hasText: orderId })
+    .getByRole('button', { name: 'Delete' }).click()
+  await page.getByRole('button', { name: 'Confirm' }).click()
+
+  // Перевіряємо що API повертає 404
+  const checkRes = await request.get(\`/api/orders/\${orderId}\`)
+  expect(checkRes.status()).toBe(404)
+})`,
         },
       ],
     },
     {
-      id: "sending-api-requests-from-ui-tests",
+      id: "base-url",
       title: {
-        en: "Sending API requests from UI tests",
-        uk: "API-запити з UI-тестів",
+        en: "Configure base URL",
+        uk: "Базовий URL для API",
       },
       paragraphs: [
         {
-          en: "While running tests inside browsers you may want to make calls to the HTTP API of your application. It may be helpful if you need to prepare server state before running a test or to check some postconditions on the server after performing some actions in the browser. All of that could be achieved via [APIRequestContext] methods.",
-          uk: "Під час UI-тестів у браузері часто потрібно викликати HTTP API застосунку. Це зручно, щоб підготувати стан на сервері перед тестом або перевірити постумови після дій у браузері. Усе це робиться методами [APIRequestContext].",
-        },
-        {
-          en: "### Establishing preconditions",
-          uk: "### Передумови",
-        },
-        {
-          en: "The following test creates a new issue via API and then navigates to the list of all issues in the\nproject to check that it appears at the top of the list.",
-          uk: "У цьому тесті спочатку створюється issue через API, потім відкривається список issues у проєкті,\nщоб переконатися, що новий запис з’явився зверху списку.",
-        },
-        {
-          en: "### Validating postconditions",
-          uk: "### Перевірка постумов",
-        },
-        {
-          en: "The following test creates a new issue via user interface in the browser and then checks if\nit was created via API:",
-          uk: "У цьому тесті issue створюється через інтерфейс браузера, після чого перевіряється,\nчи з’явився він на сервері через API:",
+          en: "Set `baseURL` in the config and you can use relative paths in all requests — both in `page.goto()` and in `request.get()`. This makes it easy to switch between local, staging, and production environments.",
+          uk: "Встанови `baseURL` в конфізі і можна використовувати відносні шляхи у всіх запитах — і в `page.goto()`, і в `request.get()`. Це спрощує перемикання між локальним, staging і production оточеннями.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-6",
-          language: "js",
-          code: "\nconst REPO = 'test-repo-1';\nconst USER = 'github-username';\n\n// Request context is reused by all tests in the file.\nlet apiContext;\n\ntest.beforeAll(async ({ playwright }) => {\n  apiContext = await playwright.request.newContext({\n    // All requests we send go to this API endpoint.\n    baseURL: 'https://api.github.com',\n    extraHTTPHeaders: {\n      // We set this header per GitHub guidelines.\n      'Accept': 'application/vnd.github.v3+json',\n      // Add authorization token to all requests.\n      // Assuming personal access token available in the environment.\n      'Authorization': `token ${process.env.API_TOKEN}`,\n    },\n  });\n});\n\ntest.afterAll(async ({ }) => {\n  // Dispose all responses.\n  await apiContext.dispose();\n});\n\ntest('last created issue should be first in the list', async ({ page }) => {\n  const newIssue = await apiContext.post(`/repos/${USER}/${REPO}/issues`, {\n    data: {\n      title: '[Feature] request 1',\n    }\n  });\n  expect(newIssue.ok()).toBeTruthy();\n\n  await page.goto(`https://github.com/${USER}/${REPO}/issues`);\n  const firstIssue = page.locator(`a[data-hovercard-type='issue']`).first();\n  await expect(firstIssue).toHaveText('[Feature] request 1');\n});",
-        },
-        {
-          id: "cb-7",
-          language: "js",
-          code: "\nconst REPO = 'test-repo-1';\nconst USER = 'github-username';\n\n// Request context is reused by all tests in the file.\nlet apiContext;\n\ntest.beforeAll(async ({ playwright }) => {\n  apiContext = await playwright.request.newContext({\n    // All requests we send go to this API endpoint.\n    baseURL: 'https://api.github.com',\n    extraHTTPHeaders: {\n      // We set this header per GitHub guidelines.\n      'Accept': 'application/vnd.github.v3+json',\n      // Add authorization token to all requests.\n      // Assuming personal access token available in the environment.\n      'Authorization': `token ${process.env.API_TOKEN}`,\n    },\n  });\n});\n\ntest.afterAll(async ({ }) => {\n  // Dispose all responses.\n  await apiContext.dispose();\n});\n\ntest('last created issue should be on the server', async ({ page }) => {\n  await page.goto(`https://github.com/${USER}/${REPO}/issues`);\n  await page.getByText('New Issue').click();\n  await page.getByRole('textbox', { name: 'Title' }).fill('Bug report 1');\n  await page.getByRole('textbox', { name: 'Comment body' }).fill('Bug description');\n  await page.getByText('Submit new issue').click();\n  const issueId = new URL(page.url()).pathname.split('/').pop();\n\n  const newIssue = await apiContext.get(\n      `https://api.github.com/repos/${USER}/${REPO}/issues/${issueId}`\n  );\n  expect(newIssue.ok()).toBeTruthy();\n  expect(newIssue.json()).toEqual(expect.objectContaining({\n    title: 'Bug report 1'\n  }));\n});",
+          id: "base-url",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    baseURL: 'https://app.example.com',
+  },
+})
+
+// В тесті — відносні шляхи
+test('api and ui share base url', async ({ request, page }) => {
+  await page.goto('/orders')         // → https://app.example.com/orders
+  const res = await request.get('/api/orders')  // → https://app.example.com/api/orders
+})`,
         },
       ],
     },
     {
-      id: "reusing-authentication-state",
+      id: "standalone-context",
       title: {
-        en: "Reusing authentication state",
-        uk: "Повторне використання стану автентифікації",
+        en: "API context without a browser",
+        uk: "API context без браузера",
       },
       paragraphs: [
         {
-          en: "Web apps use cookie-based or token-based authentication, where authenticated\nstate is stored as [cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies).\nPlaywright provides [`method: APIRequestContext.storageState`] method that can be used to\nretrieve storage state from an authenticated context and then create new contexts with that state.",
-          uk: "Вебзастосунки часто використовують автентифікацію на кукі або токенах: стан після входу зберігається у [cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies).\nPlaywright надає метод [`method: APIRequestContext.storageState`], за допомогою якого можна\nзчитати storage state з уже автентифікованого контексту й створити нові контексти з цим станом.",
-        },
-        {
-          en: "Storage state is interchangeable between [BrowserContext] and [APIRequestContext]. You can\nuse it to log in via API calls and then create a new context with cookies already there.\nThe following code snippet retrieves state from an authenticated [APIRequestContext] and\ncreates a new [BrowserContext] with that state.",
-          uk: "Storage state можна переносити між [BrowserContext] і [APIRequestContext].\nНаприклад, увійти через API, а потім відкрити новий браузерний контекст уже з куками.\nУ фрагменті нижче стан зчитується з автентифікованого [APIRequestContext] і\nпередається в новий [BrowserContext].",
+          en: "For pure API tests — no browser needed at all — use `request.newContext()` to create a standalone `APIRequestContext`. This is faster and uses fewer resources than launching a full browser context.",
+          uk: "Для чисто API тестів — без браузера взагалі — використовуй `request.newContext()` щоб створити окремий `APIRequestContext`. Це швидше і менш ресурсомістке ніж запуск повного browser context.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-8",
-          language: "js",
-          code: "const requestContext = await request.newContext({\n  httpCredentials: {\n    username: 'user',\n    password: 'passwd'\n  }\n});\nawait requestContext.get(`https://api.example.com/login`);\n// Save storage state into the file.\nawait requestContext.storageState({ path: 'state.json' });\n\n// Create a new context with the saved storage state.\nconst context = await browser.newContext({ storageState: 'state.json' });",
-        },
-      ],
+          id: "standalone",
+          language: "ts",
+          code: `import { test, expect, request } from '@playwright/test'
+
+test('create and fetch order via API only', async () => {
+  const apiCtx = await request.newContext({
+    baseURL: 'https://app.example.com',
+    extraHTTPHeaders: {
+      'Authorization': \`Bearer \${process.env.API_TOKEN}\`,
     },
-    {
-      id: "context-request-vs-global-request",
-      title: {
-        en: "Context request vs global request",
-        uk: "Запит у контексті браузера та ізольований запит",
-      },
-      paragraphs: [
-        {
-          en: "There are two types of [APIRequestContext]:\n* associated with a [BrowserContext]\n* isolated instance, created via [`method: APIRequest.newContext`]",
-          uk: "Існує два види [APIRequestContext]:\n* пов’язаний із [BrowserContext];\n* ізольований екземпляр, створений через [`method: APIRequest.newContext`].",
-        },
-        {
-          en: "The main difference is that [APIRequestContext] accessible via [`property: BrowserContext.request`] and\n[`property: Page.request`] will populate request's `Cookie` header from the browser context and will\nautomatically update browser cookies if [APIResponse] has `Set-Cookie` header:",
-          uk: "Головна відмінність: [APIRequestContext], доступний через [`property: BrowserContext.request`] та\n[`property: Page.request`], підставляє заголовок `Cookie` запиту з браузерного контексту й\nоновлює куки в браузері, якщо [APIResponse] містить заголовок `Set-Cookie`:",
-        },
-        {
-          en: "If you don't want [APIRequestContext] to use and update cookies from the browser context, you can manually\ncreate a new instance of [APIRequestContext] which will have its own isolated cookies:",
-          uk: "Якщо не потрібно, щоб [APIRequestContext] використовував і оновлював куки з браузерного контексту,\nстворіть вручну новий [APIRequestContext] з власним ізольованим сховищем кук:",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-9",
-          language: "js",
-          code: "test('context request will share cookie storage with its browser context', async ({\n  page,\n  context,\n}) => {\n  await context.route('https://www.github.com/', async route => {\n    // Send an API request that shares cookie storage with the browser context.\n    const response = await context.request.fetch(route.request());\n    const responseHeaders = response.headers();\n\n    // The response will have 'Set-Cookie' header.\n    const responseCookies = new Map(responseHeaders['set-cookie']\n        .split('\\n')\n        .map(c => c.split(';', 2)[0].split('=')));\n    // The response will have 3 cookies in 'Set-Cookie' header.\n    expect(responseCookies.size).toBe(3);\n    const contextCookies = await context.cookies();\n    // The browser context will already contain all the cookies from the API response.\n    expect(new Map(contextCookies.map(({ name, value }) =>\n      [name, value])\n    )).toEqual(responseCookies);\n\n    await route.fulfill({\n      response,\n      headers: { ...responseHeaders, foo: 'bar' },\n    });\n  });\n  await page.goto('https://www.github.com/');\n});",
-        },
-        {
-          id: "cb-10",
-          language: "js",
-          code: "test('global context request has isolated cookie storage', async ({\n  page,\n  context,\n  browser,\n  playwright\n}) => {\n  // Create a new instance of APIRequestContext with isolated cookie storage.\n  const request = await playwright.request.newContext();\n  await context.route('https://www.github.com/', async route => {\n    const response = await request.fetch(route.request());\n    const responseHeaders = response.headers();\n\n    const responseCookies = new Map(responseHeaders['set-cookie']\n        .split('\\n')\n        .map(c => c.split(';', 2)[0].split('=')));\n    // The response will have 3 cookies in 'Set-Cookie' header.\n    expect(responseCookies.size).toBe(3);\n    const contextCookies = await context.cookies();\n    // The browser context will not have any cookies from the isolated API request.\n    expect(contextCookies.length).toBe(0);\n\n    // Manually export cookie storage.\n    const storageState = await request.storageState();\n    // Create a new context and initialize it with the cookies from the global request.\n    const browserContext2 = await browser.newContext({ storageState });\n    const contextCookies2 = await browserContext2.cookies();\n    // The new browser context will already contain all the cookies from the API response.\n    expect(\n        new Map(contextCookies2.map(({ name, value }) => [name, value]))\n    ).toEqual(responseCookies);\n\n    await route.fulfill({\n      response,\n      headers: { ...responseHeaders, foo: 'bar' },\n    });\n  });\n  await page.goto('https://www.github.com/');\n  await request.dispose();\n});",
+  })
+
+  const createRes = await apiCtx.post('/api/orders', {
+    data: { item: 'Monitor', quantity: 1 },
+  })
+  expect(createRes.status()).toBe(201)
+
+  const { id } = await createRes.json()
+  const getRes = await apiCtx.get(\`/api/orders/\${id}\`)
+  expect(getRes.status()).toBe(200)
+
+  await apiCtx.dispose()
+})`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "Why use API calls to seed test data instead of driving the UI?",
+        uk: "Навіщо використовувати API виклики для підготовки даних замість UI?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "API calls are more readable than UI interactions",
+            uk: "API виклики більш читабельні ніж UI взаємодії",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "API calls are 10-50x faster and don't need a visible browser",
+            uk: "API виклики в 10-50 разів швидші і не потребують видимого браузера",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "API calls automatically clean up test data after the test",
+            uk: "API виклики автоматично прибирають тестові дані після тесту",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Creating data via API skips form loading, filling and submission — each of which involves network round-trips and browser rendering. API calls are orders of magnitude faster for setup, letting the UI test focus on what it's actually verifying.",
+        uk: "Створення даних через API пропускає завантаження форм, заповнення і відправку — кожне з яких включає мережеві запити і рендеринг браузера. API виклики на порядки швидші для підготовки, дозволяючи UI тесту фокусуватися на тому що він справді перевіряє.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "What does the `request` fixture in Playwright Test provide?",
+        uk: "Що надає фікстура `request` в Playwright Test?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "An object to intercept browser network requests via page.route()",
+            uk: "Об'єкт для перехоплення мережевих запитів браузера через page.route()",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "An APIRequestContext that can make HTTP requests (GET, POST, PUT, DELETE) directly from Node.js",
+            uk: "APIRequestContext що може виконувати HTTP-запити (GET, POST, PUT, DELETE) напряму з Node.js",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "A mock server that replaces the real backend automatically",
+            uk: "Мок-сервер що автоматично замінює реальний бекенд",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "A reference to the browser's fetch() function",
+            uk: "Посилання на функцію fetch() браузера",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The `request` fixture is an `APIRequestContext` — Playwright's built-in HTTP client that runs in Node.js. It shares cookies with the test's browser context, so authenticated sessions are reflected in API calls. You use it with `request.get()`, `request.post()`, `request.put()`, and `request.delete()`.",
+        uk: "Фікстура `request` — це `APIRequestContext`, вбудований HTTP-клієнт Playwright що виконується в Node.js. Він ділить cookies з browser context тесту, тому автентифіковані сесії відображаються в API-викликах. Використовується з `request.get()`, `request.post()`, `request.put()` і `request.delete()`.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "Where do you configure the base URL so that request.get('/api/orders') resolves to the correct host?",
+        uk: "Де налаштовувати base URL щоб request.get('/api/orders') розрезолвився до правильного хосту?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Pass it as the first argument to every request call: request.get('https://app.example.com/api/orders')",
+            uk: "Передавати як перший аргумент кожного виклику: request.get('https://app.example.com/api/orders')",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Set baseURL in playwright.config.ts under the use key",
+            uk: "Встановити baseURL в playwright.config.ts в ключі use",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Set process.env.BASE_URL in the test file",
+            uk: "Встановити process.env.BASE_URL в тестовому файлі",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "request fixture always requires absolute URLs",
+            uk: "Фікстура request завжди вимагає абсолютних URL",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Setting `baseURL` in `playwright.config.ts` under `use: { baseURL: 'https://app.example.com' }` applies to both `page.goto()` and `request.*` calls. Relative paths like `/api/orders` are resolved against this base URL. This makes it easy to switch environments — change one line in the config, not every individual test.",
+        uk: "Встановлення `baseURL` в `playwright.config.ts` під `use: { baseURL: 'https://app.example.com' }` застосовується до обох викликів `page.goto()` і `request.*`. Відносні шляхи як `/api/orders` розрезолвляються відносно цього base URL. Це спрощує перемикання оточень — змінити один рядок в конфізі, а не кожен окремий тест.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "What does request.post('/api/orders', { data: { item: 'Laptop' } }) return?",
+        uk: "Що повертає request.post('/api/orders', { data: { item: 'Laptop' } })?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The parsed JSON body of the response directly",
+            uk: "Безпосередньо розпарсоване JSON-тіло відповіді",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "An APIResponse object — you need to call response.json() or response.text() to read the body",
+            uk: "Об'єкт APIResponse — потрібно викликати response.json() або response.text() щоб прочитати тіло",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "A Promise<boolean> indicating success or failure",
+            uk: "Promise<boolean> що вказує на успіх або невдачу",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The HTTP status code as a number",
+            uk: "HTTP-код статусу як число",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "All `request.*` methods return a `Promise<APIResponse>`. The `APIResponse` object has `.status()` for the HTTP status code, `.ok()` which is true for 2xx statuses, `.json()` to parse the body as JSON, `.text()` to get the body as a string, and `.headers()` to inspect response headers.",
+        uk: "Всі методи `request.*` повертають `Promise<APIResponse>`. Об'єкт `APIResponse` має `.status()` для HTTP-коду статусу, `.ok()` що є true для статусів 2xx, `.json()` для парсингу тіла як JSON, `.text()` для отримання тіла як рядка і `.headers()` для перевірки заголовків відповіді.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "What is the difference between the `request` fixture and `request.newContext()` (also imported as `playwright.request.newContext()`)?",
+        uk: "В чому різниця між фікстурою `request` і `request.newContext()` (також імпортується як `playwright.request.newContext()`)?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "They are identical — newContext() is just an alias",
+            uk: "Вони однакові — newContext() просто псевдонім",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "The `request` fixture shares cookies with the browser context; newContext() creates an isolated context with its own cookie jar and headers",
+            uk: "Фікстура `request` ділить cookies з browser context; newContext() створює ізольований контекст з власним jar cookies і заголовками",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "newContext() supports POST requests; the fixture only supports GET",
+            uk: "newContext() підтримує POST-запити; фікстура підтримує лише GET",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The `request` fixture requires a browser; newContext() does not",
+            uk: "Фікстура `request` вимагає браузера; newContext() — ні",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The `request` fixture is automatically scoped to the test's browser context — it shares the same cookies, so logging in via the browser also authenticates the API calls. `request.newContext()` creates a standalone context with its own isolated cookie jar, custom headers, and baseURL. Use it for pure API tests that need separate authentication or for global setup/teardown where no browser is needed.",
+        uk: "Фікстура `request` автоматично прив'язана до browser context тесту — вона ділить ті самі cookies, тому логін через браузер також автентифікує API-виклики. `request.newContext()` створює автономний контекст з власним ізольованим jar cookies, кастомними заголовками і baseURL. Використовуй для чисто API-тестів що потребують окремої автентифікації або для глобального setup/teardown де браузер не потрібен.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "How do you check that an API response returned HTTP 201 Created?",
+        uk: "Як перевірити що API-відповідь повернула HTTP 201 Created?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "expect(response).toBe(201)",
+            uk: "expect(response).toBe(201)",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "expect(response.status()).toBe(201)",
+            uk: "expect(response.status()).toBe(201)",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "expect(response.ok()).toBe(201)",
+            uk: "expect(response.ok()).toBe(201)",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "expect(await response.json().status).toBe(201)",
+            uk: "expect(await response.json().status).toBe(201)",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`response.status()` returns the HTTP status code as a number. `expect(response.status()).toBe(201)` checks for exactly 201 Created. `response.ok()` returns a boolean (true for 2xx codes) — it won't distinguish between 200, 201, and 204. For precise status assertions always use `.status()`.",
+        uk: "`response.status()` повертає HTTP-код статусу як число. `expect(response.status()).toBe(201)` перевіряє точно 201 Created. `response.ok()` повертає boolean (true для кодів 2xx) — воно не розрізняє 200, 201 і 204. Для точних assertions статусу завжди використовуй `.status()`.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "You need to authenticate with a token and make API calls without a browser in a global setup file. What do you use?",
+        uk: "Потрібно автентифікуватися з токеном і робити API-виклики без браузера в файлі глобального setup. Що використовуєш?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The `request` fixture — it works in globalSetup too",
+            uk: "Фікстура `request` — вона теж працює в globalSetup",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "import { request } from '@playwright/test'; const apiCtx = await request.newContext({ extraHTTPHeaders: { Authorization: 'Bearer token' } })",
+            uk: "import { request } from '@playwright/test'; const apiCtx = await request.newContext({ extraHTTPHeaders: { Authorization: 'Bearer token' } })",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Use Node.js fetch() — Playwright API testing only works inside test() blocks",
+            uk: "Використовуй Node.js fetch() — API тестування Playwright працює лише всередині блоків test()",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Launch a browser with request.newBrowser() and use page.goto() for API calls",
+            uk: "Запустити браузер з request.newBrowser() і використовувати page.goto() для API-викликів",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "In global setup files, there's no `request` fixture because fixtures only exist inside `test()` blocks. Instead, import `request` from `@playwright/test` and call `request.newContext()` to create a standalone `APIRequestContext`. Pass `extraHTTPHeaders` for authentication tokens. Remember to call `await apiCtx.dispose()` at the end of global setup to release resources.",
+        uk: "У файлах глобального setup немає фікстури `request` бо фікстури існують лише всередині блоків `test()`. Замість цього імпортуй `request` з `@playwright/test` і викликай `request.newContext()` для створення автономного `APIRequestContext`. Передавай `extraHTTPHeaders` для токенів автентифікації. Пам'ятай викликати `await apiCtx.dispose()` в кінці глобального setup для звільнення ресурсів.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "After your UI test deletes an order, how do you verify on the server side that the record is actually gone?",
+        uk: "Після того як твій UI-тест видаляє замовлення, як перевірити на стороні сервера що запис дійсно зник?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Check that the row is not visible on the page with expect(page.getByText(orderId)).not.toBeVisible()",
+            uk: "Перевірити що рядок не видимий на сторінці через expect(page.getByText(orderId)).not.toBeVisible()",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Make a GET request to /api/orders/:id using the `request` fixture and assert response.status() is 404",
+            uk: "Зробити GET-запит до /api/orders/:id через фікстуру `request` і перевірити що response.status() дорівнює 404",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Reload the page and check localStorage",
+            uk: "Перезавантажити сторінку і перевірити localStorage",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Trust the UI — if the row disappears, the server must have deleted it",
+            uk: "Довіряти UI — якщо рядок зникає, сервер мусив видалити його",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Asserting the UI row is gone only proves the frontend updated — it doesn't confirm the server actually deleted the record. The backend could have returned an error that the UI silently ignored. Making a direct API call with `request.get('/api/orders/:id')` and asserting `response.status() === 404` proves the server-side deletion actually happened.",
+        uk: "Перевірка що рядок UI зник лише доводить що фронтенд оновився — це не підтверджує що сервер дійсно видалив запис. Бекенд міг повернути помилку яку UI тихо проігнорував. Прямий API-виклик через `request.get('/api/orders/:id')` і перевірка `response.status() === 404` доводить що видалення на стороні сервера дійсно відбулося.",
+      },
+    },
+  ],
 }

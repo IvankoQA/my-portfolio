@@ -13,397 +13,483 @@ export const ciTopic: PlaywrightTopic = {
     uk: "Безперервна інтеграція (CI)",
   },
   summary: {
-    en: "Playwright tests can be executed in CI environments. We have created sample configurations for common CI providers.",
-    uk: "Тести Playwright можна запускати в CI; у документації є готові приклади конфігурацій для поширених провайдерів.",
+    en: "The pattern that works for me in every CI provider: install deps, install Playwright with --with-deps (that flag is the one everyone forgets), run tests with workers: 1 for stability, upload the report with if: !cancelled() so you actually get the artifact when tests fail. The rest is boilerplate.",
+    uk: "Патерн який працює у мене в кожному CI-провайдері: встанови залежності, встанови Playwright з --with-deps (цей прапорець всі забувають), запускай тести з workers: 1 для стабільності, завантажуй звіт з if: !cancelled() щоб артефакт реально з'явився коли тести падають. Решта — бойлерплейт.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "three-steps",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "The three steps that actually matter",
+        uk: "Три кроки що насправді важливі",
+      },
+      diagram: {
+        mermaid: `flowchart LR
+  A["npm ci\ninstall packages"] --> B["npx playwright install --with-deps\nbrowsers + OS libraries"]
+  B --> C["npx playwright test\nrun tests"]
+  C --> D["upload-artifact\nif: !cancelled()"]
+  style B fill:#fff3cd,stroke:#ffc107`,
+        caption: {
+          en: "--with-deps installs OS-level browser libraries; without it the browser binary fails to launch with cryptic errors",
+          uk: "--with-deps встановлює браузерні бібліотеки на рівні ОС; без нього браузер не запускається з незрозумілими помилками",
+        },
       },
       paragraphs: [
         {
-          en: "Playwright tests can be executed in CI environments. We have created sample\nconfigurations for common CI providers.",
-          uk: "Тести Playwright можна запускати в CI-середовищах. Для поширених CI-провайдерів підготовлено готові приклади конфігурацій.",
-        },
-        {
-          en: "3 steps to get your tests running on CI:",
-          uk: "3 кроки для запуску тестів у CI:",
-        },
-        {
-          en: "1. **Ensure CI agent can run browsers**: Use [our Docker image](./docker.md)\n   in Linux agents or install your dependencies using the [CLI](./browsers#install-system-dependencies).\n1. **Install Playwright**:",
-          uk: "1. **Переконайтеся, що CI-агент може запускати браузери**: використовуйте [наш Docker-образ](./docker.md)\n   на Linux-агентах або встановіть залежності через [CLI](./browsers#install-system-dependencies).\n1. **Встановіть Playwright**:",
-        },
-        {
-          en: "1. **Run your tests**:",
-          uk: "1. **Запустіть тести**:",
+          en: "Every CI setup for Playwright boils down to the same three things. The `--with-deps` flag on step 2 is what trips people up most — it installs the OS-level browser dependencies (libglib, libnss, etc.) that the browser binary needs to actually launch. Without it you get 'Failed to launch browser' errors that look like a Playwright bug.",
+          uk: "Кожне CI-налаштування для Playwright зводиться до трьох речей. Прапорець `--with-deps` на кроці 2 — те на чому найчастіше спотикаються: він встановлює браузерні залежності на рівні ОС (libglib, libnss тощо) які бінарному файлу браузера потрібні щоб запуститися. Без нього отримуєш помилки 'Failed to launch browser' що виглядають як баг Playwright.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
+          id: "three-steps",
           language: "bash",
-          code: "   # Install NPM packages\n   npm ci\n\n   # Install Playwright browsers and dependencies\n   npx playwright install --with-deps",
-        },
-        {
-          id: "cb-5",
-          language: "bash",
-          code: "   npx playwright test",
+          code: `# Крок 1: встанови NPM-пакети
+npm ci
+
+# Крок 2: встанови браузери Playwright + системні залежності ОС
+npx playwright install --with-deps
+
+# Крок 3: запусти тести
+npx playwright test`,
         },
       ],
     },
     {
-      id: "workers",
+      id: "workers-on-ci",
       title: {
-        en: "Workers",
-        uk: "Воркери",
+        en: "Workers on CI — use 1, not the default",
+        uk: "Воркери на CI — використовуй 1, не дефолт",
       },
       paragraphs: [
         {
-          en: 'We recommend setting [workers](./api/class-testconfig.md#test-config-workers) to "1" in CI environments to prioritize stability and reproducibility. Running tests sequentially ensures each test gets the full system resources, avoiding potential conflicts. However, if you have a powerful self-hosted CI system, you may enable [parallel](./test-parallel.md) tests. For wider parallelization, consider [sharding](./test-parallel.md#shard-tests-between-multiple-machines) - distributing tests across multiple CI jobs.',
-          uk: 'У CI-середовищах рекомендується встановлювати [workers](./api/class-testconfig.md#test-config-workers) у значення `"1"`, щоб забезпечити стабільність і відтворюваність. Послідовне виконання тестів гарантує кожному тесту повний доступ до системних ресурсів і виключає конфлікти. Якщо у вас потужний self-hosted CI, можна увімкнути [паралельне](./test-parallel.md) виконання тестів.\n\nДля ширшого паралелізму розгляньте [шардинг](./test-parallel.md#shard-tests-between-multiple-machines) — розподіл тестів між кількома CI-завданнями.',
+          en: "By default Playwright uses all available CPU cores as workers. On a shared CI runner those cores are often virtual and shared with other jobs — running many workers in parallel leads to flaky tests from resource contention. I set `workers: 1` on CI. If you need speed, use sharding across multiple machines rather than workers on one.",
+          uk: "За замовчуванням Playwright використовує всі доступні ядра CPU як воркери. На спільному CI-runner ці ядра часто віртуальні і поділяються з іншими job — запуск багатьох воркерів паралельно призводить до flaky-тестів через конкуренцію за ресурси. Я встановлюю `workers: 1` на CI. Якщо потрібна швидкість — використовуй шардинг між кількома машинами а не воркери на одній.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-9",
-          language: "js",
-          code: "\nexport default defineConfig({\n  // Opt out of parallel tests on CI.\n  workers: process.env.CI ? 1 : undefined,\n});",
+          id: "workers-config",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  workers: process.env.CI ? 1 : undefined,
+})`,
         },
       ],
     },
     {
-      id: "ci-configurations",
+      id: "github-actions",
       title: {
-        en: "CI configurations",
-        uk: "CI-конфігурації",
+        en: "GitHub Actions — the config I actually use",
+        uk: "GitHub Actions — конфіг який я реально використовую",
       },
       paragraphs: [
         {
-          en: "The [Command line tools](./browsers#install-system-dependencies) can be used to install all operating system dependencies in CI.",
-          uk: "За допомогою [CLI-інструментів](./browsers#install-system-dependencies) можна встановити всі системні залежності ОС у CI.",
+          en: "The `if: ${{ !cancelled() }}` on the artifact upload is critical. When a test fails, the job is marked as failed — and by default any subsequent steps are skipped. Without this condition, you never get the HTML report when you need it most (when tests fail).",
+          uk: "Умова `if: ${{ !cancelled() }}` на завантаженні артефакту — критична. Коли тест падає job позначається як невдалий — і за замовчуванням наступні кроки пропускаються. Без цієї умови ніколи не отримаєш HTML-звіт саме тоді коли він найбільш потрібен (коли тести падають).",
         },
         {
-          en: "### GitHub Actions",
-          uk: "### GitHub Actions",
-        },
-        {
-          en: "#### On push/pull_request",
-          uk: "#### При push/pull_request",
-        },
-        {
-          en: "Tests will run on push or pull request on branches main/master. The [workflow](https://docs.github.com/en/actions/using-workflows/about-workflows) will install all dependencies, install Playwright and then run the tests. It will also create the HTML report.",
-          uk: "Тести запускаються при push або pull request у гілки main/master. [Workflow](https://docs.github.com/en/actions/using-workflows/about-workflows) встановлює всі залежності, Playwright і виконує тести. Також створюється HTML-звіт.",
-        },
-        {
-          en: "#### On push/pull_request (sharded)",
-          uk: "#### При push/pull_request (з шардингом)",
-        },
-        {
-          en: "GitHub Actions supports [sharding tests between multiple jobs](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs). Check out our [sharding doc](./test-sharding) to learn more about sharding and to see a [GitHub actions example](./test-sharding.md#github-actions-example) of how to configure a job to run your tests on multiple machines as well as how to merge the HTML reports.",
-          uk: "GitHub Actions підтримує [розподіл тестів між кількома завданнями](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs). Детальніше — у [документації з шардингу](./test-sharding), включно з [прикладом для GitHub Actions](./test-sharding.md#github-actions-example) налаштування завдань для запуску тестів на кількох машинах і об'єднання HTML-звітів.",
-        },
-        {
-          en: "#### Via Containers",
-          uk: "#### Через контейнери",
-        },
-        {
-          en: "GitHub Actions support [running jobs in a container](https://docs.github.com/en/actions/using-jobs/running-jobs-in-a-container) by using the [`jobs.<job_id>.container`](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontainer) option. This is useful to not pollute the host environment with dependencies and to have a consistent environment for e.g. screenshots/visual regression testing across different operating systems.",
-          uk: "GitHub Actions підтримує [запуск завдань у контейнері](https://docs.github.com/en/actions/using-jobs/running-jobs-in-a-container) за допомогою параметра [`jobs.<job_id>.container`](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idcontainer). Це корисно, щоб не засмічувати середовище хоста залежностями й мати узгоджене середовище, наприклад для скриншотів/візуального регресійного тестування на різних ОС.",
-        },
-        {
-          en: "#### On deployment",
-          uk: "#### При деплої",
-        },
-        {
-          en: "This will start the tests after a [GitHub Deployment](https://developer.github.com/v3/repos/deployments/) went into the `success` state.\nServices like Vercel use this pattern so you can run your end-to-end tests on their deployed environment.",
-          uk: "Тести запустяться після того, як [GitHub Deployment](https://developer.github.com/v3/repos/deployments/) перейде у стан `success`.\nТак працюють такі сервіси, як Vercel — вони дозволяють запускати end-to-end тести в задеплоєному середовищі.",
-        },
-        {
-          en: "#### Fail-Fast",
-          uk: "#### Fail-Fast",
-        },
-        {
-          en: "Large test suites can take very long to execute. By executing a preliminary test run with the `--only-changed` flag, you can run test files that are likely to fail first.\nThis will give you a faster feedback loop and slightly lower CI consumption while working on Pull Requests.\nTo detect test files affected by your changeset, `--only-changed` analyses your suites' dependency graph. This is a heuristic and might miss tests, so it's important that you always run the full test suite after the preliminary test run.",
-          uk: "Великі тестові набори можуть виконуватися дуже довго. Попередній запуск із прапором `--only-changed` дозволяє спочатку виконати тести, що, швидше за все, впадуть.\nЦе прискорює зворотний зв'язок і трохи знижує використання CI при роботі над Pull Request.\nЩоб виявити тестові файли, яких торкнулася ваша зміна, `--only-changed` аналізує граф залежностей тестового набору.\n\nЦе евристика, яка може пропустити деякі тести — тому завжди важливо після попереднього запуску виконати повний тестовий набір.",
-        },
-        {
-          en: "### Docker",
-          uk: "### Docker",
-        },
-        {
-          en: "We have a [pre-built Docker image](./docker.md) which can either be used directly or as a reference to update your existing Docker definitions. Make sure to follow the [Recommended Docker Configuration](./docker.md#recommended-docker-configuration) to ensure the best performance.",
-          uk: "Є [готовий Docker-образ](./docker.md), який можна використовувати безпосередньо або як зразок для оновлення наявних Docker-визначень. Обов'язково дотримуйтесь [рекомендованої конфігурації Docker](./docker.md#recommended-docker-configuration) для найкращої продуктивності.",
-        },
-        {
-          en: "### Azure Pipelines",
-          uk: "### Azure Pipelines",
-        },
-        {
-          en: "For Windows or macOS agents, no additional configuration is required, just install Playwright and run your tests.",
-          uk: "Для Windows або macOS агентів додаткової конфігурації не потрібно — просто встановіть Playwright і запустіть тести.",
-        },
-        {
-          en: "For Linux agents, you can use [our Docker container](./docker.md) with Azure\nPipelines support [running containerized\njobs](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops).\nAlternatively, you can use [Command line tools](./browsers#install-system-dependencies) to install all necessary dependencies.",
-          uk: "Для Linux-агентів можна використовувати [наш Docker-контейнер](./docker.md) з Azure\nPipelines, що підтримує [запуск у контейнерах](https://docs.microsoft.com/en-us/azure/devops/pipelines/process/container-phases?view=azure-devops).\nАбо скористайтесь [CLI-інструментами](./browsers#install-system-dependencies) для встановлення всіх необхідних залежностей.",
-        },
-        {
-          en: "For running the Playwright tests use this pipeline task:",
-          uk: "Для запуску тестів Playwright використовуйте таке pipeline-завдання:",
-        },
-        {
-          en: "#### Uploading playwright-report folder with Azure Pipelines",
-          uk: "#### Завантаження папки playwright-report через Azure Pipelines",
-        },
-        {
-          en: "This will make the pipeline run fail if any of the playwright tests fails.\nIf you also want to integrate the test results with Azure DevOps, use the task `PublishTestResults` task like so:",
-          uk: "Це призведе до завершення pipeline з помилкою, якщо будь-який тест Playwright не пройде.\nЯкщо ви також хочете інтегрувати результати тестів із Azure DevOps, використовуйте завдання `PublishTestResults` ось так:",
-        },
-        {
-          en: "Note: The JUnit reporter needs to be configured accordingly via",
-          uk: "Примітка: JUnit-репортер потрібно відповідно налаштувати через",
-        },
-        {
-          en: "in `playwright.config.ts`.",
-          uk: "у `playwright.config.ts`.",
-        },
-        {
-          en: "#### Azure Pipelines (sharded)",
-          uk: "#### Azure Pipelines (з шардингом)",
-        },
-        {
-          en: "#### Azure Pipelines (containerized)",
-          uk: "#### Azure Pipelines (у контейнері)",
-        },
-        {
-          en: "### CircleCI",
-          uk: "### CircleCI",
-        },
-        {
-          en: "Running Playwright on CircleCI is very similar to running on GitHub Actions. In order to specify the pre-built Playwright [Docker image](./docker.md), simply modify the agent definition with `docker:` in your config like so:",
-          uk: "Запуск Playwright у CircleCI дуже схожий на GitHub Actions. Щоб вказати готовий Docker-образ [Playwright](./docker.md), змініть визначення агента, додавши `docker:` у конфіг:",
-        },
-        {
-          en: "Note: When using the docker agent definition, you are specifying the resource class of where playwright runs to the 'medium' tier [here](https://circleci.com/docs/configuration-reference?#docker-execution-environment). The default behavior of Playwright is to set the number of workers to the detected core count (2 in the case of the medium tier). Overriding the number of workers to greater than this number will cause unnecessary timeouts and failures.",
-          uk: "Примітка: при використанні визначення агента docker, ви вказуєте клас ресурсів для Playwright — 'medium' рівень [тут](https://circleci.com/docs/configuration-reference?#docker-execution-environment). За замовчуванням Playwright встановлює кількість воркерів відповідно до кількості виявлених ядер (2 для 'medium'). Перевищення цього значення призведе до зайвих тайм-аутів і збоїв.",
-        },
-        {
-          en: "#### Sharding in CircleCI",
-          uk: "#### Шардинг у CircleCI",
-        },
-        {
-          en: "Sharding in CircleCI is indexed with 0 which means that you will need to override the default parallelism ENV VARS. The following example demonstrates how to run Playwright with a CircleCI Parallelism of 4 by adding 1 to the `CIRCLE_NODE_INDEX` to pass into the `--shard` cli arg.",
-          uk: "Шардинг у CircleCI індексується з 0 — тому потрібно перевизначити ENV-змінні паралелізму за замовчуванням. У прикладі нижче показано, як запустити Playwright із CircleCI Parallelism = 4, додаючи 1 до `CIRCLE_NODE_INDEX` для передачі в аргумент CLI `--shard`.",
-        },
-        {
-          en: "### Jenkins",
-          uk: "### Jenkins",
-        },
-        {
-          en: "Jenkins supports Docker agents for pipelines. Use the [Playwright Docker image](./docker.md)\nto run tests on Jenkins.",
-          uk: "Jenkins підтримує Docker-агенти для pipeline. Використовуйте [Docker-образ Playwright](./docker.md)\nдля запуску тестів у Jenkins.",
-        },
-        {
-          en: "### Bitbucket Pipelines",
-          uk: "### Bitbucket Pipelines",
-        },
-        {
-          en: "Bitbucket Pipelines can use public [Docker images as build environments](https://confluence.atlassian.com/bitbucket/use-docker-images-as-build-environments-792298897.html). To run Playwright tests on Bitbucket, use our public Docker image ([see Dockerfile](./docker.md)).",
-          uk: "Bitbucket Pipelines може використовувати публічні [Docker-образи як середовища збірки](https://confluence.atlassian.com/bitbucket/use-docker-images-as-build-environments-792298897.html). Для запуску тестів Playwright у Bitbucket використовуйте наш публічний Docker-образ ([переглянути Dockerfile](./docker.md)).",
-        },
-        {
-          en: "### GitLab CI",
-          uk: "### GitLab CI",
-        },
-        {
-          en: "To run Playwright tests on GitLab, use our public Docker image ([see Dockerfile](./docker.md)).",
-          uk: "Для запуску тестів Playwright у GitLab використовуйте наш публічний Docker-образ ([переглянути Dockerfile](./docker.md)).",
-        },
-        {
-          en: "#### Sharding",
-          uk: "#### Шардинг",
-        },
-        {
-          en: "GitLab CI supports [sharding tests between multiple jobs](https://docs.gitlab.com/ee/ci/jobs/job_control.html#parallelize-large-jobs) using the [parallel](https://docs.gitlab.com/ee/ci/yaml/index.html#parallel) keyword. The test job will be split into multiple smaller jobs that run in parallel. Parallel jobs are named sequentially from `job_name 1/N` to `job_name N/N`.",
-          uk: "GitLab CI підтримує [розподіл тестів між кількома завданнями](https://docs.gitlab.com/ee/ci/jobs/job_control.html#parallelize-large-jobs) за допомогою ключового слова [parallel](https://docs.gitlab.com/ee/ci/yaml/index.html#parallel). Тестове завдання розбивається на кілька менших завдань, що виконуються паралельно. Паралельні завдання іменуються послідовно від `job_name 1/N` до `job_name N/N`.",
-        },
-        {
-          en: "GitLab CI also supports sharding tests between multiple jobs using the [parallel:matrix](https://docs.gitlab.com/ee/ci/yaml/index.html#parallelmatrix) option. The test job will run multiple times in parallel in a single pipeline, but with different variable values for each instance of the job. In the example below, we have 2 `PROJECT` values and 10 `SHARD` values, resulting in a total of 20 jobs to be run.",
-          uk: "GitLab CI також підтримує шардинг між кількома завданнями за допомогою параметра [parallel:matrix](https://docs.gitlab.com/ee/ci/yaml/index.html#parallelmatrix). Тестове завдання запускається кілька разів паралельно в одному pipeline, але з різними значеннями змінних. У прикладі нижче — 2 значення `PROJECT` і 10 значень `SHARD`, усього 20 завдань.",
-        },
-        {
-          en: "### Google Cloud Build",
-          uk: "### Google Cloud Build",
-        },
-        {
-          en: "To run Playwright tests on Google Cloud Build, use our public Docker image ([see Dockerfile](./docker.md)).",
-          uk: "Для запуску тестів Playwright у Google Cloud Build використовуйте наш публічний Docker-образ ([переглянути Dockerfile](./docker.md)).",
-        },
-        {
-          en: "### Drone",
-          uk: "### Drone",
-        },
-        {
-          en: "To run Playwright tests on Drone, use our public Docker image ([see Dockerfile](./docker.md)).",
-          uk: "Для запуску тестів Playwright у Drone використовуйте наш публічний Docker-образ ([переглянути Dockerfile](./docker.md)).",
+          en: "On deployment trigger: I use `github.event.deployment_status.state == 'success'` when testing against a preview URL. Vercel and similar platforms fire the `deployment_status` event and put the URL in `deployment_status.target_url` — I pass that as `PLAYWRIGHT_TEST_BASE_URL`.",
+          uk: "На тригер деплою: я використовую `github.event.deployment_status.state == 'success'` коли тестую проти preview URL. Vercel і подібні платформи надсилають подію `deployment_status` і кладуть URL в `deployment_status.target_url` — передаю це як `PLAYWRIGHT_TEST_BASE_URL`.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-10",
-          language: "yml",
-          code: "name: Playwright Tests\non:\n  push:\n    branches: [ main, master ]\n  pull_request:\n    branches: [ main, master ]\njobs:\n  test:\n    timeout-minutes: 60\n    runs-on: ubuntu-latest\n    steps:\n    - uses: actions/checkout@v5\n    - uses: actions/setup-node@v6\n      with:\n        node-version: lts/*\n    - name: Install dependencies\n      run: npm ci\n    - name: Install Playwright Browsers\n      run: npx playwright install --with-deps\n    - name: Run Playwright tests\n      run: npx playwright test\n    - uses: actions/upload-artifact@v5\n      if: ${{ !cancelled() }}\n      with:\n        name: playwright-report\n        path: playwright-report/\n        retention-days: 30",
-        },
-        {
-          id: "cb-14",
-          language: "yml",
-          code: "name: Playwright Tests\non:\n  push:\n    branches: [ main, master ]\n  pull_request:\n    branches: [ main, master ]\njobs:\n  playwright:\n    name: 'Playwright Tests'\n    runs-on: ubuntu-latest\n    container:\n      image: mcr.microsoft.com/playwright:v%%VERSION%%-noble\n      options: --user 1001\n    steps:\n      - uses: actions/checkout@v5\n      - uses: actions/setup-node@v6\n        with:\n          node-version: lts/*\n      - name: Install dependencies\n        run: npm ci\n      - name: Run your tests\n        run: npx playwright test",
-        },
-        {
-          id: "cb-18",
-          language: "yml",
-          code: "name: Playwright Tests\non:\n  deployment_status:\njobs:\n  test:\n    timeout-minutes: 60\n    runs-on: ubuntu-latest\n    if: github.event.deployment_status.state == 'success'\n    steps:\n    - uses: actions/checkout@v5\n    - uses: actions/setup-node@v6\n      with:\n        node-version: lts/*\n    - name: Install dependencies\n      run: npm ci\n    - name: Install Playwright\n      run: npx playwright install --with-deps\n    - name: Run Playwright tests\n      run: npx playwright test\n      env:\n        PLAYWRIGHT_TEST_BASE_URL: ${{ github.event.deployment_status.target_url }}",
-        },
-        {
-          id: "cb-22",
-          language: "yml",
-          code: "name: Playwright Tests\non:\n  push:\n    branches: [ main, master ]\n  pull_request:\n    branches: [ main, master ]\njobs:\n  test:\n    timeout-minutes: 60\n    runs-on: ubuntu-latest\n    steps:\n    - uses: actions/checkout@v5\n      with:\n        # Force a non-shallow checkout, so that we can reference $GITHUB_BASE_REF.\n        # See https://github.com/actions/checkout for more details.\n        fetch-depth: 0\n    - uses: actions/setup-node@v6\n      with:\n        node-version: lts/*\n    - name: Install dependencies\n      run: npm ci\n    - name: Install Playwright Browsers\n      run: npx playwright install --with-deps\n    - name: Run changed Playwright tests\n      run: npx playwright test --only-changed=origin/$GITHUB_BASE_REF\n      if: github.event_name == 'pull_request'\n    - name: Run Playwright tests\n      run: npx playwright test\n    - uses: actions/upload-artifact@v5\n      if: ${{ !cancelled() }}\n      with:\n        name: playwright-report\n        path: playwright-report/\n        retention-days: 30",
-        },
-        {
-          id: "cb-23",
-          language: "yml",
-          code: "trigger:\n- main\n\npool:\n  vmImage: ubuntu-latest\n\nsteps:\n- task: UseNode@1\n  inputs:\n    version: '22'\n  displayName: 'Install Node.js'\n- script: npm ci\n  displayName: 'npm ci'\n- script: npx playwright install --with-deps\n  displayName: 'Install Playwright browsers'\n- script: npx playwright test\n  displayName: 'Run Playwright tests'\n  env:\n    CI: 'true'",
-        },
-        {
-          id: "cb-27",
-          language: "yml",
-          code: "trigger:\n- main\n\npool:\n  vmImage: ubuntu-latest\n\nsteps:\n- task: UseNode@1\n  inputs:\n    version: '22'\n  displayName: 'Install Node.js'\n\n- script: npm ci\n  displayName: 'npm ci'\n- script: npx playwright install --with-deps\n  displayName: 'Install Playwright browsers'\n- script: npx playwright test\n  displayName: 'Run Playwright tests'\n  env:\n    CI: 'true'\n- task: PublishTestResults@2\n  displayName: 'Publish test results'\n  inputs:\n    searchFolder: 'test-results'\n    testResultsFormat: 'JUnit'\n    testResultsFiles: 'e2e-junit-results.xml'\n    mergeTestResults: true\n    failTaskOnFailedTests: true\n    testRunTitle: 'My End-To-End Tests'\n  condition: succeededOrFailed()\n- task: PublishPipelineArtifact@1\n  inputs:\n    targetPath: playwright-report\n    artifact: playwright-report\n    publishLocation: 'pipeline'\n  condition: succeededOrFailed()",
-        },
-        {
-          id: "cb-28",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: [['junit', { outputFile: 'test-results/e2e-junit-results.xml' }]],\n});",
-        },
-        {
-          id: "cb-29",
+          id: "github-actions-basic",
           language: "yaml",
-          code: "trigger:\n- main\n\npool:\n  vmImage: ubuntu-latest\n\nstrategy:\n  matrix:\n    chromium-1:\n      project: chromium\n      shard: 1/3\n    chromium-2:\n      project: chromium\n      shard: 2/3\n    chromium-3:\n      project: chromium\n      shard: 3/3\n    firefox-1:\n      project: firefox\n      shard: 1/3\n    firefox-2:\n      project: firefox\n      shard: 2/3\n    firefox-3:\n      project: firefox\n      shard: 3/3\n    webkit-1:\n      project: webkit\n      shard: 1/3\n    webkit-2:\n      project: webkit\n      shard: 2/3\n    webkit-3:\n      project: webkit\n      shard: 3/3\nsteps:\n- task: UseNode@1\n  inputs:\n    version: '22'\n  displayName: 'Install Node.js'\n\n- script: npm ci\n  displayName: 'npm ci'\n- script: npx playwright install --with-deps\n  displayName: 'Install Playwright browsers'\n- script: npx playwright test --project=$(project) --shard=$(shard)\n  displayName: 'Run Playwright tests'\n  env:\n    CI: 'true'",
+          code: `name: Playwright Tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/setup-node@v5
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    - name: Run Playwright tests
+      run: npx playwright test
+    - uses: actions/upload-artifact@v4
+      if: \${{ !cancelled() }}
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30`,
         },
         {
-          id: "cb-30",
-          language: "yml",
-          code: "trigger:\n- main\n\npool:\n  vmImage: ubuntu-latest\ncontainer: mcr.microsoft.com/playwright:v%%VERSION%%-noble\n\nsteps:\n- task: UseNode@1\n  inputs:\n    version: '22'\n  displayName: 'Install Node.js'\n\n- script: npm ci\n  displayName: 'npm ci'\n- script: npx playwright test\n  displayName: 'Run Playwright tests'\n  env:\n    CI: 'true'",
+          id: "github-actions-deploy",
+          language: "yaml",
+          code: `# Тести після деплою на Vercel/Netlify/etc
+name: Playwright Tests
+on:
+  deployment_status:
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    if: github.event.deployment_status.state == 'success'
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/setup-node@v5
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Playwright
+      run: npx playwright install --with-deps
+    - name: Run Playwright tests
+      run: npx playwright test
+      env:
+        PLAYWRIGHT_TEST_BASE_URL: \${{ github.event.deployment_status.target_url }}`,
+        },
+      ],
+    },
+    {
+      id: "fail-fast-prs",
+      title: {
+        en: "Faster feedback on PRs — --only-changed",
+        uk: "Швидший зворотний зв'язок на PR — --only-changed",
+      },
+      paragraphs: [
+        {
+          en: "`--only-changed` runs only the test files affected by the current changeset. Playwright analyzes the dependency graph to figure out which test files import or depend on the changed source files. On a large project this can cut CI time from 15 minutes to 2 minutes for a small PR.",
+          uk: "`--only-changed` запускає тільки файли тестів яких торкнувся поточний набір змін. Playwright аналізує граф залежностей щоб з'ясувати які файли тестів імпортують або залежать від змінених вихідних файлів. На великому проекті це може скоротити час CI з 15 хвилин до 2 хвилин для невеликого PR.",
         },
         {
-          id: "cb-34",
-          language: "yml",
-          code: "executors:\n  pw-noble-development:\n    docker:\n      - image: mcr.microsoft.com/playwright:v%%VERSION%%-noble",
+          en: "Important: this is a heuristic, not a guarantee. It can miss tests if the dependency analysis doesn't catch all relationships. I always follow it with a full test run after the PR merges to main.",
+          uk: "Важливо: це евристика, а не гарантія. Можна пропустити тести якщо аналіз залежностей не вловить всі зв'язки. Я завжди слідую за цим повним запуском тестів після злиття PR в main.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "only-changed",
+          language: "yaml",
+          code: `# В GitHub Actions — тільки для PR
+- name: Run changed Playwright tests
+  run: npx playwright test --only-changed=origin/\$GITHUB_BASE_REF
+  if: github.event_name == 'pull_request'
+- name: Run all Playwright tests
+  run: npx playwright test`,
+        },
+      ],
+    },
+    {
+      id: "debugging-ci",
+      title: {
+        en: "When the browser won't launch on CI",
+        uk: "Коли браузер не запускається на CI",
+      },
+      paragraphs: [
+        {
+          en: "`Error: Failed to launch browser` on CI is almost always a missing system dependency. First check: did you run `--with-deps`? If yes, try `DEBUG=pw:browser` to see exactly what the browser binary says when it fails to start.",
+          uk: "`Error: Failed to launch browser` на CI — майже завжди відсутня системна залежність. Перша перевірка: чи запускав `--with-deps`? Якщо так — спробуй `DEBUG=pw:browser` щоб побачити точно що каже бінарний файл браузера коли не може запуститися.",
         },
         {
-          id: "cb-38",
-          language: "yml",
-          code: `    playwright-job-name:\n      executor: pw-noble-development\n      parallelism: 4\n      steps:\n        - run: SHARD="$((\${CIRCLE_NODE_INDEX}+1))"; npx playwright test --shard=\${SHARD}/\${CIRCLE_NODE_TOTAL}`,
+          en: "Don't cache browser binaries between CI runs. The time to restore from cache is similar to re-downloading, and on Linux the OS dependencies aren't cacheable anyway. Just always reinstall.",
+          uk: "Не кешуй бінарні файли браузерів між запусками CI. Час відновлення з кешу схожий на повторне скачування, і на Linux системні залежності все одно не кешуються. Просто завжди переінстальовуй.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "debug-browser",
+          language: "bash",
+          code: `# Дебаг запуску браузера — виводить детальний лог
+DEBUG=pw:browser npx playwright test`,
+        },
+      ],
+    },
+    {
+      id: "other-ci-providers",
+      title: {
+        en: "Other CI providers",
+        uk: "Інші CI-провайдери",
+      },
+      paragraphs: [
+        {
+          en: "For all other providers the approach is the same — the only difference is the YAML syntax. Most use the official Playwright Docker image (`mcr.microsoft.com/playwright:v1.x-noble`) to skip the browser installation step entirely. The image already has all browsers and system dependencies installed.",
+          uk: "Для всіх інших провайдерів підхід той самий — різниця тільки в синтаксисі YAML. Більшість використовує офіційний Docker-образ Playwright (`mcr.microsoft.com/playwright:v1.x-noble`) щоб повністю пропустити крок встановлення браузерів. В образі вже є всі браузери і системні залежності.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "azure-pipelines",
+          language: "yaml",
+          code: `# Azure Pipelines
+trigger:
+- main
+pool:
+  vmImage: ubuntu-latest
+steps:
+- task: UseNode@1
+  inputs:
+    version: '22'
+- script: npm ci
+- script: npx playwright install --with-deps
+- script: npx playwright test
+  env:
+    CI: 'true'
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: playwright-report
+    artifact: playwright-report
+  condition: succeededOrFailed()`,
         },
         {
-          id: "cb-39",
+          id: "gitlab-ci",
+          language: "yaml",
+          code: `# GitLab CI
+stages:
+  - test
+tests:
+  stage: test
+  image: mcr.microsoft.com/playwright:v1.50.0-noble
+  script:
+    - npm ci
+    - npx playwright test`,
+        },
+        {
+          id: "jenkins",
           language: "groovy",
-          code: "pipeline {\n   agent { docker { image 'mcr.microsoft.com/playwright:v%%VERSION%%-noble' } }\n   stages {\n      stage('e2e-tests') {\n         steps {\n            sh 'npm ci'\n            sh 'npx playwright test'\n         }\n      }\n   }\n}",
-        },
-        {
-          id: "cb-43",
-          language: "yml",
-          code: "image: mcr.microsoft.com/playwright:v%%VERSION%%-noble",
-        },
-        {
-          id: "cb-47",
-          language: "yml",
-          code: "stages:\n  - test\n\ntests:\n  stage: test\n  image: mcr.microsoft.com/playwright:v%%VERSION%%-noble\n  script:\n  ...",
-        },
-        {
-          id: "cb-51",
-          language: "yml",
-          code: "stages:\n  - test\n\ntests:\n  stage: test\n  image: mcr.microsoft.com/playwright:v%%VERSION%%-noble\n  parallel: 7\n  script:\n    - npm ci\n    - npx playwright test --shard=$CI_NODE_INDEX/$CI_NODE_TOTAL",
-        },
-        {
-          id: "cb-52",
-          language: "yml",
-          code: "stages:\n  - test\n\ntests:\n  stage: test\n  image: mcr.microsoft.com/playwright:v%%VERSION%%-noble\n  parallel:\n    matrix:\n      - PROJECT: ['chromium', 'webkit']\n        SHARD: ['1/10', '2/10', '3/10', '4/10', '5/10', '6/10', '7/10', '8/10', '9/10', '10/10']\n  script:\n    - npm ci\n    - npx playwright test --project=$PROJECT --shard=$SHARD",
-        },
-        {
-          id: "cb-53",
-          language: "yml",
-          code: "steps:\n- name: mcr.microsoft.com/playwright:v%%VERSION%%-noble\n  script: \n  ...\n  env:\n  - 'CI=true'",
-        },
-        {
-          id: "cb-54",
-          language: "yml",
-          code: "kind: pipeline\nname: default\ntype: docker\n\nsteps:\n  - name: test\n    image: mcr.microsoft.com/playwright:v%%VERSION%%-noble\n    commands:\n      - npx playwright test",
-        },
-      ],
-    },
-    {
-      id: "caching-browsers",
-      title: {
-        en: "Caching browsers",
-        uk: "Кешування браузерів",
-      },
-      paragraphs: [
-        {
-          en: "Caching browser binaries is not recommended, since the amount of time it takes to restore the cache is comparable to the time it takes to download the binaries. Especially under Linux, [operating system dependencies](./browsers.md#install-system-dependencies) need to be installed, which are not cacheable.",
-          uk: "Кешування бінарних файлів браузерів не рекомендується — час відновлення кешу порівнянний із часом їх завантаження. Особливо на Linux потрібно встановлювати [системні залежності ОС](./browsers.md#install-system-dependencies), які не кешуються.",
-        },
-        {
-          en: "If you still want to cache the browser binaries between CI runs, cache [these directories](./browsers.md#managing-browser-binaries) in your CI configuration, against a hash of the Playwright version.",
-          uk: "Якщо все ж хочете кешувати бінарні файли браузерів між запусками CI, закешуйте [ці директорії](./browsers.md#managing-browser-binaries) у своїй CI-конфігурації, прив'язавши кеш до хешу версії Playwright.",
-        },
-      ],
-    },
-    {
-      id: "debugging-browser-launches",
-      title: {
-        en: "Debugging browser launches",
-        uk: "Налагодження запуску браузерів",
-      },
-      paragraphs: [
-        {
-          en: "Playwright supports the `DEBUG` environment variable to output debug logs during execution. Setting it to `pw:browser` is helpful while debugging `Error: Failed to launch browser` errors.",
-          uk: "Playwright підтримує змінну середовища `DEBUG` для виведення налагоджувальних логів під час виконання. Встановлення значення `pw:browser` допомагає при налагодженні помилок `Error: Failed to launch browser`.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-55",
-          language: "bash",
-          code: "DEBUG=pw:browser npx playwright test",
-        },
-      ],
-    },
-    {
-      id: "running-headed",
-      title: {
-        en: "Running headed",
-        uk: "Запуск у режимі headed",
-      },
-      paragraphs: [
-        {
-          en: "By default, Playwright launches browsers in headless mode. See in our [Running tests](./running-tests.md#run-tests-in-headed-mode) guide how to run tests in headed mode.",
-          uk: "За замовчуванням Playwright запускає браузери у headless-режимі. Дивіться у нашому посібнику [Запуск тестів](./running-tests.md#run-tests-in-headed-mode), як запускати тести у headed-режимі.",
-        },
-        {
-          en: "On Linux agents, headed execution requires [Xvfb](https://en.wikipedia.org/wiki/Xvfb) to be installed. Our [Docker image](./docker.md) and GitHub Action have Xvfb pre-installed. To run browsers in headed mode with Xvfb, add `xvfb-run` before the actual command.",
-          uk: "На Linux-агентах для запуску в headed-режимі потрібно встановити [Xvfb](https://en.wikipedia.org/wiki/Xvfb). Наш [Docker-образ](./docker.md) і GitHub Action мають Xvfb попередньо встановленим. Щоб запустити браузери у headed-режимі з Xvfb, додайте `xvfb-run` перед основною командою.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-59",
-          language: "bash",
-          code: "xvfb-run npx playwright test",
+          code: `// Jenkins Pipeline
+pipeline {
+  agent { docker { image 'mcr.microsoft.com/playwright:v1.50.0-noble' } }
+  stages {
+    stage('e2e-tests') {
+      steps {
+        sh 'npm ci'
+        sh 'npx playwright test'
+      }
+    }
+  }
+}`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "Your GitHub Actions workflow runs 'npx playwright install' (without --with-deps) and gets 'Error: Failed to launch browser'. What's happening and how do you fix it?",
+        uk: "Твій GitHub Actions workflow запускає 'npx playwright install' (без --with-deps) і отримує 'Error: Failed to launch browser'. Що відбувається і як виправити?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The Playwright version is incompatible with the Node.js version — update Node.js",
+            uk: "Версія Playwright несумісна з версією Node.js — оновити Node.js",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "npx playwright install downloads browser binaries but not OS-level system dependencies — change to npx playwright install --with-deps to also install libglib, libnss, and other Linux libs the browser needs",
+            uk: "npx playwright install завантажує бінарні файли браузера але не системні залежності ОС — змінити на npx playwright install --with-deps щоб також встановити libglib, libnss та інші Linux-бібліотеки які потрібні браузеру",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The ubuntu-latest runner doesn't support Chromium — switch to a different browser",
+            uk: "Runner ubuntu-latest не підтримує Chromium — переключитися на інший браузер",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`npx playwright install` downloads only the browser binary (Chromium, Firefox, WebKit). But browsers depend on dozens of system libraries like libglib, libnss, libatk that aren't present on a fresh Ubuntu runner. `--with-deps` runs `sudo apt-get install` for all those libraries automatically. ubuntu-latest works fine with all browsers — it just needs the system deps installed first.",
+        uk: "`npx playwright install` завантажує тільки бінарний файл браузера (Chromium, Firefox, WebKit). Але браузери залежать від десятків системних бібліотек як libglib, libnss, libatk яких немає на свіжому Ubuntu runner. `--with-deps` автоматично запускає `sudo apt-get install` для всіх цих бібліотек. ubuntu-latest відмінно працює з усіма браузерами — просто спочатку потрібно встановити системні залежності.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "A Playwright test fails on CI. You check GitHub Actions and there's no playwright-report artifact to download. What configuration change would have prevented this?",
+        uk: "Тест Playwright падає на CI. Перевіряєш GitHub Actions — артефакту playwright-report немає для скачування. Яка зміна конфігурації запобігла б цьому?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Add continue-on-error: true to the test step so the job doesn't fail",
+            uk: "Додати continue-on-error: true до кроку тестів щоб job не падав",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Add if: ${{ !cancelled() }} to the artifact upload step — without it, a failed job skips all remaining steps including the upload",
+            uk: "Додати if: ${{ !cancelled() }} до кроку завантаження артефакту — без цього невдалий job пропускає всі наступні кроки включаючи завантаження",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Move the artifact upload step before the test step",
+            uk: "Перемістити крок завантаження артефакту перед кроком тестів",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "When a step fails, GitHub Actions marks the job as failed and skips all subsequent steps by default. Since the report upload step comes after the test step, a test failure prevents the upload. `if: ${{ !cancelled() }}` tells Actions to run the step regardless of whether previous steps succeeded or failed — only skip if the workflow was manually cancelled. `continue-on-error` would hide the failure in the job status, which defeats the purpose. Moving the upload before tests would upload an empty report.",
+        uk: "Коли крок завершується невдачею GitHub Actions позначає job як невдалий і пропускає всі наступні кроки за замовчуванням. Оскільки крок завантаження звіту стоїть після кроку тестів — невдача тесту запобігає завантаженню. `if: ${{ !cancelled() }}` каже Actions запускати крок незалежно від того чи попередні кроки пройшли чи впали — пропустити тільки якщо workflow вручну скасовано. `continue-on-error` приховало б невдачу у статусі job що руйнує мету. Переміщення завантаження перед тестами завантажило б порожній звіт.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "Which GitHub Actions YAML trigger runs Playwright tests on every push to main and every pull request targeting main?",
+        uk: "Який тригер у GitHub Actions YAML запускає Playwright-тести при кожному push у main і кожному pull request до main?",
+      },
+      options: [
+        { id: "a", label: { en: "on: [push]", uk: "on: [push]" } },
+        {
+          id: "b",
+          label: {
+            en: "on:\\n  push:\\n    branches: [ main ]\\n  pull_request:\\n    branches: [ main ]",
+            uk: "on:\\n  push:\\n    branches: [ main ]\\n  pull_request:\\n    branches: [ main ]",
+          },
+        },
+        { id: "c", label: { en: "on: workflow_dispatch", uk: "on: workflow_dispatch" } },
+        {
+          id: "d",
+          label: {
+            en: "on:\\n  deployment_status:",
+            uk: "on:\\n  deployment_status:",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The `on.push.branches` + `on.pull_request.branches` combination fires the workflow on direct commits to main AND on PRs whose base branch is main. `on: [push]` triggers on every push to every branch. `workflow_dispatch` is for manual runs. `deployment_status` fires when a deployment finishes, which is used for post-deploy testing.",
+        uk: "Комбінація `on.push.branches` + `on.pull_request.branches` запускає workflow при прямих комітах у main І при PR де базова гілка — main. `on: [push]` спрацьовує при кожному push у будь-яку гілку. `workflow_dispatch` — для ручного запуску. `deployment_status` спрацьовує після завершення деплою і використовується для тестування після деплою.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "Why does Playwright run in headless mode by default on CI?",
+        uk: "Чому Playwright запускається в headless-режимі за замовчуванням на CI?",
+      },
+      options: [
+        { id: "a", label: { en: "Headless is faster because it uses less CPU", uk: "Headless швидший бо використовує менше CPU" } },
+        { id: "b", label: { en: "CI runners don't have a display server, so headed mode would crash immediately", uk: "CI-runner-и не мають дисплей-сервера тому headed-режим одразу б впав" } },
+        { id: "c", label: { en: "Headless produces smaller trace files", uk: "Headless створює менші файли трейсів" } },
+        { id: "d", label: { en: "Playwright requires headless on Linux regardless of environment", uk: "Playwright вимагає headless на Linux незалежно від середовища" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "CI runners (like GitHub Actions ubuntu-latest) have no graphical display server. Headed mode requires a display to render pixels. Without one, the browser process crashes. Headless mode renders without a display, so it works on any server. Headless isn't inherently faster or smaller — it just doesn't need a display.",
+        uk: "CI-runner-и (як GitHub Actions ubuntu-latest) не мають графічного дисплей-сервера. Headed-режим вимагає дисплей для рендерингу пікселів. Без нього процес браузера одразу падає. Headless-режим рендерить без дисплея тому працює на будь-якому сервері. Headless сам по собі не швидший і не компактніший — він просто не потребує дисплея.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "You want to upload the Playwright HTML report as an artifact that is retained for 30 days and available even when tests fail. Which step configuration achieves this?",
+        uk: "Ти хочеш завантажити HTML-репорт Playwright як артефакт що зберігається 30 днів і доступний навіть якщо тести падають. Яка конфігурація кроку це забезпечить?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "uses: actions/upload-artifact@v4 with path: playwright-report/ and no condition",
+            uk: "uses: actions/upload-artifact@v4 з path: playwright-report/ і без умови",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "uses: actions/upload-artifact@v4 with if: success() and retention-days: 30",
+            uk: "uses: actions/upload-artifact@v4 з if: success() і retention-days: 30",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "uses: actions/upload-artifact@v4 with if: ${{ !cancelled() }} and retention-days: 30",
+            uk: "uses: actions/upload-artifact@v4 з if: ${{ !cancelled() }} і retention-days: 30",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "uses: actions/upload-artifact@v4 with if: failure() and retention-days: 30",
+            uk: "uses: actions/upload-artifact@v4 з if: failure() і retention-days: 30",
+          },
+        },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "`if: ${{ !cancelled() }}` ensures the upload step runs whether tests passed or failed — it only skips if the workflow is manually cancelled. No condition at all would only upload on success (same as `if: success()`). `if: failure()` skips the upload when tests pass, losing passing baselines. `retention-days: 30` controls how long GitHub keeps the artifact.",
+        uk: "`if: ${{ !cancelled() }}` забезпечує що крок завантаження виконується і при проходженні і при падінні тестів — пропускається лише якщо workflow скасований вручну. Відсутність умови завантажує тільки при успіху (те саме що `if: success()`). `if: failure()` пропускає завантаження коли тести проходять — втрачаються пройдені базові звіти. `retention-days: 30` визначає скільки GitHub зберігає артефакт.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "You have 800 tests and want to split them across 4 CI machines using sharding and then get one combined report. Which reporter should each shard use?",
+        uk: "У тебе 800 тестів і хочеш розбити їх між 4 CI-машинами через шардинг і отримати один об'єднаний звіт. Який репортер має використовувати кожен шард?",
+      },
+      options: [
+        { id: "a", label: { en: "reporter: 'html' — HTML reports from each shard get merged automatically", uk: "reporter: 'html' — HTML-звіти кожного шарду зливаються автоматично" } },
+        { id: "b", label: { en: "reporter: 'list' — lightweight output that CI can merge", uk: "reporter: 'list' — легкий вивід який CI може злити" } },
+        { id: "c", label: { en: "reporter: 'blob' — produces a zip with raw test data that can be merged with npx playwright merge-reports", uk: "reporter: 'blob' — створює zip з сирими даними тестів який можна злити через npx playwright merge-reports" } },
+        { id: "d", label: { en: "reporter: 'json' — JSON files from all shards can be concatenated", uk: "reporter: 'json' — JSON файли з усіх шардів можна конкатенувати" } },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "The blob reporter writes all raw test data (results, traces, screenshots, attachments) into a structured zip file. After all shards finish, a merge job downloads all blob zips and runs `npx playwright merge-reports --reporter html` to produce one combined HTML report. HTML reports are static and can't be merged. JSON files don't carry trace attachments. The list reporter is for console output only.",
+        uk: "Blob-репортер записує всі сирі дані тестів (результати, трейси, скриншоти, вкладення) у структурований zip-файл. Після завершення всіх шардів merge-job скачує всі blob-zip-и і запускає `npx playwright merge-reports --reporter html` щоб отримати один об'єднаний HTML-звіт. HTML-звіти статичні і не можна злити. JSON-файли не несуть вкладення трейсів. Репортер list тільки для консольного виводу.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "The article recommends NOT caching browser binaries between CI runs. What is the main reason?",
+        uk: "Стаття рекомендує НЕ кешувати бінарники браузерів між CI-запусками. Яка основна причина?",
+      },
+      options: [
+        { id: "a", label: { en: "Caching browser binaries is not supported by GitHub Actions", uk: "Кешування бінарників браузерів не підтримується GitHub Actions" } },
+        { id: "b", label: { en: "The time to restore from cache is similar to re-downloading, and on Linux the OS dependencies aren't cacheable anyway", uk: "Час відновлення з кешу схожий на повторне скачування, і на Linux системні залежності все одно не кешуються" } },
+        { id: "c", label: { en: "Cached binaries can become corrupted and cause flaky tests", uk: "Кешовані бінарники можуть пошкодитися і призводити до flaky-тестів" } },
+        { id: "d", label: { en: "Each browser version requires a separate cache key that is hard to manage", uk: "Кожна версія браузера вимагає окремого cache key який важко підтримувати" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Browser binaries download quickly from Microsoft's CDN, so cache restoration doesn't save significant time. More importantly, on Linux, system-level browser dependencies (libglib, libnss, etc.) installed by `--with-deps` are OS packages managed by apt — they can't be cached in a GitHub Actions cache. Since you have to run `--with-deps` anyway for the OS packages, just always reinstall everything freshly.",
+        uk: "Бінарники браузерів швидко завантажуються з CDN Microsoft тому відновлення з кешу не економить значного часу. Важливіше те що на Linux системні залежності браузера (libglib, libnss тощо) встановлені через `--with-deps` — це пакети ОС керовані apt і їх не можна кешувати в GitHub Actions cache. Оскільки `--with-deps` все одно треба запускати для пакетів ОС — просто завжди перевстановлюй все заново.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "What does `npx playwright install --with-deps` do that plain `npx playwright install` does not?",
+        uk: "Що робить `npx playwright install --with-deps` чого не робить звичайний `npx playwright install`?",
+      },
+      options: [
+        { id: "a", label: { en: "It installs the latest version of Playwright instead of the version pinned in package.json", uk: "Він встановлює найновішу версію Playwright замість версії з package.json" } },
+        { id: "b", label: { en: "It installs all three browsers (Chromium, Firefox, WebKit) instead of just Chromium", uk: "Він встановлює всі три браузери (Chromium, Firefox, WebKit) замість тільки Chromium" } },
+        { id: "c", label: { en: "It runs sudo apt-get install for OS-level libraries (libglib, libnss, libatk, etc.) that browser binaries depend on", uk: "Він запускає sudo apt-get install для бібліотек рівня ОС (libglib, libnss, libatk тощо) від яких залежать бінарники браузерів" } },
+        { id: "d", label: { en: "It also installs the Playwright VS Code extension automatically", uk: "Він також автоматично встановлює розширення Playwright для VS Code" } },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "`npx playwright install` downloads only the browser binaries (Chromium, Firefox, WebKit builds). The `--with-deps` flag additionally invokes the system package manager (apt on Ubuntu) to install OS-level shared libraries that browsers need: libglib, libnss, libatk, libdrm, libgbm, and many others. Without these, the browser binary exists but crashes on launch with 'Failed to launch browser' or 'error while loading shared libraries'. The flag installs all browsers regardless — it doesn't change which browsers are downloaded.",
+        uk: "`npx playwright install` завантажує лише бінарники браузерів (збірки Chromium, Firefox, WebKit). Прапорець `--with-deps` додатково викликає системний менеджер пакетів (apt на Ubuntu) щоб встановити спільні бібліотеки рівня ОС які потрібні браузерам: libglib, libnss, libatk, libdrm, libgbm та багато інших. Без них бінарник браузера є але падає при запуску з помилкою 'Failed to launch browser' або 'error while loading shared libraries'. Прапорець не змінює які браузери завантажуються — він встановлює системні залежності для всіх.",
+      },
+    },
+  ],
 }

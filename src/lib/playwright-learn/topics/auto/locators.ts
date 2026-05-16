@@ -13,914 +13,686 @@ export const locatorsTopic: PlaywrightTopic = {
     uk: "Локатори",
   },
   summary: {
-    en: "[Locator]s are the central piece of Playwright's auto-waiting and retry-ability. In a nutshell, locators represent a way to find element(s) on the page at any moment.",
-    uk: "[Locator] — центральна частина автоматичного очікування та повторних спроб у Playwright. Простими словами, локатори описують спосіб знайти елемент(и) на сторінці в будь-який момент.",
+    en: "The question I ask first when reading someone's Playwright tests: are they using getByRole or CSS selectors? The answer tells me how brittle the test suite is. Locators are how you find elements — picking the right one makes tests survive refactors.",
+    uk: "Перше що я перевіряю в чужих Playwright тестах: getByRole чи CSS селектори? Відповідь одразу говорить наскільки крихка ця тест-сюїта. Локатори — це спосіб знайти елемент. Правильний вибір робить тести стійкими до рефакторингу.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "locator-priority",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "The locator priority order",
+        uk: "Пріоритетний порядок локаторів",
+      },
+      diagram: {
+        mermaid: `flowchart TD
+  A["getByRole (кнопка, заголовок, посилання)"] --> B["getByLabel (поля форми)"]
+  B --> C["getByPlaceholder (поля без label)"]
+  C --> D["getByText (некліковний текст)"]
+  D --> E["getByTestId (data-testid)"]
+  E --> F["CSS / XPath ⚠️ last resort"]
+  style A fill:#22c55e,color:#fff
+  style B fill:#22c55e,color:#fff
+  style C fill:#86efac,color:#000
+  style D fill:#86efac,color:#000
+  style E fill:#fbbf24,color:#000
+  style F fill:#ef4444,color:#fff`,
+        caption: {
+          en: "Start at the top. Drop down only when the element genuinely has no role, label, or text.",
+          uk: "Починай зверху. Йди нижче тільки якщо елемент справді не має ролі, підпису або тексту.",
+        },
       },
       paragraphs: [
         {
-          en: "[Locator]s are the central piece of Playwright's auto-waiting and retry-ability. In a nutshell, locators represent\na way to find element(s) on the page at any moment.",
-          uk: "[Locator] — центральна частина автоматичного очікування та повторних спроб у Playwright. Простими словами, локатори описують спосіб знайти елемент(и) на сторінці в будь-який момент.",
+          en: "Every locator in Playwright is lazy — it doesn't find the element until you use it. When you call `.click()` or `expect()`, Playwright searches the page at that moment, waits for the element to appear, and retries automatically. This auto-wait only works through locators — not through raw DOM handles.",
+          uk: "Кожен локатор у Playwright ледачий — він не шукає елемент поки ти його не використаєш. Коли викликаєш `.click()` або `expect()` — Playwright шукає елемент прямо зараз, чекає поки він з'явиться і автоматично перезапитує. Це авто-очікування працює лише через локатори, не через звичайні DOM handles.",
         },
         {
-          en: "### Quick Guide",
-          uk: "### Швидкий довідник",
-        },
-        {
-          en: "These are the recommended built-in locators.",
-          uk: "Ось рекомендовані вбудовані локатори.",
-        },
-        {
-          en: "- [`method: Page.getByRole`](#locate-by-role) to locate by explicit and implicit accessibility attributes.\n- [`method: Page.getByText`](#locate-by-text) to locate by text content.\n- [`method: Page.getByLabel`](#locate-by-label) to locate a form control by associated label's text.\n- [`method: Page.getByPlaceholder`](#locate-by-placeholder) to locate an input by placeholder.\n- [`method: Page.getByAltText`](#locate-by-alt-text) to locate an element, usually image, by its text alternative.\n- [`method: Page.getByTitle`](#locate-by-title) to locate an element by its title attribute.\n- [`method: Page.getByTestId`](#locate-by-test-id) to locate an element based on its `data-testid` attribute (other attributes can be configured).",
-          uk: "- [`method: Page.getByRole`](#locate-by-role) — за явними й неявними атрибутами доступності.\n- [`method: Page.getByText`](#locate-by-text) — за текстовим вмістом.\n- [`method: Page.getByLabel`](#locate-by-label) — за текстом пов’язаного підпису до поля форми.\n- [`method: Page.getByPlaceholder`](#locate-by-placeholder) — за плейсхолдером поля введення.\n- [`method: Page.getByAltText`](#locate-by-alt-text) — за текстовою альтернативою, зазвичай для зображень.\n- [`method: Page.getByTitle`](#locate-by-title) — за атрибутом title.\n- [`method: Page.getByTestId`](#locate-by-test-id) — за атрибутом `data-testid` (інші атрибути можна налаштувати).",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-1",
-          language: "js",
-          code: "await page.getByLabel('User Name').fill('John');\n\nawait page.getByLabel('Password').fill('secret-password');\n\nawait page.getByRole('button', { name: 'Sign in' }).click();\n\nawait expect(page.getByText('Welcome, John!')).toBeVisible();",
+          en: "The locator you pick determines how resilient the test is. If a developer renames a CSS class or changes a `div` to a `section`, CSS selectors break. If they rename a button's label from \"Save\" to \"Save changes\", `getByText('Save')` breaks. But `getByRole('button', { name: /save/i })` — that survives because it matches how the browser exposes the element to screen readers.",
+          uk: "Локатор що ти обрав визначає наскільки стійкий тест. Якщо розробник перейменує CSS клас або змінить `div` на `section` — CSS селектори зламаються. Якщо перейменує кнопку з \"Save\" на \"Save changes\" — `getByText('Save')` зламається. Але `getByRole('button', { name: /save/i })` — виживе, бо збігається з тим як браузер показує елемент screen reader-у.",
         },
       ],
     },
     {
-      id: "locating-elements",
+      id: "get-by-role",
       title: {
-        en: "Locating elements",
-        uk: "Пошук елементів",
+        en: "getByRole — the one to use by default",
+        uk: "getByRole — перший вибір за замовчуванням",
       },
       paragraphs: [
         {
-          en: "Playwright comes with multiple built-in locators. To make tests resilient, we recommend prioritizing user-facing attributes and explicit contracts such as [`method: Page.getByRole`].",
-          uk: "У Playwright є кілька вбудованих локаторів. Щоб тести були стійкими, радимо надавати перевагу атрибутам, які бачить користувач, і явним «контрактам», як-от [`method: Page.getByRole`].",
+          en: '`getByRole` matches elements by their ARIA role and accessible name. The role is either declared explicitly (`role="button"`) or inferred from the HTML tag — `<button>` is a `button`, `<a>` is a `link`, `<h1>` is a `heading`. The accessible name is what a screen reader would announce for that element.',
+          uk: '`getByRole` шукає елементи за ARIA роллю і доступною назвою. Роль або явно задана (`role="button"`) або виводиться з HTML тегу — `<button>` це `button`, `<a>` це `link`, `<h1>` це `heading`. Доступна назва — це те що screen reader оголосив би для цього елемента.',
         },
         {
-          en: "For example, consider the following DOM structure.",
-          uk: "Наприклад, розгляньте таку структуру DOM.",
-        },
-        {
-          en: 'Locate the element by its role of `button` with name "Sign in".',
-          uk: "Знайдіть елемент за роллю `button` з ім’ям «Sign in».",
-        },
-        {
-          en: "Every time a locator is used for an action, an up-to-date DOM element is located in the page. In the snippet\nbelow, the underlying DOM element will be located twice, once prior to every action. This means that if the\nDOM changes in between the calls due to re-render, the new element corresponding to the\nlocator will be used.",
-          uk: "Щоразу, коли локатор використовують для дії, на сторінці знаходять актуальний елемент DOM. У фрагменті\nнижче відповідний елемент DOM шукають двічі — перед кожною дією. Тобто якщо між викликами DOM зміниться\nчерез повторний рендер, буде використано новий елемент, який відповідає локатору.",
-        },
-        {
-          en: "Note that all methods that create a locator, such as [`method: Page.getByLabel`], are also available on the [Locator] and [FrameLocator] classes, so you can chain them and iteratively narrow down your locator.",
-          uk: "Усі методи, що створюють локатор (наприклад [`method: Page.getByLabel`]), доступні також у класах [Locator] та [FrameLocator], тож їх можна ланцюгувати й поступово звужувати локатор.",
-        },
-        {
-          en: "### Locate by role",
-          uk: "### Пошук за роллю",
-        },
-        {
-          en: "The [`method: Page.getByRole`] locator reflects how users and assistive technology perceive the page, for example whether some element is a button or a checkbox. When locating by role, you should usually pass the accessible name as well, so that the locator pinpoints the exact element.",
-          uk: "Локатор [`method: Page.getByRole`] відображає, як сторінку сприймають користувачі та допоміжні технології — наприклад, чи елемент є кнопкою чи прапорцем. Зазвичай варто також передати доступну назву, щоб локатор однозначно вказував на потрібний елемент.",
-        },
-        {
-          en: "For example, consider the following DOM structure.",
-          uk: "Наприклад, розгляньте таку структуру DOM.",
-        },
-        {
-          en: "You can locate each element by its implicit role:",
-          uk: "Кожен елемент можна знайти за його неявною роллю:",
-        },
-        {
-          en: "Role locators include [buttons, checkboxes, headings, links, lists, tables, and many more](https://www.w3.org/TR/html-aria/#docconformance) and follow W3C specifications for [ARIA role](https://www.w3.org/TR/wai-aria-1.2/#roles), [ARIA attributes](https://www.w3.org/TR/wai-aria-1.2/#aria-attributes) and [accessible name](https://w3c.github.io/accname/#dfn-accessible-name). Note that many html elements like `` have an [implicitly defined role](https://w3c.github.io/html-aam/#html-element-role-mappings) that is recognized by the role locator.",
-          uk: "Рольові локатори охоплюють [кнопки, прапорці, заголовки, посилання, списки, таблиці та багато іншого](https://www.w3.org/TR/html-aria/#docconformance) і відповідають специфікаціям W3C для [ролі ARIA](https://www.w3.org/TR/wai-aria-1.2/#roles), [атрибутів ARIA](https://www.w3.org/TR/wai-aria-1.2/#aria-attributes) та [доступної назви](https://w3c.github.io/accname/#dfn-accessible-name). Зверніть увагу: багато HTML-елементів на кшталт `` мають [неявно визначену ролю](https://w3c.github.io/html-aam/#html-element-role-mappings), яку розпізнає рольовий локатор.",
-        },
-        {
-          en: "Note that role locators **do not replace** accessibility audits and conformance tests, but rather give early feedback about the ARIA guidelines.",
-          uk: "Рольові локатори **не замінюють** аудит доступності й тести відповідності, але дають ранній зворотний зв’язок щодо рекомендацій ARIA.",
-        },
-        {
-          en: "### Locate by label",
-          uk: "### Пошук за підписом (label)",
-        },
-        {
-          en: "Most form controls usually have dedicated labels that could be conveniently used to interact with the form. In this case, you can locate the control by its associated label using [`method: Page.getByLabel`].",
-          uk: "У більшості елементів форми є підписи, зручні для взаємодії. Тоді елемент можна знайти за пов’язаним підписом через [`method: Page.getByLabel`].",
-        },
-        {
-          en: "For example, consider the following DOM structure.",
-          uk: "Наприклад, розгляньте таку структуру DOM.",
-        },
-        {
-          en: "You can fill the input after locating it by the label text:",
-          uk: "Після пошуку за текстом підпису можна заповнити поле:",
-        },
-        {
-          en: "### Locate by placeholder",
-          uk: "### Пошук за плейсхолдером",
-        },
-        {
-          en: "Inputs may have a placeholder attribute to hint to the user what value should be entered. You can locate such an input using [`method: Page.getByPlaceholder`].",
-          uk: "У полів введення може бути атрибут placeholder як підказка щодо значення. Таке поле знаходять через [`method: Page.getByPlaceholder`].",
-        },
-        {
-          en: "For example, consider the following DOM structure.",
-          uk: "Наприклад, розгляньте таку структуру DOM.",
-        },
-        {
-          en: "You can fill the input after locating it by the placeholder text:",
-          uk: "Після пошуку за текстом плейсхолдера можна заповнити поле:",
-        },
-        {
-          en: "### Locate by text",
-          uk: "### Пошук за текстом",
-        },
-        {
-          en: "Find an element by the text it contains. You can match by a substring, exact string, or a regular expression when using [`method: Page.getByText`].",
-          uk: "Знайдіть елемент за текстом, який він містить. За допомогою [`method: Page.getByText`] можна збігати підрядок, точний рядок або регулярний вираз.",
-        },
-        {
-          en: "For example, consider the following DOM structure.",
-          uk: "Наприклад, розгляньте таку структуру DOM.",
-        },
-        {
-          en: "You can locate the element by the text it contains:",
-          uk: "Елемент можна знайти за текстом усередині:",
-        },
-        {
-          en: "Set an exact match:",
-          uk: "Точний збіг:",
-        },
-        {
-          en: "Match with a regular expression:",
-          uk: "Збіг за регулярним виразом:",
-        },
-        {
-          en: "You can also [filter by text](#filter-by-text) which can be useful when trying to find a particular item in a list.",
-          uk: "Також можна [фільтрувати за текстом](#filter-by-text) — зручно, коли потрібен конкретний елемент у списку.",
-        },
-        {
-          en: "### Locate by alt text",
-          uk: "### Пошук за alt-текстом",
-        },
-        {
-          en: "All images should have an `alt` attribute that describes the image. You can locate an image based on the text alternative using [`method: Page.getByAltText`].",
-          uk: "У зображень має бути атрибут `alt` з описом. Зображення знаходять за текстовою альтернативою через [`method: Page.getByAltText`].",
-        },
-        {
-          en: "For example, consider the following DOM structure.",
-          uk: "Наприклад, розгляньте таку структуру DOM.",
-        },
-        {
-          en: "You can click on the image after locating it by the text alternative:",
-          uk: "Після пошуку за текстовою альтернативою можна клікнути по зображенню:",
-        },
-        {
-          en: "### Locate by title",
-          uk: "### Пошук за атрибутом title",
-        },
-        {
-          en: "Locate an element with a matching title attribute using [`method: Page.getByTitle`].",
-          uk: "Елемент із відповідним атрибутом title знаходять через [`method: Page.getByTitle`].",
-        },
-        {
-          en: "For example, consider the following DOM structure.",
-          uk: "Наприклад, розгляньте таку структуру DOM.",
-        },
-        {
-          en: "You can check the issues count after locating it by the title text:",
-          uk: "Після пошуку за текстом у title можна перевірити кількість issues:",
-        },
-        {
-          en: "### Locate by test id",
-          uk: "### Пошук за test id",
-        },
-        {
-          en: "Testing by test ids is the most resilient way of testing as even if your text or role of the attribute changes, the test will still pass. QA's and developers should define explicit test ids and query them with [`method: Page.getByTestId`]. However testing by test ids is not user facing. If the role or text value is important to you then consider using user facing locators such as [role](#locate-by-role) and [text locators](#locate-by-text).",
-          uk: "Тестування за test id найстійкіше: навіть якщо зміниться текст або роль атрибута, тест може залишитися валідним. QA й розробники мають задавати явні test id і шукати їх через [`method: Page.getByTestId`]. Водночас test id не відображаються користувачу. Якщо важливі роль або текст, краще використовувати «людино-орієнтовані» локатори — [за роллю](#locate-by-role) та [текстові](#locate-by-text).",
-        },
-        {
-          en: "For example, consider the following DOM structure.",
-          uk: "Наприклад, розгляньте таку структуру DOM.",
-        },
-        {
-          en: "You can locate the element by its test id:",
-          uk: "Елемент можна знайти за test id:",
-        },
-        {
-          en: "#### Set a custom test id attribute",
-          uk: "#### Власний атрибут для test id",
-        },
-        {
-          en: "By default, [`method: Page.getByTestId`] will locate elements based on the `data-testid` attribute, but you can configure it in your test config or by calling [`method: Selectors.setTestIdAttribute`].",
-          uk: "За замовчуванням [`method: Page.getByTestId`] шукає за атрибутом `data-testid`, але це можна змінити в конфігурації тестів або викликом [`method: Selectors.setTestIdAttribute`].",
-        },
-        {
-          en: "Set the test id to use a custom data attribute for your tests.",
-          uk: "Установіть test id на користувацький data-атрибут для тестів.",
-        },
-        {
-          en: "In your html you can now use `data-pw` as your test id instead of the default `data-testid`.",
-          uk: "У HTML тепер можна використовувати `data-pw` як test id замість стандартного `data-testid`.",
-        },
-        {
-          en: "And then locate the element as you would normally do:",
-          uk: "Далі знаходьте елемент як зазвичай:",
-        },
-        {
-          en: "### Locate by CSS or XPath",
-          uk: "### Пошук за CSS або XPath",
-        },
-        {
-          en: "If you absolutely must use CSS or XPath locators, you can use [`method: Page.locator`] to create a locator that takes a selector describing how to find an element in the page. Playwright supports CSS and XPath selectors, and auto-detects them if you omit `css=` or `xpath=` prefix.",
-          uk: "Якщо без CSS- чи XPath-локаторів ніяк, скористайтеся [`method: Page.locator`], щоб створити локатор із селектором, який описує пошук на сторінці. Playwright підтримує CSS і XPath і сам визначає тип, якщо не вказувати префікси `css=` чи `xpath=`.",
-        },
-        {
-          en: "XPath and CSS selectors can be tied to the DOM structure or implementation. These selectors can break when the DOM structure changes. Long CSS or XPath chains below are an example of a **bad practice** that leads to unstable tests:",
-          uk: "XPath і CSS часто прив’язані до структури DOM або реалізації й ламаються при її зміні. Довгі ланцюжки CSS або XPath нижче — приклад **поганої практики**, що веде до нестабільних тестів:",
+          en: "In practice: for any interactive element (button, link, checkbox, select, input with a label), `getByRole` is the answer. It tests the right thing — the semantics — not the implementation.",
+          uk: "На практиці: для будь-якого інтерактивного елемента (кнопка, посилання, чекбокс, select, input з підписом) — `getByRole` це відповідь. Воно тестує правильну річ — семантику — а не реалізацію.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-6",
-          language: "html",
-          code: "Sign in",
-        },
-        {
-          id: "cb-7",
-          language: "js",
-          code: "await page.getByRole('button', { name: 'Sign in' }).click();",
-        },
-        {
-          id: "cb-12",
-          language: "js",
-          code: "const locator = page.getByRole('button', { name: 'Sign in' });\n\nawait locator.hover();\nawait locator.click();",
-        },
-        {
-          id: "cb-17",
-          language: "js",
-          code: "const locator = page\n    .frameLocator('#my-frame')\n    .getByRole('button', { name: 'Sign in' });\n\nawait locator.click();",
-        },
-        {
-          id: "cb-22",
-          language: "html",
-          code: "Sign up\n\n   Subscribe\n\nSubmit",
-        },
-        {
-          id: "cb-23",
-          language: "js",
-          code: "await expect(page.getByRole('heading', { name: 'Sign up' })).toBeVisible();\n\nawait page.getByRole('checkbox', { name: 'Subscribe' }).check();\n\nawait page.getByRole('button', { name: /submit/i }).click();",
-        },
-        {
-          id: "cb-28",
-          language: "html",
-          code: "Password",
-        },
-        {
-          id: "cb-29",
-          language: "js",
-          code: "await page.getByLabel('Password').fill('secret');",
-        },
-        {
-          id: "cb-34",
-          language: "html",
-          code: "",
-        },
-        {
-          id: "cb-35",
-          language: "js",
-          code: "await page\n    .getByPlaceholder('name@example.com')\n    .fill('playwright@microsoft.com');",
-        },
-        {
-          id: "cb-40",
-          language: "html",
-          code: "Welcome, John",
-        },
-        {
-          id: "cb-41",
-          language: "js",
-          code: "await expect(page.getByText('Welcome, John')).toBeVisible();",
-        },
-        {
-          id: "cb-46",
-          language: "js",
-          code: "await expect(page.getByText('Welcome, John', { exact: true })).toBeVisible();",
-        },
-        {
-          id: "cb-51",
-          language: "js",
-          code: "await expect(page.getByText(/welcome, [A-Za-z]+$/i)).toBeVisible();",
-        },
-        {
-          id: "cb-56",
-          language: "html",
-          code: "",
-        },
-        {
-          id: "cb-57",
-          language: "js",
-          code: "await page.getByAltText('playwright logo').click();",
-        },
-        {
-          id: "cb-62",
-          language: "html",
-          code: "25 issues",
-        },
-        {
-          id: "cb-63",
-          language: "js",
-          code: "await expect(page.getByTitle('Issues count')).toHaveText('25 issues');",
-        },
-        {
-          id: "cb-68",
-          language: "html",
-          code: "Itinéraire",
-        },
-        {
-          id: "cb-69",
-          language: "js",
-          code: "await page.getByTestId('directions').click();",
-        },
-        {
-          id: "cb-74",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    testIdAttribute: 'data-pw'\n  }\n});",
-        },
-        {
-          id: "cb-79",
-          language: "html",
-          code: "Itinéraire",
-        },
-        {
-          id: "cb-80",
-          language: "js",
-          code: "await page.getByTestId('directions').click();",
-        },
-        {
-          id: "cb-85",
-          language: "js",
-          code: "await page.locator('css=button').click();\nawait page.locator('xpath=//button').click();\n\nawait page.locator('button').click();\nawait page.locator('//button').click();",
-        },
-        {
-          id: "cb-90",
-          language: "js",
-          code: "await page.locator(\n    '#tsf > div:nth-child(2) > div.A8SBwf > div.RNNXgb > div > div.a4bIc > input'\n).click();\n\nawait page\n    .locator('//*[@id=\"tsf\"]/div[2]/div[1]/div[1]/div/div[2]/input')\n    .click();",
+          id: "role-examples",
+          language: "ts",
+          code: `test('order dashboard interactions', async ({ page }) => {
+  await page.goto('/dashboard')
+
+  // Кнопки
+  await page.getByRole('button', { name: 'Create order' }).click()
+  await page.getByRole('button', { name: /save/i }).click()
+
+  // Посилання
+  await page.getByRole('link', { name: 'Orders' }).click()
+
+  // Заголовки
+  await expect(page.getByRole('heading', { name: 'My Orders' })).toBeVisible()
+
+  // Таблиця
+  const table = page.getByRole('table')
+  await expect(table.getByRole('row')).toHaveCount(6) // 5 рядків + header
+
+  // Checkbox
+  await page.getByRole('checkbox', { name: 'Select all' }).check()
+
+  // Combobox (select)
+  await page.getByRole('combobox', { name: 'Status' }).selectOption('pending')
+})`,
         },
       ],
     },
     {
-      id: "locate-in-shadow-dom",
+      id: "get-by-label",
       title: {
-        en: "Locate in Shadow DOM",
-        uk: "Пошук у Shadow DOM",
+        en: "getByLabel — for form inputs",
+        uk: "getByLabel — для полів форм",
       },
       paragraphs: [
         {
-          en: "All locators in Playwright **by default** work with elements in Shadow DOM. The exceptions are:\n- Locating by XPath does not pierce shadow roots.\n- [Closed-mode shadow roots](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#parameters) are not supported.",
-          uk: "Усі локатори Playwright **за замовчуванням** працюють з елементами в Shadow DOM. Винятки:\n- пошук за XPath не проходить крізь shadow root;\n- [shadow root у закритому режимі](https://developer.mozilla.org/en-US/docs/Web/API/Element/attachShadow#parameters) не підтримується.",
-        },
-        {
-          en: "Consider the following example with a custom web component:",
-          uk: "Розгляньте приклад із власним веб-компонентом:",
-        },
-        {
-          en: "You can locate in the same way as if the shadow root was not present at all.",
-          uk: "Шукати можна так само, ніби shadow root взагалі немає.",
-        },
-        {
-          en: "To click `Details`:",
-          uk: "Щоб клікнути `Details`:",
-        },
-        {
-          en: "To click ``:",
-          uk: "Щоб клікнути ``:",
-        },
-        {
-          en: 'To ensure that `` contains the text "Details":',
-          uk: "Щоб переконатися, що `` містить текст «Details»:",
+          en: "For form fields with a `<label>` — use `getByLabel`. It works even when the label is linked via `htmlFor`/`id` rather than wrapping the input. This is what I use for login forms, order creation forms, settings pages.",
+          uk: "Для полів форми з `<label>` — використовуй `getByLabel`. Він знаходить поле за текстом підпису — незалежно від того, як підпис і поле пов'язані в HTML. Саме це я використовую для форм логіну, створення замовлень, сторінок налаштувань.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-95",
-          language: "html",
-          code: "\n  Title\n  #shadow-root\n    Details",
-        },
-        {
-          id: "cb-96",
-          language: "js",
-          code: "await page.getByText('Details').click();",
-        },
-        {
-          id: "cb-101",
-          language: "html",
-          code: "\n  Title\n  #shadow-root\n    Details",
-        },
-        {
-          id: "cb-102",
-          language: "js",
-          code: "await page.locator('x-details', { hasText: 'Details' }).click();",
-        },
-        {
-          id: "cb-107",
-          language: "html",
-          code: "\n  Title\n  #shadow-root\n    Details",
-        },
-        {
-          id: "cb-108",
-          language: "js",
-          code: "await expect(page.locator('x-details')).toContainText('Details');",
+          id: "label-examples",
+          language: "ts",
+          code: `test('login with valid credentials', async ({ page }) => {
+  await page.goto('/login')
+
+  await page.getByLabel('Email').fill('admin@example.com')
+  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!)
+  await page.getByRole('button', { name: 'Sign in' }).click()
+
+  await expect(page).toHaveURL('/dashboard')
+})
+
+test('create order form', async ({ page }) => {
+  await page.goto('/orders/new')
+
+  await page.getByLabel('Customer name').fill('Ivan Kozenko')
+  await page.getByLabel('Item').fill('Laptop')
+  await page.getByLabel('Quantity').fill('2')
+  await page.getByRole('button', { name: 'Submit' }).click()
+})`,
         },
       ],
     },
     {
-      id: "filtering-locators",
+      id: "get-by-placeholder",
       title: {
-        en: "Filtering Locators",
+        en: "getByPlaceholder — when there's no label",
+        uk: "getByPlaceholder — коли немає підпису",
+      },
+      paragraphs: [
+        {
+          en: "Some inputs have no visible label — they rely on placeholder text. `getByPlaceholder` finds them. Not ideal (missing labels are an accessibility problem), but if the app is built this way and you can't change it, this is the locator to use.",
+          uk: "Деякі поля не мають видимого підпису — вони покладаються на placeholder. `getByPlaceholder` їх знаходить. Не ідеально (відсутній підпис — проблема доступності), але якщо застосунок так побудований і ти не можеш змінити — це правильний локатор.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "placeholder-examples",
+          language: "ts",
+          code: `test('search orders', async ({ page }) => {
+  await page.goto('/orders')
+
+  // Поле пошуку без label але з placeholder
+  await page.getByPlaceholder('Search orders...').fill('keyboard')
+  await page.getByPlaceholder('Search orders...').press('Enter')
+
+  await expect(page.getByRole('row')).toHaveCount(3)
+})`,
+        },
+      ],
+    },
+    {
+      id: "get-by-text",
+      title: {
+        en: "getByText — for non-interactive content",
+        uk: "getByText — для неінтерактивного контенту",
+      },
+      paragraphs: [
+        {
+          en: "`getByText` is for content you want to assert on — paragraphs, status labels, table cells. I avoid using it to find clickable elements since roles are more stable. It supports exact match, substring, and regex.",
+          uk: "`getByText` — для контенту який треба перевірити: параграфи, статусні мітки, комірки таблиць. Я уникаю використання для кліку, бо ролі стабільніші. Підтримує точний збіг, підрядок і regex.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "text-examples",
+          language: "ts",
+          code: `test('order status is shown correctly', async ({ page }) => {
+  await page.goto('/orders')
+
+  // Перевірка тексту статусу
+  await expect(page.getByText('Order confirmed')).toBeVisible()
+
+  // Точний збіг
+  await expect(page.getByText('Pending', { exact: true })).toBeVisible()
+
+  // Regex — коли текст може трохи відрізнятися
+  await expect(page.getByText(/order #\d+ created/i)).toBeVisible()
+})`,
+        },
+      ],
+    },
+    {
+      id: "get-by-test-id",
+      title: {
+        en: "getByTestId — the escape hatch",
+        uk: "getByTestId — запасний варіант",
+      },
+      paragraphs: [
+        {
+          en: "`getByTestId` finds elements by `data-testid` attribute. I use it when an element has no semantic role, no label, and no stable text — for example, a custom chart component, a drag-and-drop card, or a canvas element. It requires developers to add `data-testid` attributes, which is a small coordination cost but creates stable, explicit test targets.",
+          uk: "`getByTestId` шукає за атрибутом `data-testid`. Я використовую коли елемент не має семантичної ролі, підпису чи стабільного тексту — наприклад кастомний графік, drag-and-drop картка або canvas. Вимагає щоб розробники додали атрибути `data-testid` — невелика координаційна вартість але створює стабільні явні цілі для тестів.",
+        },
+        {
+          en: "You can configure a custom attribute name instead of `data-testid` in the config:",
+          uk: "Можна налаштувати свою назву атрибута замість `data-testid` у конфізі:",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "testid-examples",
+          language: "ts",
+          code: `// HTML: <div data-testid="revenue-chart">...</div>
+test('revenue chart renders after data loads', async ({ page }) => {
+  await page.goto('/dashboard')
+  await expect(page.getByTestId('revenue-chart')).toBeVisible()
+})`,
+        },
+        {
+          id: "testid-config",
+          language: "ts",
+          code: `// playwright.config.ts — кастомний атрибут
+export default defineConfig({
+  use: {
+    testIdAttribute: 'data-qa', // замість data-testid
+  },
+})
+
+// HTML: <button data-qa="submit-order">Submit</button>
+// В тесті:
+await page.getByTestId('submit-order').click()`,
+        },
+      ],
+    },
+    {
+      id: "filtering",
+      title: {
+        en: "Filtering locators",
         uk: "Фільтрація локаторів",
       },
       paragraphs: [
         {
-          en: "Consider the following DOM structure where we want to click on the buy button of the second product card. We have a few options in order to filter the locators to get the right one.",
-          uk: "Нижче структура DOM, де потрібно клікнути кнопку купівлі на другій картці товару. Є кілька способів відфільтрувати локатори, щоб вибрати потрібний.",
-        },
-        {
-          en: "### Filter by text",
-          uk: "### Фільтр за текстом",
-        },
-        {
-          en: "Locators can be filtered by text with the [`method: Locator.filter`] method. It will search for a particular string somewhere inside the element, possibly in a descendant element, case-insensitively. You can also pass a regular expression.",
-          uk: "Локатори можна фільтрувати за текстом методом [`method: Locator.filter`]: шукає заданий рядок десь усередині елемента, зокрема в нащадку, без урахування регістра. Можна передати й регулярний вираз.",
-        },
-        {
-          en: "Use a regular expression:",
-          uk: "Регулярний вираз:",
-        },
-        {
-          en: "### Filter by not having text",
-          uk: "### Фільтр за відсутністю тексту",
-        },
-        {
-          en: "Alternatively, filter by **not having** text:",
-          uk: "Альтернативно — фільтр за **відсутністю** тексту:",
-        },
-        {
-          en: "### Filter by child/descendant",
-          uk: "### Фільтр за нащадком",
-        },
-        {
-          en: "Locators support an option to only select elements that have or have not a descendant matching another locator. You can therefore filter by any other locator such as a [`method: Locator.getByRole`], [`method: Locator.getByTestId`], [`method: Locator.getByText`] etc.",
-          uk: "Локатори підтримують опцію вибору лише елементів, у яких є або немає нащадка, що відповідає іншому локатору. Тож можна фільтрувати будь-яким іншим локатором — [`method: Locator.getByRole`], [`method: Locator.getByTestId`], [`method: Locator.getByText`] тощо.",
-        },
-        {
-          en: "We can also assert the product card to make sure there is only one:",
-          uk: "Можна також перевірити картку товару, щоб переконатися, що вона одна:",
-        },
-        {
-          en: "The filtering locator **must be relative** to the original locator and is queried starting with the original locator match, not the document root. Therefore, the following will not work, because the filtering locator starts matching from the `` list element that is outside of the `` list item matched by the original locator:",
-          uk: "Фільтрувальний локатор **має бути відносним** до вихідного: пошук починається зі збігу вихідного локатора, а не з кореня документа. Тому наведений нижче варіант не спрацює: фільтр починає збіг з елемента списку ``, який лежить поза елементом списку ``, знайденим вихідним локатором:",
-        },
-        {
-          en: "### Filter by not having child/descendant",
-          uk: "### Фільтр за відсутністю нащадка",
-        },
-        {
-          en: "We can also filter by **not having** a matching element inside.",
-          uk: "Також можна фільтрувати за **відсутністю** відповідного елемента всередині.",
-        },
-        {
-          en: "Note that the inner locator is matched starting from the outer one, not from the document root.",
-          uk: "Внутрішній локатор збігається від зовнішнього, а не від кореня документа.",
+          en: "When `getByRole('row')` returns 20 rows, you need to narrow down to the one you care about. `.filter()` lets you add conditions — by visible text or by another locator inside it. This is how I target specific rows in order tables without resorting to nth-child selectors.",
+          uk: "Коли `getByRole('row')` повертає 20 рядків — треба звузити до потрібного. `.filter()` дозволяє додати умови — за видимим текстом або за іншим локатором всередині. Саме так я знаходжу конкретні рядки в таблицях замовлень.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-113",
-          language: "html",
-          code: "\n  \n    Product 1\n    Add to cart\n  \n  \n    Product 2\n    Add to cart",
-        },
-        {
-          id: "cb-114",
-          language: "js",
-          code: "await page\n    .getByRole('listitem')\n    .filter({ hasText: 'Product 2' })\n    .getByRole('button', { name: 'Add to cart' })\n    .click();",
-        },
-        {
-          id: "cb-119",
-          language: "js",
-          code: "await page\n    .getByRole('listitem')\n    .filter({ hasText: /Product 2/ })\n    .getByRole('button', { name: 'Add to cart' })\n    .click();",
-        },
-        {
-          id: "cb-124",
-          language: "js",
-          code: "// 5 in-stock items\nawait expect(page.getByRole('listitem').filter({ hasNotText: 'Out of stock' })).toHaveCount(5);",
-        },
-        {
-          id: "cb-129",
-          language: "html",
-          code: "\n  \n    Product 1\n    Add to cart\n  \n  \n    Product 2\n    Add to cart",
-        },
-        {
-          id: "cb-130",
-          language: "js",
-          code: "await page\n    .getByRole('listitem')\n    .filter({ has: page.getByRole('heading', { name: 'Product 2' }) })\n    .getByRole('button', { name: 'Add to cart' })\n    .click();",
-        },
-        {
-          id: "cb-135",
-          language: "js",
-          code: "await expect(page\n    .getByRole('listitem')\n    .filter({ has: page.getByRole('heading', { name: 'Product 2' }) }))\n    .toHaveCount(1);",
-        },
-        {
-          id: "cb-140",
-          language: "js",
-          code: "// ✖ WRONG\nawait expect(page\n    .getByRole('listitem')\n    .filter({ has: page.getByRole('list').getByText('Product 2') }))\n    .toHaveCount(1);",
-        },
-        {
-          id: "cb-145",
-          language: "js",
-          code: "await expect(page\n    .getByRole('listitem')\n    .filter({ hasNot: page.getByText('Product 2') }))\n    .toHaveCount(1);",
+          id: "filter-examples",
+          language: "ts",
+          code: `test('cancel specific order from list', async ({ page }) => {
+  await page.goto('/orders')
+
+  // Знайти рядок що містить 'ORDER-042' і клікнути Cancel в ньому
+  const targetRow = page.getByRole('row').filter({ hasText: 'ORDER-042' })
+  await targetRow.getByRole('button', { name: 'Cancel' }).click()
+
+  await page.getByRole('button', { name: 'Confirm cancellation' }).click()
+  await expect(targetRow.getByText('Cancelled')).toBeVisible()
+})
+
+// Фільтр за вкладеним локатором
+const pendingRows = page.getByRole('row').filter({
+  has: page.getByRole('cell', { name: 'Pending' })
+})
+await expect(pendingRows).toHaveCount(3)`,
         },
       ],
     },
     {
-      id: "locator-operators",
+      id: "chaining",
       title: {
-        en: "Locator operators",
-        uk: "Оператори локаторів",
+        en: "Chaining and scoping",
+        uk: "Ланцюгування і scope",
       },
       paragraphs: [
         {
-          en: "### Matching inside a locator",
-          uk: "### Збіг всередині локатора",
-        },
-        {
-          en: "You can chain methods that create a locator, like [`method: Page.getByText`] or [`method: Locator.getByRole`], to narrow down the search to a particular part of the page.",
-          uk: "Можна ланцюгувати методи, що створюють локатор, наприклад [`method: Page.getByText`] або [`method: Locator.getByRole`], щоб звузити пошук до певної частини сторінки.",
-        },
-        {
-          en: 'In this example we first create a locator called product by locating its role of `listitem`. We then filter by text. We can use the product locator again to get by role of button and click it and then use an assertion to make sure there is only one product with the text "Product 2".',
-          uk: "Спочатку створюємо локатор product за роллю `listitem`, потім фільтруємо за текстом. Далі знову використовуємо product, щоб знайти кнопку й клікнути, і перевірити, що лише один товар з текстом «Product 2».",
-        },
-        {
-          en: 'You can also chain two locators together, for example to find a "Save" button inside a particular dialog:',
-          uk: "Можна поєднати два локатори, наприклад знайти кнопку «Save» всередині певного діалогу:",
-        },
-        {
-          en: "### Matching two locators simultaneously",
-          uk: "### Одночасний збіг двох локаторів",
-        },
-        {
-          en: "Method [`method: Locator.and`] narrows down an existing locator by matching an additional locator. For example, you can combine [`method: Page.getByRole`] and [`method: Page.getByTitle`] to match by both role and title.",
-          uk: "Метод [`method: Locator.and`] звужує наявний локатор додатковим збігом. Наприклад, можна поєднати [`method: Page.getByRole`] та [`method: Page.getByTitle`], щоб збігатися і за роллю, і за title.",
-        },
-        {
-          en: "### Matching one of the two alternative locators",
-          uk: "### Збіг з одного з двох альтернативних локаторів",
-        },
-        {
-          en: "If you'd like to target one of the two or more elements, and you don't know which one it will be, use [`method: Locator.or`] to create a locator that matches any one or both of the alternatives.",
-          uk: "Якщо потрібен один із двох чи більше елементів і невідомо який саме, використовуйте [`method: Locator.or`], щоб локатор збігався з будь-яким або з обома варіантами.",
-        },
-        {
-          en: 'For example, consider a scenario where you\'d like to click on a "New email" button, but sometimes a security settings dialog shows up instead. In this case, you can wait for either a "New email" button, or a dialog and act accordingly.',
-          uk: "Наприклад, потрібно клікнути «New email», але іноді з’являється діалог налаштувань безпеки. Тоді можна дочекатися або кнопки «New email», або діалогу й діяти відповідно.",
-        },
-        {
-          en: "### Matching only visible elements",
-          uk: "### Лише видимі елементи",
-        },
-        {
-          en: "Consider a page with two buttons, the first invisible and the second [visible](./actionability.md#visible).",
-          uk: "Сторінка з двома кнопками: перша невидима, друга [видима](./actionability.md#visible).",
-        },
-        {
-          en: "* This will find both buttons and throw a [strictness](./locators.md#strictness) violation error:",
-          uk: "* Це знайде обидві кнопки й викине помилку порушення [суворості](./locators.md#strictness):",
-        },
-        {
-          en: "* This will only find a second button, because it is visible, and then click it.",
-          uk: "* Це знайде лише другу кнопку, бо вона видима, і клікне по ній.",
+          en: "Locators can be chained — each call narrows the search to within the previous result. This is cleaner than long CSS selectors and more readable: `page.getByRole('dialog').getByRole('button', { name: 'Save' })` is self-documenting.",
+          uk: "Локатори можна ланцюгувати — кожен виклик звужує пошук всередині попереднього результату. Це чистіше ніж довгі CSS і читабельніше: `page.getByRole('dialog').getByRole('button', { name: 'Save' })` сам себе документує.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-150",
-          language: "js",
-          code: "const product = page.getByRole('listitem').filter({ hasText: 'Product 2' });\n\nawait product.getByRole('button', { name: 'Add to cart' }).click();\n\nawait expect(product).toHaveCount(1);",
-        },
-        {
-          id: "cb-155",
-          language: "js",
-          code: "const saveButton = page.getByRole('button', { name: 'Save' });\n// ...\nconst dialog = page.getByTestId('settings-dialog');\nawait dialog.locator(saveButton).click();",
-        },
-        {
-          id: "cb-160",
-          language: "js",
-          code: "const button = page.getByRole('button').and(page.getByTitle('Subscribe'));",
-        },
-        {
-          id: "cb-165",
-          language: "js",
-          code: "const newEmail = page.getByRole('button', { name: 'New' });\nconst dialog = page.getByText('Confirm security settings');\nawait expect(newEmail.or(dialog).first()).toBeVisible();\nif (await dialog.isVisible())\n  await page.getByRole('button', { name: 'Dismiss' }).click();\nawait newEmail.click();",
-        },
-        {
-          id: "cb-170",
-          language: "html",
-          code: "Invisible\nVisible",
-        },
-        {
-          id: "cb-171",
-          language: "js",
-          code: "  await page.locator('button').click();",
-        },
-        {
-          id: "cb-176",
-          language: "js",
-          code: "  await page.locator('button').filter({ visible: true }).click();",
+          id: "chain-examples",
+          language: "ts",
+          code: `test('edit order in modal', async ({ page }) => {
+  await page.goto('/orders')
+
+  // Клікнути Edit для конкретного замовлення
+  await page.getByRole('row').filter({ hasText: 'ORDER-007' })
+    .getByRole('button', { name: 'Edit' })
+    .click()
+
+  // Всі наступні пошуки — всередині dialog, не по всій сторінці
+  const modal = page.getByRole('dialog')
+  await modal.getByLabel('Status').selectOption('shipped')
+  await modal.getByRole('button', { name: 'Save changes' }).click()
+
+  await expect(modal).not.toBeVisible()
+})`,
         },
       ],
     },
     {
       id: "lists",
       title: {
-        en: "Lists",
-        uk: "Списки",
+        en: "Working with lists",
+        uk: "Робота зі списками",
       },
       paragraphs: [
         {
-          en: "### Count items in a list",
-          uk: "### Підрахунок елементів у списку",
-        },
-        {
-          en: "You can assert locators in order to count the items in a list.",
-          uk: "Можна перевіряти локатори, щоб порахувати елементи в списку.",
-        },
-        {
-          en: "For example, consider the following DOM structure:",
-          uk: "Наприклад, розгляньте таку структуру DOM:",
-        },
-        {
-          en: "Use the count assertion to ensure that the list has 3 items.",
-          uk: "Використайте перевірку кількості, щоб переконатися, що в списку 3 елементи.",
-        },
-        {
-          en: "### Assert all text in a list",
-          uk: "### Перевірка всього тексту в списку",
-        },
-        {
-          en: "You can assert locators in order to find all the text in a list.",
-          uk: "Можна перевіряти локатори, щоб отримати весь текст у списку.",
-        },
-        {
-          en: "For example, consider the following DOM structure:",
-          uk: "Наприклад, розгляньте таку структуру DOM:",
-        },
-        {
-          en: 'Use [`method: LocatorAssertions.toHaveText`] to ensure that the list has the text "apple", "banana" and "orange".',
-          uk: "За допомогою [`method: LocatorAssertions.toHaveText`] переконайтеся, що в списку тексти «apple», «banana» та «orange».",
-        },
-        {
-          en: "### Get a specific item",
-          uk: "### Отримати конкретний елемент",
-        },
-        {
-          en: "There are many ways to get a specific item in a list.\n#### Get by text",
-          uk: "Є багато способів вибрати конкретний елемент у списку.\n#### За текстом",
-        },
-        {
-          en: "Use the [`method: Page.getByText`] method to locate an element in a list by its text content and then click on it.",
-          uk: "Метод [`method: Page.getByText`] знаходить елемент у списку за текстом, після чого можна клікнути.",
-        },
-        {
-          en: "For example, consider the following DOM structure:",
-          uk: "Наприклад, розгляньте таку структуру DOM:",
-        },
-        {
-          en: "Locate an item by its text content and click it.",
-          uk: "Знайдіть елемент за текстом і клікніть.",
-        },
-        {
-          en: "#### Filter by text\nUse the [`method: Locator.filter`] to locate a specific item in a list.",
-          uk: "#### Фільтр за текстом\nВикористайте [`method: Locator.filter`], щоб знайти конкретний елемент у списку.",
-        },
-        {
-          en: "For example, consider the following DOM structure:",
-          uk: "Наприклад, розгляньте таку структуру DOM:",
-        },
-        {
-          en: 'Locate an item by the role of "listitem" and then filter by the text of "orange" and then click it.',
-          uk: "Знайдіть елемент за роллю «listitem», відфільтруйте за текстом «orange» і клікніть.",
-        },
-        {
-          en: "#### Get by test id",
-          uk: "#### За test id",
-        },
-        {
-          en: "Use the [`method: Page.getByTestId`] method to locate an element in a list. You may need to modify the html and add a test id if you don't already have a test id.",
-          uk: "Метод [`method: Page.getByTestId`] знаходить елемент у списку. Можливо, доведеться змінити HTML і додати test id, якщо його ще немає.",
-        },
-        {
-          en: "For example, consider the following DOM structure:",
-          uk: "Наприклад, розгляньте таку структуру DOM:",
-        },
-        {
-          en: 'Locate an item by its test id of "orange" and then click it.',
-          uk: "Знайдіть елемент за test id «orange» і клікніть.",
-        },
-        {
-          en: "#### Get by nth item",
-          uk: "#### За порядковим номером (nth)",
-        },
-        {
-          en: "If you have a list of identical elements, and the only way to distinguish between them is the order, you can choose a specific element from a list with [`method: Locator.first`], [`method: Locator.last`] or [`method: Locator.nth`].",
-          uk: "Якщо елементи однакові й розрізнити їх можна лише порядком, виберіть конкретний через [`method: Locator.first`], [`method: Locator.last`] або [`method: Locator.nth`].",
-        },
-        {
-          en: "However, use this method with caution. Often times, the page might change, and the locator will point to a completely different element from the one you expected. Instead, try to come up with a unique locator that will pass the [strictness criteria](#strictness).",
-          uk: "Використовуйте обережно: сторінка може змінитися, і локатор вкаже зовсім не на той елемент. Краще підібрати унікальний локатор, який задовольняє [критерії суворості](#strictness).",
-        },
-        {
-          en: "### Chaining filters",
-          uk: "### Ланцюжок фільтрів",
-        },
-        {
-          en: "When you have elements with various similarities, you can use the [`method: Locator.filter`] method to select the right one. You can also chain multiple filters to narrow down the selection.",
-          uk: "Коли елементи частково схожі, [`method: Locator.filter`] допомагає вибрати потрібний. Можна ланцюгувати кілька фільтрів.",
-        },
-        {
-          en: "For example, consider the following DOM structure:",
-          uk: "Наприклад, розгляньте таку структуру DOM:",
-        },
-        {
-          en: 'To take a screenshot of the row with "Mary" and "Say goodbye":',
-          uk: "Щоб зробити скриншот рядка з «Mary» та «Say goodbye»:",
-        },
-        {
-          en: 'You should now have a "screenshot.png" file in your project\'s root directory.',
-          uk: "У корені проєкту має з’явитися файл «screenshot.png».",
-        },
-        {
-          en: "### Rare use cases",
-          uk: "### Рідкі сценарії",
-        },
-        {
-          en: "#### Do something with each element in the list",
-          uk: "#### Дія з кожним елементом списку",
-        },
-        {
-          en: "Iterate elements:",
-          uk: "Ітерація по елементах:",
-        },
-        {
-          en: "Iterate using regular for loop:",
-          uk: "Ітерація звичайним циклом for:",
-        },
-        {
-          en: "#### Evaluate in the page",
-          uk: "#### Обчислення в контексті сторінки",
-        },
-        {
-          en: "The code inside [`method: Locator.evaluateAll`] runs in the page, you can call any DOM apis there.",
-          uk: "Код у [`method: Locator.evaluateAll`] виконується в сторінці; там можна викликати будь-які DOM API.",
+          en: "When you have a list of similar items — an order list, a product grid, a notification stack — you often need to assert on the count, check all items, or find one specific item. `all()` returns the current elements as an array, `nth()` picks by index.",
+          uk: "Коли є список схожих елементів — список замовлень, сітка продуктів, стек сповіщень — часто треба перевірити кількість, обійти всі елементи або знайти конкретний. `all()` повертає поточні елементи масивом, `nth()` вибирає за індексом.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-181",
-          language: "html",
-          code: "\n  apple\n  banana\n  orange",
-        },
-        {
-          id: "cb-182",
-          language: "js",
-          code: "await expect(page.getByRole('listitem')).toHaveCount(3);",
-        },
-        {
-          id: "cb-187",
-          language: "html",
-          code: "\n  apple\n  banana\n  orange",
-        },
-        {
-          id: "cb-188",
-          language: "js",
-          code: "await expect(page\n    .getByRole('listitem'))\n    .toHaveText(['apple', 'banana', 'orange']);",
-        },
-        {
-          id: "cb-193",
-          language: "html",
-          code: "\n  apple\n  banana\n  orange",
-        },
-        {
-          id: "cb-194",
-          language: "js",
-          code: "await page.getByText('orange').click();",
-        },
-        {
-          id: "cb-199",
-          language: "html",
-          code: "\n  apple\n  banana\n  orange",
-        },
-        {
-          id: "cb-200",
-          language: "js",
-          code: "await page\n    .getByRole('listitem')\n    .filter({ hasText: 'orange' })\n    .click();",
-        },
-        {
-          id: "cb-205",
-          language: "html",
-          code: "\n  apple\n  banana\n  orange",
-        },
-        {
-          id: "cb-206",
-          language: "js",
-          code: "await page.getByTestId('orange').click();",
-        },
-        {
-          id: "cb-211",
-          language: "js",
-          code: "const banana = await page.getByRole('listitem').nth(1);",
-        },
-        {
-          id: "cb-216",
-          language: "html",
-          code: "\n  \n    John\n    Say hello\n  \n  \n    Mary\n    Say hello\n  \n  \n    John\n    Say goodbye\n  \n  \n    Mary\n    Say goodbye",
-        },
-        {
-          id: "cb-217",
-          language: "js",
-          code: "const rowLocator = page.getByRole('listitem');\n\nawait rowLocator\n    .filter({ hasText: 'Mary' })\n    .filter({ has: page.getByRole('button', { name: 'Say goodbye' }) })\n    .screenshot({ path: 'screenshot.png' });",
-        },
-        {
-          id: "cb-222",
-          language: "js",
-          code: "for (const row of await page.getByRole('listitem').all())\n  console.log(await row.textContent());",
-        },
-        {
-          id: "cb-227",
-          language: "js",
-          code: "const rows = page.getByRole('listitem');\nconst count = await rows.count();\nfor (let i = 0; i < count; ++i)\n  console.log(await rows.nth(i).textContent());",
-        },
-        {
-          id: "cb-232",
-          language: "js",
-          code: "const rows = page.getByRole('listitem');\nconst texts = await rows.evaluateAll(\n    list => list.map(element => element.textContent));",
+          id: "list-examples",
+          language: "ts",
+          code: `test('order list has correct items', async ({ page }) => {
+  await page.goto('/orders')
+
+  const rows = page.getByRole('row').filter({ hasNot: page.getByRole('columnheader') })
+
+  // Перевірити кількість
+  await expect(rows).toHaveCount(5)
+
+  // Перший рядок — найновіше замовлення
+  await expect(rows.nth(0)).toContainText('ORDER-042')
+
+  // Обійти всі рядки
+  for (const row of await rows.all()) {
+    await expect(row.getByRole('cell', { name: /ORDER-\d+/ })).toBeVisible()
+  }
+})
+
+// last() — останній елемент
+await expect(page.getByRole('listitem').last()).toContainText('No more items')`,
         },
       ],
     },
     {
       id: "strictness",
       title: {
-        en: "Strictness",
-        uk: "Суворість",
+        en: "Strict mode — one match expected",
+        uk: "Строгий режим — очікується один збіг",
       },
       paragraphs: [
         {
-          en: "Locators are strict. This means that all operations on locators that imply\nsome target DOM element will throw an exception if more than one element matches. For example, the following call throws if there are several buttons in the DOM:",
-          uk: "Локатори суворі: усі операції, що передбачають один цільовий елемент DOM,\nвикинуть виняток, якщо збігається більше одного елемента. Наприклад, наведений виклик падає, якщо у DOM кілька кнопок:",
-        },
-        {
-          en: "#### Throws an error if more than one",
-          uk: "#### Помилка, якщо більше одного",
-        },
-        {
-          en: "On the other hand, Playwright understands when you perform a multiple-element operation,\nso the following call works perfectly fine when the locator resolves to multiple elements.",
-          uk: "Натомість Playwright розуміє операції над кількома елементами,\nтож такий виклик коректний, коли локатор збігається з кількома елементами.",
-        },
-        {
-          en: "#### Works fine with multiple elements",
-          uk: "#### Коректно з кількома елементами",
-        },
-        {
-          en: "You can explicitly opt-out from strictness check by telling Playwright which element to use when multiple elements match, through [`method: Locator.first`], [`method: Locator.last`], and [`method: Locator.nth`]. These methods are **not recommended** because when your page changes, Playwright may click on an element you did not intend. Instead, follow best practices above to create a locator that uniquely identifies the target element.",
-          uk: "Можна явно вимкнути суворість, вказавши, який елемент брати при кількох збігах, через [`method: Locator.first`], [`method: Locator.last`] та [`method: Locator.nth`]. Ці методи **не рекомендуються**: після зміни сторінки Playwright може клікнути не туди. Краще дотримуйтеся практик вище й створіть локатор, що однозначно визначає ціль.",
+          en: "By default, if a locator matches more than one element, calling an action on it throws — Playwright wants you to be precise. This prevents accidental clicks on the wrong element when there are multiple matches. If you intentionally want multiple elements, use `all()` or `count()`.",
+          uk: "За замовчуванням якщо локатор збігається з більш ніж одним елементом — виклик дії кидає помилку. Playwright вимагає точності. Це запобігає випадковому кліку не на той елемент коли є кілька збігів. Якщо навмисно хочеш кілька елементів — використовуй `all()` або `count()`.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-237",
-          language: "js",
-          code: "await page.getByRole('button').click();",
-        },
-        {
-          id: "cb-242",
-          language: "js",
-          code: "await page.getByRole('button').count();",
-        },
-      ],
-    },
-    {
-      id: "more-locators",
-      title: {
-        en: "More Locators",
-        uk: "Більше про локатори",
-      },
-      paragraphs: [
-        {
-          en: "For less commonly used locators, look at the [other locators](./other-locators.md) guide.",
-          uk: "Рідкіші локатори описані в [посібнику «Інші локатори»](./other-locators.md).",
+          id: "strict-examples",
+          language: "ts",
+          code: `// ❌ Кидає: strict mode violation: getByRole('button') resolved to 8 elements
+await page.getByRole('button').click()
+
+// ✅ Уточни яку кнопку
+await page.getByRole('button', { name: 'Submit order' }).click()
+
+// ✅ Або звузь scope
+await page.getByRole('form', { name: 'Create order' })
+  .getByRole('button', { name: 'Submit' }).click()
+
+// ✅ Або візьми конкретний за індексом (якщо порядок важливий)
+await page.getByRole('button', { name: 'Delete' }).nth(2).click()
+
+// Перевірити кількість без strict mode violation
+await expect(page.getByRole('button', { name: 'Delete' })).toHaveCount(5)`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "A developer renames the CSS class on a Submit button from .btn-submit to .btn-primary. Which locator will NOT break?",
+        uk: "Розробник перейменовує CSS клас кнопки Submit з .btn-submit на .btn-primary. Який локатор НЕ зламається?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "page.locator('.btn-submit')",
+            uk: "page.locator('.btn-submit')",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "page.getByRole('button', { name: 'Submit' })",
+            uk: "page.getByRole('button', { name: 'Submit' })",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "page.locator('button.btn-primary')",
+            uk: "page.locator('button.btn-primary')",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`getByRole` matches on the button's accessible name, not CSS classes. Class renames don't affect it. The CSS selectors in A and C both depend on the class name and would break as soon as it changes.",
+        uk: "`getByRole` збігається за доступною назвою кнопки, а не CSS класами. Перейменування класу на нього не впливає. CSS селектори в A і C залежать від назви класу і зламаються одразу після зміни.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "You have a table with 20 order rows. You want to click the 'Cancel' button only in the row that contains 'ORDER-042'. What do you use?",
+        uk: "У тебе таблиця з 20 рядками замовлень. Хочеш клікнути кнопку 'Cancel' лише в рядку що містить 'ORDER-042'. Що використовуєш?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "page.getByText('Cancel').nth(5).click() — count the row manually",
+            uk: "page.getByText('Cancel').nth(5).click() — порахувати рядок вручну",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "page.getByRole('row').filter({ hasText: 'ORDER-042' }).getByRole('button', { name: 'Cancel' }).click()",
+            uk: "page.getByRole('row').filter({ hasText: 'ORDER-042' }).getByRole('button', { name: 'Cancel' }).click()",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "page.locator('tr:has-text(\"ORDER-042\") button.cancel').click()",
+            uk: "page.locator('tr:has-text(\"ORDER-042\") button.cancel').click()",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Chaining `.filter({ hasText: 'ORDER-042' })` scopes the locator to the right row, then `.getByRole('button', { name: 'Cancel' })` finds the button within that row. This is readable and doesn't depend on row order or CSS classes. `nth()` is fragile when data changes; the CSS locator depends on class names.",
+        uk: "Ланцюгування `.filter({ hasText: 'ORDER-042' })` звужує локатор до потрібного рядка, потім `.getByRole('button', { name: 'Cancel' })` знаходить кнопку в ньому. Читабельно і не залежить від порядку рядків або CSS класів. `nth()` крихкий при зміні даних; CSS локатор залежить від класів.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "Playwright throws 'strict mode violation: locator resolved to 5 elements' when you call .click(). What does this mean?",
+        uk: "Playwright кидає 'strict mode violation: locator resolved to 5 elements' при виклику .click(). Що це означає?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The page has a JavaScript error that prevents clicking",
+            uk: "На сторінці є JavaScript помилка що заважає кліку",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "The locator matches 5 elements — Playwright refuses to click an ambiguous target",
+            uk: "Локатор збігається з 5 елементами — Playwright відмовляється клікати неоднозначну ціль",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The click timed out after 5 retries",
+            uk: "Клік завершився по таймауту після 5 спроб",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Playwright's strict mode requires a locator to match exactly one element before performing an action. When 5 elements match, it refuses to guess which one you meant. Fix: add a name filter, chain with a parent scope, or use .nth() if the position is meaningful.",
+        uk: "Строгий режим Playwright вимагає щоб локатор збігався рівно з одним елементом перед виконанням дії. Коли збігається 5 елементів — він відмовляється здогадуватися який ти мав на увазі. Виправлення: додай фільтр за назвою, ланцюгуй з батьківським scope, або використай .nth() якщо позиція важлива.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "An element has no accessible role, no label, and no stable visible text. When is `getByTestId` the right choice?",
+        uk: "Елемент не має доступної ролі, підпису і стабільного видимого тексту. Коли `getByTestId` є правильним вибором?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Always — `getByTestId` is the most reliable locator for every element type.",
+            uk: "Завжди — `getByTestId` є найнадійнішим локатором для будь-якого типу елемента.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Never — test IDs couple tests to implementation details.",
+            uk: "Ніколи — test ID прив'язують тести до деталей реалізації.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "When the element genuinely has no semantic role or accessible name — for example a custom chart, canvas, or drag-and-drop card — and developers add a `data-testid` attribute as an explicit test hook.",
+            uk: "Коли елемент справді не має семантичної ролі або доступної назви — наприклад кастомний графік, canvas або drag-and-drop картка — і розробники додають атрибут `data-testid` як явний хук для тестів.",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Only in `test.beforeEach` setup steps, not in assertions.",
+            uk: "Лише в кроках налаштування `test.beforeEach`, не в ассерціях.",
+          },
+        },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "`getByTestId` is the last semantic resort before CSS/XPath. It is appropriate when an element has no meaningful ARIA role, label or stable text — think custom chart widgets, canvas elements or drag handles. It requires a `data-testid` attribute on the element, which is a small coordination cost with developers but produces a stable, explicit test anchor.",
+        uk: "`getByTestId` — це останній семантичний варіант перед CSS/XPath. Він підходить коли елемент не має значущої ARIA ролі, підпису або стабільного тексту — наприклад кастомні графіки, canvas-елементи або drag handles. Потрібен атрибут `data-testid` на елементі — невелика координаційна вартість з розробниками але дає стабільний явний якір для тестів.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "What does `page.getByRole('listitem').nth(2)` return?",
+        uk: "Що повертає `page.getByRole('listitem').nth(2)`?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The last list item on the page.",
+            uk: "Останній елемент списку на сторінці.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "A locator scoped to the third list item (index 2, zero-based).",
+            uk: "Локатор обмежений третім елементом списку (індекс 2, починаючи з нуля).",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The second list item (index 2, one-based).",
+            uk: "Другий елемент списку (індекс 2, починаючи з одиниці).",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "It throws because `nth()` is only valid on `locator()` calls, not `getByRole()`.",
+            uk: "Кидає помилку бо `nth()` валідний лише для викликів `locator()`, а не `getByRole()`.",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`nth()` is zero-indexed: `nth(0)` is the first match, `nth(1)` is the second, `nth(2)` is the third. It works on any locator — including all `getBy*` methods — and returns a new locator scoped to that specific element. Use it when position is semantically meaningful (e.g. the most recent item in a sorted list).",
+        uk: "`nth()` використовує індексацію з нуля: `nth(0)` — перший збіг, `nth(1)` — другий, `nth(2)` — третій. Він працює з будь-яким локатором — включаючи всі методи `getBy*` — і повертає новий локатор обмежений цим конкретним елементом. Використовуй коли позиція семантично важлива (наприклад найновіший елемент у відсортованому списку).",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "When is `getByAltText` the appropriate locator?",
+        uk: "Коли `getByAltText` є відповідним локатором?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "When you want to find any element with a visible text label.",
+            uk: "Коли хочеш знайти будь-який елемент з видимим текстовим підписом.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "When finding an `<img>` element (or similar) by its `alt` attribute — useful for image-based buttons or icons that have no visible text.",
+            uk: "При пошуку елемента `<img>` (або подібного) за атрибутом `alt` — корисно для кнопок або іконок на основі зображень що не мають видимого тексту.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "For tooltip text that appears on hover.",
+            uk: "Для тексту підказки що з'являється при наведенні.",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Only for `<area>` elements inside image maps.",
+            uk: "Лише для елементів `<area>` всередині image map.",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`getByAltText` finds elements — typically `<img>` tags — by their `alt` attribute value. This is the right locator when an image itself is the interactive element or when you want to assert an image is present by its descriptive alt text. It is not for visible text labels (use `getByText`) or tooltips.",
+        uk: "`getByAltText` знаходить елементи — зазвичай теги `<img>` — за значенням атрибута `alt`. Це правильний локатор коли саме зображення є інтерактивним елементом або коли хочеш перевірити наявність зображення за його описовим alt-текстом. Не для видимих текстових підписів (використовуй `getByText`) або підказок.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "You want to find the 'Edit' button only inside a specific row of a table. How should you write this?",
+        uk: "Хочеш знайти кнопку 'Edit' лише всередині конкретного рядка таблиці. Як це написати?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "page.getByRole('button', { name: 'Edit' }) — Playwright automatically picks the right one.",
+            uk: "page.getByRole('button', { name: 'Edit' }) — Playwright автоматично вибере правильну.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "page.locator('tr button:text(\"Edit\")') — CSS with text pseudo-class narrows it down.",
+            uk: "page.locator('tr button:text(\"Edit\")') — CSS з псевдокласом text звузить вибір.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "page.getByRole('row').filter({ hasText: 'ORDER-007' }).getByRole('button', { name: 'Edit' })",
+            uk: "page.getByRole('row').filter({ hasText: 'ORDER-007' }).getByRole('button', { name: 'Edit' })",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "page.getByRole('button', { name: 'Edit', within: 'tr' })",
+            uk: "page.getByRole('button', { name: 'Edit', within: 'tr' })",
+          },
+        },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "Chaining locators is the idiomatic Playwright approach: first filter rows to the one you care about using `.filter({ hasText: '...' })`, then call `.getByRole('button', { name: 'Edit' })` on that scoped locator. Option A breaks on strict mode if multiple Edit buttons exist. Option B uses CSS which is fragile. Option D uses a non-existent `within` option.",
+        uk: "Ланцюгування локаторів — це ідіоматичний підхід Playwright: спочатку відфільтруй рядки до потрібного через `.filter({ hasText: '...' })`, потім виклич `.getByRole('button', { name: 'Edit' })` на цьому обмеженому локаторі. Варіант А падає зі strict mode якщо існує кілька кнопок Edit. Варіант Б використовує CSS що є крихким. Варіант Г використовує неіснуючу опцію `within`.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "If you call `.click()` on a locator that matches 3 elements, what happens?",
+        uk: "Якщо викликати `.click()` на локаторі що збігається з 3 елементами, що станеться?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Playwright clicks all 3 elements in sequence.",
+            uk: "Playwright клікає всі 3 елементи по черзі.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Playwright clicks the first matching element automatically.",
+            uk: "Playwright автоматично клікає перший відповідний елемент.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Playwright throws a strict mode violation error because the locator is ambiguous.",
+            uk: "Playwright кидає помилку strict mode violation бо локатор неоднозначний.",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The click is silently skipped and the test continues.",
+            uk: "Клік мовчки пропускається і тест продовжується.",
+          },
+        },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "Playwright enforces strict mode for action methods: when a locator resolves to more than one element, calling `.click()`, `.fill()`, or any other action throws a 'strict mode violation' error. This is intentional — Playwright refuses to guess which element you meant. To fix it, narrow the locator using a name filter, scope chain, or `.nth()` if the index is stable.",
+        uk: "Playwright застосовує strict mode для методів дій: коли локатор збігається більш ніж з одним елементом, виклик `.click()`, `.fill()` або будь-якої іншої дії кидає помилку 'strict mode violation'. Це навмисно — Playwright відмовляється здогадуватися який елемент ти мав на увазі. Щоб виправити — звузь локатор фільтром за назвою, ланцюгом scope або `.nth()` якщо індекс стабільний.",
+      },
+    },
+  ],
 }

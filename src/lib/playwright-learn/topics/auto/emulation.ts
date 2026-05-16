@@ -13,230 +13,192 @@ export const emulationTopic: PlaywrightTopic = {
     uk: "Емуляція",
   },
   summary: {
-    en: 'With Playwright you can test your app on any browser as well as emulate a real device such as a mobile phone or tablet. Simply configure the devices you would like to emulate and Playwright will simulate the browser behavior such as `"userAgent"`, `"screenSize"`, `"viewport"` and if it `"hasTouch"` enabled. You can also emulate the `"geolocation"`, `"locale"` and `"timezone"` for all tests or for a specific test a…',
-    uk: 'За допомогою Playwright можна тестувати застосунок у будь-якому браузері та емулювати справжній пристрій (телефон, планшет). Налаштуйте потрібні пристрої — Playwright імітує поведінку браузера: `"userAgent"`, `"screenSize"`, `"viewport"` і чи ввімкнено `"hasTouch"`. Також можна емулювати `"geolocation"`, `"locale"` та `"timezone"` для всіх тестів або для окремого тесту…',
+    en: "When a client shows you a bug that only happens on mobile — this is how you reproduce it without picking up a phone. Playwright can fake any device, locale, timezone, geolocation, or color scheme.",
+    uk: "Коли клієнт показує баг що виникає лише на мобільному — ось як його відтворити без телефону. Playwright може підмінити будь-який пристрій, локаль, часовий пояс, геолокацію або кольорову схему.",
   },
   sections: [
     {
-      id: "introduction",
-      title: {
-        en: "Introduction",
-        uk: "Вступ",
-      },
-      paragraphs: [
-        {
-          en: 'With Playwright you can test your app on any browser as well as emulate a real device such as a mobile phone or tablet. Simply configure the devices you would like to emulate and Playwright will simulate the browser behavior such as `"userAgent"`, `"screenSize"`, `"viewport"` and if it `"hasTouch"` enabled. You can also emulate the `"geolocation"`, `"locale"` and `"timezone"` for all tests or for a specific test as well as set the `"permissions"` to show notifications or change the `"colorScheme"`.',
-          uk: 'За допомогою Playwright можна тестувати застосунок у будь-якому браузері та емулювати справжній пристрій (телефон, планшет). Налаштуйте потрібні пристрої — Playwright імітує поведінку браузера: `"userAgent"`, `"screenSize"`, `"viewport"` і чи ввімкнено `"hasTouch"`. Також можна емулювати `"geolocation"`, `"locale"` та `"timezone"` для всіх тестів або для окремого тесту, задати `"permissions"` для сповіщень або змінити `"colorScheme"`.',
-        },
-      ],
-    },
-    {
       id: "devices",
       title: {
-        en: "Devices",
-        uk: "Пристрої",
+        en: "Device profiles",
+        uk: "Профілі пристроїв",
+      },
+      diagram: {
+        mermaid: `flowchart LR
+  C[playwright.config.ts] --> D[devices\\n'iPhone 13']
+  D --> UA[userAgent]
+  D --> VP[viewport\\n390×844]
+  D --> T[hasTouch: true]
+  D --> M[isMobile: true]`,
+        caption: {
+          en: "One device profile sets all browser behavior at once",
+          uk: "Один профіль пристрою одразу задає всю поведінку браузера",
+        },
       },
       paragraphs: [
         {
-          en: "Playwright comes with a [registry of device parameters](https://github.com/microsoft/playwright/blob/main/packages/playwright-core/src/server/deviceDescriptorsSource.json) using [`property: Playwright.devices`] for selected desktop, tablet and mobile devices. It can be used to simulate browser behavior for a specific device such as user agent, screen size, viewport and if it has touch enabled. All tests will run with the specified device parameters.",
-          uk: "Playwright містить [реєстр параметрів пристроїв](https://github.com/microsoft/playwright/blob/main/packages/playwright-core/src/server/deviceDescriptorsSource.json) через [`property: Playwright.devices`] для обраних настільних, планшетних і мобільних профілів. Його використовують, щоб імітувати поведінку браузера для конкретного пристрою: user agent, розмір екрана, viewport і наявність дотику. Усі тести виконуються з заданими параметрами пристрою.",
+          en: "Playwright ships with a built-in registry of ~60 device profiles — iPhone models, Pixel phones, iPad variants, desktop browsers. Each profile sets `userAgent`, `viewport`, `deviceScaleFactor`, `hasTouch` and `isMobile` in one spread. I use this constantly when testing responsive layouts or touch interactions.",
+          uk: "Playwright постачається з вбудованим реєстром ~60 профілів пристроїв — моделі iPhone, Pixel, iPad, настільні браузери. Кожен профіль задає `userAgent`, `viewport`, `deviceScaleFactor`, `hasTouch` і `isMobile` одним spread-оператором. Я використовую це постійно для тестування адаптивних layout і touch-взаємодій.",
         },
         {
-          en: '**Note**: Pre-configured devices assume a specific platform. For example, "Desktop Chrome" will provide a Windows-specific user agent string.',
-          uk: "**Примітка**: попередньо налаштовані пристрої припускають певну платформу. Наприклад, «Desktop Chrome» дає user agent, характерний для Windows.",
-        },
-        {
-          en: "If you would like to use the user agent specific to the platform that is running the tests, we recommend unsetting the user agent property.",
-          uk: "Якщо потрібен user agent платформи, на якій запускаються тести, краще скинути властивість user agent.",
+          en: "In `playwright.config.ts` you add a project per device. In the test file the page is already sized and touch-enabled — no extra setup.",
+          uk: "У `playwright.config.ts` додаєш проєкт для кожного пристрою. У файлі тесту сторінка вже правильного розміру з підтримкою touch — жодного додаткового налаштування.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
-          language: "js",
-          code: "\nexport default defineConfig({\n  projects: [\n    {\n      name: 'chromium',\n      use: {\n        ...devices['Desktop Chrome'],\n      },\n    },\n    {\n      name: 'Mobile Safari',\n      use: {\n        ...devices['iPhone 13'],\n      },\n    },\n  ],\n});",
-        },
-        {
-          id: "cb-2",
-          language: "js",
-          code: "const { chromium, devices } = require('playwright');\nconst browser = await chromium.launch();\n\nconst iphone13 = devices['iPhone 13'];\nconst context = await browser.newContext({\n  ...iphone13,\n});",
-        },
-        {
-          id: "cb-6",
-          language: "js",
-          code: "const context = await browser.newContext({\n  ...devices['Desktop Chrome'],\n  userAgent: undefined,\n});",
-        },
-      ],
+          id: "device-config",
+          language: "ts",
+          code: `// playwright.config.ts
+import { defineConfig, devices } from '@playwright/test'
+
+export default defineConfig({
+  projects: [
+    {
+      name: 'Desktop Chrome',
+      use: { ...devices['Desktop Chrome'] },
     },
     {
-      id: "devices",
-      title: {
-        en: "Devices",
-        uk: "Пристрої",
-      },
-      paragraphs: [
+      name: 'iPhone 13',
+      use: { ...devices['iPhone 13'] },
+    },
+    {
+      name: 'iPad Pro 11',
+      use: { ...devices['iPad Pro 11'] },
+    },
+  ],
+})`,
+        },
         {
-          en: "Playwright can emulate various devices by specifying `setDeviceScaleFactor`, `setHasTouch`, `setIsMobile`, `setScreenSize`, `setUserAgent` and `setViewportSize` options when creating a context with [`method: Browser.newContext`].",
-          uk: "Playwright може емулювати різні пристрої, задаючи опції `setDeviceScaleFactor`, `setHasTouch`, `setIsMobile`, `setScreenSize`, `setUserAgent` та `setViewportSize` під час створення контексту через [`method: Browser.newContext`].",
+          id: "device-test",
+          language: "ts",
+          code: `// Тест запускається з тими самими параметрами що в профілі
+test('mobile nav shows hamburger menu', async ({ page }) => {
+  await page.goto('/dashboard')
+  // При viewport iPhone 13 desktop nav прихований, hamburger видимий
+  await expect(page.getByRole('button', { name: 'Menu' })).toBeVisible()
+  await expect(page.getByRole('navigation')).not.toBeVisible()
+})`,
         },
       ],
     },
     {
       id: "viewport",
       title: {
-        en: "Viewport",
-        uk: "Область перегляду (viewport)",
+        en: "Override viewport per test",
+        uk: "Перевизначення viewport для окремого тесту",
       },
       paragraphs: [
         {
-          en: "The viewport is included in the device but you can override it for some tests with [`method: Page.setViewportSize`].",
-          uk: "Viewport входить до профілю пристрою, але для окремих тестів його можна перевизначити через [`method: Page.setViewportSize`].",
-        },
-        {
-          en: "Test file:",
-          uk: "Файл конфігурації тестів:",
-        },
-        {
-          en: "The same works inside a test file.",
-          uk: "Те саме працює всередині файлу з тестами.",
+          en: "The device profile sets a default viewport, but you can override it for a specific test or describe block. Useful when you need to test a specific breakpoint without creating a whole new project.",
+          uk: "Профіль пристрою задає viewport за замовчуванням, але його можна перевизначити для конкретного тесту або блоку describe. Зручно коли треба перевірити конкретний breakpoint без створення цілого нового проєкту.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-9",
-          language: "js",
-          code: "\nexport default defineConfig({\n  projects: [\n    {\n      name: 'chromium',\n      use: {\n        ...devices['Desktop Chrome'],\n        // It is important to define the `viewport` property after destructuring `devices`,\n        // since devices also define the `viewport` for that device.\n        viewport: { width: 1280, height: 720 },\n      },\n    },\n  ]\n});",
-        },
-        {
-          id: "cb-10",
-          language: "js",
-          code: "// Create context with given viewport\nconst context = await browser.newContext({\n  viewport: { width: 1280, height: 1024 }\n});",
-        },
-        {
-          id: "cb-11",
-          language: "js",
-          code: "\ntest.use({\n  viewport: { width: 1600, height: 1200 },\n});\n\ntest('my test', async ({ page }) => {\n  // ...\n});",
-        },
-        {
-          id: "cb-12",
-          language: "js",
-          code: "// Create context with given viewport\nconst context = await browser.newContext({\n  viewport: { width: 1280, height: 1024 }\n});\n\n// Resize viewport for individual page\nawait page.setViewportSize({ width: 1600, height: 1200 });\n\n// Emulate high-DPI\nconst context = await browser.newContext({\n  viewport: { width: 2560, height: 1440 },\n  deviceScaleFactor: 2,\n});",
-        },
-        {
-          id: "cb-13",
-          language: "js",
-          code: "\ntest.describe('specific viewport block', () => {\n  test.use({ viewport: { width: 1600, height: 1200 } });\n\n  test('my test', async ({ page }) => {\n    // ...\n  });\n});",
-        },
-        {
-          id: "cb-14",
-          language: "js",
-          code: "// Create context with given viewport\nconst context = await browser.newContext({\n  viewport: { width: 1600, height: 1200 }\n});\nconst page = await context.newPage();",
-        },
-      ],
-    },
-    {
-      id: "ismobile",
-      title: {
-        en: "isMobile",
-        uk: "isMobile",
-      },
-      paragraphs: [
-        {
-          en: "Whether the meta viewport tag is taken into account and touch events are enabled.",
-          uk: "Чи враховується тег meta viewport і чи ввімкнено події дотику.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-19",
-          language: "js",
-          code: "\nexport default defineConfig({\n  projects: [\n    {\n      name: 'chromium',\n      use: {\n        ...devices['Desktop Chrome'],\n        // It is important to define the `isMobile` property after destructuring `devices`,\n        // since devices also define the `isMobile` for that device.\n        isMobile: false,\n      },\n    },\n  ]\n});",
+          id: "viewport-test",
+          language: "ts",
+          code: `// Для всього файлу
+test.use({ viewport: { width: 1440, height: 900 } })
+
+// Або для конкретного describe
+test.describe('tablet layout', () => {
+  test.use({ viewport: { width: 768, height: 1024 } })
+
+  test('sidebar collapses at tablet width', async ({ page }) => {
+    await page.goto('/dashboard')
+    await expect(page.getByRole('complementary')).toHaveAttribute('data-collapsed', 'true')
+  })
+})
+
+// Або прямо в тесті
+test('wide screen shows split view', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 })
+  await page.goto('/orders')
+  await expect(page.getByTestId('split-view')).toBeVisible()
+})`,
         },
       ],
     },
     {
       id: "locale-timezone",
       title: {
-        en: "Locale & Timezone",
-        uk: "Мова та часовий пояс",
+        en: "Locale and timezone",
+        uk: "Локаль і часовий пояс",
       },
       paragraphs: [
         {
-          en: "Emulate the browser Locale and Timezone which can be set globally for all tests in the config and then overridden for particular tests.",
-          uk: "Емулюйте мову (locale) і часовий пояс браузера: глобально для всіх тестів у конфігурації або окремо для певних тестів.",
+          en: "Date formatting, number separators, currency symbols — all of these depend on locale. If your app shows orders with dates, and you're testing a German customer, the date should be `14.05.2026`, not `05/14/2026`. Playwright lets you emulate any locale and timezone at the context level.",
+          uk: "Формат дат, роздільники чисел, символи валют — все це залежить від локалі. Якщо твій застосунок показує замовлення з датами і ти тестуєш німецького клієнта — дата має бути `14.05.2026`, а не `05/14/2026`. Playwright дозволяє емулювати будь-яку локаль і часовий пояс на рівні context.",
         },
         {
-          en: "######",
-          uk: "######",
-        },
-        {
-          en: "Note that this only affects the browser timezone and locale, not the test runner timezone.\nTo set the test runner timezone, you can use the [`TZ` environment variable](https://nodejs.org/api/cli.html#tz).",
-          uk: "Це впливає лише на часовий пояс і мову браузера, а не на часовий пояс раннера тестів.\nДля раннера можна задати змінну середовища [`TZ`](https://nodejs.org/api/cli.html#tz).",
+          en: "Note: this affects only what the browser reports — `navigator.language`, `Intl` API, and timezone for JS date operations. It doesn't change the test runner's timezone.",
+          uk: "Примітка: це впливає лише на те що браузер повідомляє — `navigator.language`, `Intl` API і timezone для JS date. Timezone самого test runner'а не змінюється.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-24",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    // Emulates the browser locale.\n    locale: 'en-GB',\n\n    // Emulates the browser timezone.\n    timezoneId: 'Europe/Paris',\n  },\n});",
+          id: "locale-config",
+          language: "ts",
+          code: `// playwright.config.ts — глобально для всіх тестів
+export default defineConfig({
+  use: {
+    locale: 'de-DE',
+    timezoneId: 'Europe/Berlin',
+  },
+})`,
         },
         {
-          id: "cb-25",
-          language: "js",
-          code: "\ntest.use({\n  locale: 'de-DE',\n  timezoneId: 'Europe/Berlin',\n});\n\ntest('my test for de lang in Berlin timezone', async ({ page }) => {\n  await page.goto('https://www.bing.com');\n  // ...\n});",
-        },
-        {
-          id: "cb-26",
-          language: "js",
-          code: "const context = await browser.newContext({\n  locale: 'de-DE',\n  timezoneId: 'Europe/Berlin',\n});",
+          id: "locale-test",
+          language: "ts",
+          code: `// Або для окремого тесту
+test.use({
+  locale: 'uk-UA',
+  timezoneId: 'Europe/Kyiv',
+})
+
+test('order date shows in Ukrainian format', async ({ page }) => {
+  await page.goto('/orders')
+  // Дата має бути у форматі ДД.ММ.РРРР
+  await expect(page.getByTestId('order-date').first()).toContainText(/\d{2}\.\d{2}\.\d{4}/)
+})`,
         },
       ],
     },
     {
       id: "permissions",
       title: {
-        en: "Permissions",
-        uk: "Дозволи",
+        en: "Browser permissions",
+        uk: "Дозволи браузера",
       },
       paragraphs: [
         {
-          en: "Allow app to show system notifications.",
-          uk: "Дозволити застосунку показувати системні сповіщення.",
-        },
-        {
-          en: "Allow notifications for a specific domain.",
-          uk: "Дозволити сповіщення для конкретного домену.",
-        },
-        {
-          en: "Revoke all permissions with [`method: BrowserContext.clearPermissions`].",
-          uk: "Скасувати всі дозволи через [`method: BrowserContext.clearPermissions`].",
+          en: "If your app asks for notifications, camera, or geolocation access — by default the browser blocks it with a permission dialog that Playwright can't click through. You need to grant the permission programmatically before the page even asks for it.",
+          uk: "Якщо твій застосунок запитує доступ до сповіщень, камери або геолокації — браузер за замовчуванням блокує це діалогом який Playwright не може клікнути. Треба видати дозвіл програматично до того як сторінка його запитає.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-31",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    // Grants specified permissions to the browser context.\n    permissions: ['notifications'],\n  },\n});",
-        },
-        {
-          id: "cb-32",
-          language: "js",
-          code: "const context = await browser.newContext({\n  permissions: ['notifications'],\n});",
-        },
-        {
-          id: "cb-36",
-          language: "js",
-          code: "\ntest.beforeEach(async ({ context }) => {\n  // Runs before each test and signs in each page.\n  await context.grantPermissions(['notifications'], { origin: 'https://skype.com' });\n});\n\ntest('first', async ({ page }) => {\n  // page has notifications permission for https://skype.com.\n});",
-        },
-        {
-          id: "cb-37",
-          language: "js",
-          code: "await context.grantPermissions(['notifications'], { origin: 'https://skype.com' });",
-        },
-        {
-          id: "cb-42",
-          language: "js",
-          code: "// Library\nawait context.clearPermissions();",
+          id: "permissions-code",
+          language: "ts",
+          code: `// Глобально в конфізі
+export default defineConfig({
+  use: {
+    permissions: ['notifications', 'geolocation'],
+  },
+})
+
+// Або в тесті через context
+test('notification opt-in flow works', async ({ page, context }) => {
+  await context.grantPermissions(['notifications'])
+  await page.goto('/settings/notifications')
+  await page.getByRole('button', { name: 'Enable notifications' }).click()
+  // Діалогу браузера немає — дозвіл вже виданий
+  await expect(page.getByText('Notifications enabled')).toBeVisible()
+})
+
+// Скинути всі дозволи
+await context.clearPermissions()`,
         },
       ],
     },
@@ -248,146 +210,282 @@ export const emulationTopic: PlaywrightTopic = {
       },
       paragraphs: [
         {
-          en: 'Grant `"geolocation"` permissions and set geolocation to a specific area.',
-          uk: 'Надайте дозвіл `"geolocation"` і задайте геолокацію для певної області.',
-        },
-        {
-          en: "Change the location later:",
-          uk: "Змінити розташування пізніше:",
-        },
-        {
-          en: "**Note** you can only change geolocation for all pages in the context.",
-          uk: "**Примітка:** геолокацію можна змінити лише для всіх сторінок у контексті одночасно.",
+          en: "If the app shows location-based content — store locators, delivery zones, region-specific pricing — you need to fake the user's position. Set geolocation in the config or override it mid-test.",
+          uk: "Якщо застосунок показує контент залежно від місця — пошук магазинів, зони доставки, регіональні ціни — треба підмінити позицію користувача. Задай геолокацію в конфізі або заміни її в середині тесту.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-47",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    // Context geolocation\n    geolocation: { longitude: 12.492507, latitude: 41.889938 },\n    permissions: ['geolocation'],\n  },\n});",
-        },
-        {
-          id: "cb-48",
-          language: "js",
-          code: "\ntest.use({\n  geolocation: { longitude: 41.890221, latitude: 12.492348 },\n  permissions: ['geolocation'],\n});\n\ntest('my test with geolocation', async ({ page }) => {\n  // ...\n});",
-        },
-        {
-          id: "cb-49",
-          language: "js",
-          code: "const context = await browser.newContext({\n  geolocation: { longitude: 41.890221, latitude: 12.492348 },\n  permissions: ['geolocation']\n});",
-        },
-        {
-          id: "cb-54",
-          language: "js",
-          code: "\ntest.use({\n  geolocation: { longitude: 41.890221, latitude: 12.492348 },\n  permissions: ['geolocation'],\n});\n\ntest('my test with geolocation', async ({ page, context }) => {\n  // overwrite the location for this test\n  await context.setGeolocation({ longitude: 48.858455, latitude: 2.294474 });\n});",
-        },
-        {
-          id: "cb-55",
-          language: "js",
-          code: "await context.setGeolocation({ longitude: 48.858455, latitude: 2.294474 });",
+          id: "geolocation-code",
+          language: "ts",
+          code: `test.use({
+  geolocation: { latitude: 50.4501, longitude: 30.5234 }, // Kyiv
+  permissions: ['geolocation'],
+})
+
+test('shows Kyiv delivery zone', async ({ page }) => {
+  await page.goto('/delivery-zones')
+  await expect(page.getByText('Доставка по Києву')).toBeVisible()
+})
+
+test('location-based store finder', async ({ page, context }) => {
+  await page.goto('/stores')
+
+  // Змінити позицію прямо в тесті
+  await context.setGeolocation({ latitude: 48.4647, longitude: 35.0462 }) // Dnipro
+  await page.getByRole('button', { name: 'Find stores near me' }).click()
+  await expect(page.getByText('Дніпро')).toBeVisible()
+})`,
         },
       ],
     },
     {
-      id: "color-scheme-and-media",
+      id: "color-scheme",
       title: {
-        en: "Color Scheme and Media",
-        uk: "Колірна схема та медіа",
+        en: "Dark mode and color scheme",
+        uk: "Темний режим і кольорова схема",
       },
       paragraphs: [
         {
-          en: "Emulate the users `\"colorScheme\"`. Supported values are 'light' and 'dark'. You can also emulate the media type with [`method: Page.emulateMedia`].",
-          uk: "Емулюйте `\"colorScheme\"` користувача. Підтримуються значення 'light' і 'dark'. Тип медіа можна емулювати через [`method: Page.emulateMedia`].",
+          en: "If your app supports dark mode via `prefers-color-scheme`, tests run in light mode by default. To test dark mode components, set `colorScheme: 'dark'` — either globally or for a specific test.",
+          uk: "Якщо твій застосунок підтримує темний режим через `prefers-color-scheme`, тести запускаються у світлому режимі за замовчуванням. Щоб тестувати компоненти в темному режимі, задай `colorScheme: 'dark'` — глобально або для конкретного тесту.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-60",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    colorScheme: 'dark',\n  },\n});",
-        },
-        {
-          id: "cb-61",
-          language: "js",
-          code: "\ntest.use({\n  colorScheme: 'dark' // or 'light'\n});\n\ntest('my test with dark mode', async ({ page }) => {\n  // ...\n});",
-        },
-        {
-          id: "cb-62",
-          language: "js",
-          code: "// Create context with dark mode\nconst context = await browser.newContext({\n  colorScheme: 'dark' // or 'light'\n});\n\n// Create page with dark mode\nconst page = await browser.newPage({\n  colorScheme: 'dark' // or 'light'\n});\n\n// Change color scheme for the page\nawait page.emulateMedia({ colorScheme: 'dark' });\n\n// Change media for page\nawait page.emulateMedia({ media: 'print' });",
-        },
-      ],
-    },
-    {
-      id: "user-agent",
-      title: {
-        en: "User Agent",
-        uk: "User-Agent",
-      },
-      paragraphs: [
-        {
-          en: "The User Agent is included in the device and therefore you  will rarely need to change it however if you do need to test a different user agent you can override it with the `userAgent` property.",
-          uk: "User-Agent зазвичай уже заданий у профілі пристрою, тому його рідко змінюють; якщо треба перевірити інший рядок, перевизначте властивість `userAgent`.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-67",
-          language: "js",
-          code: "\ntest.use({ userAgent: 'My user agent' });\n\ntest('my user agent test', async ({ page }) => {\n  // ...\n});",
-        },
-        {
-          id: "cb-68",
-          language: "js",
-          code: "const context = await browser.newContext({\n  userAgent: 'My user agent'\n});",
+          id: "dark-mode-code",
+          language: "ts",
+          code: `test.describe('dark mode', () => {
+  test.use({ colorScheme: 'dark' })
+
+  test('dashboard looks right in dark mode', async ({ page }) => {
+    await page.goto('/dashboard')
+    // Перевіряємо що dark mode клас є на body
+    await expect(page.locator('body')).toHaveClass(/dark/)
+  })
+})
+
+// Або переключати в тесті через emulateMedia
+test('color scheme toggle works', async ({ page }) => {
+  await page.goto('/dashboard')
+  await page.emulateMedia({ colorScheme: 'dark' })
+  await expect(page.locator('[data-theme]')).toHaveAttribute('data-theme', 'dark')
+  await page.emulateMedia({ colorScheme: 'light' })
+  await expect(page.locator('[data-theme]')).toHaveAttribute('data-theme', 'light')
+})`,
         },
       ],
     },
     {
       id: "offline",
       title: {
-        en: "Offline",
-        uk: "Без мережі",
+        en: "Offline mode",
+        uk: "Офлайн режим",
       },
       paragraphs: [
         {
-          en: "Emulate the network being offline.",
-          uk: "Емулювати відсутність мережі (offline).",
+          en: "Set `offline: true` to simulate a dropped connection. Useful for testing error states — what does the app show when the API is unreachable? Better to test this with emulation than to actually kill the server.",
+          uk: "Задай `offline: true` щоб симулювати відсутність з'єднання. Корисно для тестування стану помилки — що показує застосунок коли API недоступний? Краще тестувати це через емуляцію ніж насправді вимикати сервер.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-73",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    offline: true\n  },\n});",
-        },
-      ],
-    },
-    {
-      id: "javascript-enabled",
-      title: {
-        en: "JavaScript Enabled",
-        uk: "Увімкнений JavaScript",
-      },
-      paragraphs: [
-        {
-          en: "Emulate a user scenario where JavaScript is disabled.",
-          uk: "Емулювати сценарій, коли JavaScript вимкнено.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-78",
-          language: "js",
-          code: "\ntest.use({ javaScriptEnabled: false });\n\ntest('test with no JavaScript', async ({ page }) => {\n  // ...\n});",
-        },
-        {
-          id: "cb-79",
-          language: "js",
-          code: "const context = await browser.newContext({\n  javaScriptEnabled: false\n});",
+          id: "offline-code",
+          language: "ts",
+          code: `test('shows error banner when offline', async ({ page, context }) => {
+  await page.goto('/orders')
+
+  // Симулюємо обрив з'єднання
+  await context.setOffline(true)
+
+  await page.getByRole('button', { name: 'Refresh' }).click()
+  await expect(page.getByRole('alert')).toContainText('Немає з\'єднання')
+
+  // Відновлюємо
+  await context.setOffline(false)
+})`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "You want to run the same test on iPhone 13 and Desktop Chrome. What's the right approach?",
+        uk: "Хочеш запустити той самий тест на iPhone 13 і Desktop Chrome. Який правильний підхід?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Create two projects in playwright.config.ts using devices['iPhone 13'] and devices['Desktop Chrome']",
+            uk: "Створити два проєкти в playwright.config.ts з devices['iPhone 13'] і devices['Desktop Chrome']",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Call page.setViewportSize() at the start of each test",
+            uk: "Викликати page.setViewportSize() на початку кожного тесту",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Use test.use({ isMobile: true }) inside a describe block",
+            uk: "Використати test.use({ isMobile: true }) всередині describe блоку",
+          },
+        },
+      ],
+      correctOptionId: "a",
+      rationale: {
+        en: "Projects in the config are the right way — the test file stays unchanged and Playwright runs it with each device profile automatically. `setViewportSize` only changes the viewport, not userAgent or touch. `isMobile` alone doesn't set all the right properties.",
+        uk: "Проєкти в конфізі — правильний підхід: файл тесту залишається незмінним, Playwright запускає його з кожним профілем автоматично. `setViewportSize` змінює лише viewport, а не userAgent або touch. `isMobile` сам по собі не задає всі потрібні властивості.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "Your app asks for notification permission on page load. The test fails because Playwright can't interact with the browser permission dialog. How do you fix it?",
+        uk: "Твій застосунок запитує дозвіл на сповіщення при завантаженні. Тест падає бо Playwright не може взаємодіяти з діалогом браузера. Як виправити?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Click the dialog with page.click() using a CSS selector",
+            uk: "Клікнути діалог через page.click() з CSS селектором",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Call context.grantPermissions(['notifications']) before page.goto()",
+            uk: "Викликати context.grantPermissions(['notifications']) перед page.goto()",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Add a waitForTimeout(3000) to wait for the dialog to close",
+            uk: "Додати waitForTimeout(3000) щоб дочекатися закриття діалогу",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Browser permission dialogs are native OS dialogs — Playwright can't interact with them using page methods. `grantPermissions` tells the browser the permission is already granted before the page even asks, so the dialog never appears.",
+        uk: "Діалоги дозволів браузера — це нативні діалоги ОС, Playwright не може взаємодіяти з ними через page методи. `grantPermissions` повідомляє браузеру що дозвіл вже видано до того як сторінка запитує, тому діалог взагалі не з'являється.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "What does a device profile (e.g., `devices['iPhone 13']`) set when used in a project?",
+        uk: "Що задає профіль пристрою (напр. `devices['iPhone 13']`) при використанні в проєкті?",
+      },
+      options: [
+        { id: "a", label: { en: "Only the viewport size.", uk: "Лише розмір viewport." } },
+        { id: "b", label: { en: "`userAgent`, `viewport`, `deviceScaleFactor`, `hasTouch`, and `isMobile` — all in one spread.", uk: "`userAgent`, `viewport`, `deviceScaleFactor`, `hasTouch` і `isMobile` — усе одним spread." } },
+        { id: "c", label: { en: "Only the user-agent string.", uk: "Лише рядок user-agent." } },
+        { id: "d", label: { en: "The browser binary to download for that device.", uk: "Бінарник браузера для завантаження для цього пристрою." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "A device profile is a preset object with multiple fields: `userAgent` (for server-side device detection), `viewport` (width/height), `deviceScaleFactor` (pixel density), `hasTouch` (enables touch events), and `isMobile`. Using `...devices['iPhone 13']` spreads all these at once into the project's `use` block.",
+        uk: "Профіль пристрою — це пресет-об'єкт з кількома полями: `userAgent` (для серверного визначення пристрою), `viewport` (ширина/висота), `deviceScaleFactor` (піксельна щільність), `hasTouch` (вмикає touch-події) і `isMobile`. Використання `...devices['iPhone 13']` розгортає все це одразу в блок `use` проєкту.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "You want to test date formatting for a German user (dates like `14.05.2026`). Where should you set `locale: 'de-DE'`?",
+        uk: "Хочеш протестувати форматування дат для німецького користувача (дати типу `14.05.2026`). Де встановити `locale: 'de-DE'`?",
+      },
+      options: [
+        { id: "a", label: { en: "In the test using `page.setLocale('de-DE')`.", uk: "В тесті через `page.setLocale('de-DE')`." } },
+        { id: "b", label: { en: "In `playwright.config.ts` `use` block, or via `test.use({ locale: 'de-DE' })` in a test file.", uk: "В блоці `use` файлу `playwright.config.ts` або через `test.use({ locale: 'de-DE' })` у файлі тесту." } },
+        { id: "c", label: { en: "Set the `LANG=de_DE` environment variable before running tests.", uk: "Встановити змінну середовища `LANG=de_DE` перед запуском тестів." } },
+        { id: "d", label: { en: "In the test using `browser.setLocale('de-DE')`.", uk: "В тесті через `browser.setLocale('de-DE')`." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The `locale` setting lives in the `use` block — either globally in `playwright.config.ts` or scoped to specific tests/files with `test.use()`. This affects `navigator.language`, the `Intl` API, and how the browser formats dates and numbers. There is no `page.setLocale()` or `browser.setLocale()` method.",
+        uk: "Налаштування `locale` знаходиться в блоці `use` — або глобально в `playwright.config.ts`, або обмежено конкретними тестами/файлами через `test.use()`. Це впливає на `navigator.language`, `Intl` API і форматування дат та чисел. Методів `page.setLocale()` або `browser.setLocale()` немає.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "How do you simulate a dropped network connection mid-test to verify an error banner appears?",
+        uk: "Як симулювати обрив мережевого з'єднання в середині тесту щоб перевірити появу банера помилки?",
+      },
+      options: [
+        { id: "a", label: { en: "Call `page.route('**', route => route.abort())` to abort all requests.", uk: "Викликати `page.route('**', route => route.abort())` щоб скасувати всі запити." } },
+        { id: "b", label: { en: "Call `context.setOffline(true)` to simulate a dropped connection.", uk: "Викликати `context.setOffline(true)` щоб симулювати обрив з'єднання." } },
+        { id: "c", label: { en: "Use `process.env.OFFLINE = 'true'` before the test action.", uk: "Використати `process.env.OFFLINE = 'true'` перед тестовою дією." } },
+        { id: "d", label: { en: "Use `page.setNetworkState('offline')` on the page object.", uk: "Використати `page.setNetworkState('offline')` на об'єкті page." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`context.setOffline(true)` tells the browser context to behave as if the network is disconnected — network requests fail with a connection error. Call `context.setOffline(false)` to restore connectivity. `page.route()` aborts requests individually but doesn't simulate a true offline state.",
+        uk: "`context.setOffline(true)` каже browser context поводитись як при відсутності мережі — мережеві запити завершуються помилкою з'єднання. Виклик `context.setOffline(false)` відновлює з'єднання. `page.route()` скасовує запити по одному але не симулює справжній offline-стан.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "You want to override the viewport to 768×1024 for a single `describe` block without affecting the rest of the file. What's the right approach?",
+        uk: "Хочеш перевизначити viewport до 768×1024 для одного `describe` блоку без впливу на решту файлу. Який правильний підхід?",
+      },
+      options: [
+        { id: "a", label: { en: "Call `page.setViewportSize({ width: 768, height: 1024 })` inside `beforeEach` within the describe.", uk: "Викликати `page.setViewportSize({ width: 768, height: 1024 })` всередині `beforeEach` у describe." } },
+        { id: "b", label: { en: "Use `test.use({ viewport: { width: 768, height: 1024 } })` inside the `describe` block.", uk: "Використати `test.use({ viewport: { width: 768, height: 1024 } })` всередині блоку `describe`." } },
+        { id: "c", label: { en: "Create a new `playwright.config.ts` file for the describe block.", uk: "Створити новий файл `playwright.config.ts` для describe блоку." } },
+        { id: "d", label: { en: "Use `test.describe.configure({ viewport: { width: 768, height: 1024 } })`.", uk: "Використати `test.describe.configure({ viewport: { width: 768, height: 1024 } })`." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`test.use()` inside a `describe` block scopes the override to that block only — tests outside are unaffected. `page.setViewportSize()` in `beforeEach` also works but is more verbose. Both approaches are valid, but `test.use()` is more declarative and idiomatic.",
+        uk: "`test.use()` всередині блоку `describe` обмежує перевизначення лише цим блоком — тести зовні не зачіпаються. `page.setViewportSize()` в `beforeEach` також працює але більш багатослівний. Обидва підходи valid, але `test.use()` більш декларативний і ідіоматичний.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "How do you test how your app looks and behaves in dark mode using `prefers-color-scheme`?",
+        uk: "Як протестувати як виглядає і поводиться застосунок у темному режимі через `prefers-color-scheme`?",
+      },
+      options: [
+        { id: "a", label: { en: "Click the dark mode toggle button in the app's UI.", uk: "Клікнути кнопку перемикання темного режиму в UI застосунку." } },
+        { id: "b", label: { en: "Set `colorScheme: 'dark'` in `test.use()` or call `page.emulateMedia({ colorScheme: 'dark' })`.", uk: "Встановити `colorScheme: 'dark'` в `test.use()` або викликати `page.emulateMedia({ colorScheme: 'dark' })`." } },
+        { id: "c", label: { en: "Add `@media (prefers-color-scheme: dark)` as a test tag.", uk: "Додати `@media (prefers-color-scheme: dark)` як тег тесту." } },
+        { id: "d", label: { en: "Change the OS system preference to dark mode before running tests.", uk: "Змінити системне налаштування ОС на темний режим перед запуском тестів." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Playwright can emulate `prefers-color-scheme` without changing the OS setting. Use `colorScheme: 'dark'` in `test.use()` for the entire file/describe, or call `page.emulateMedia({ colorScheme: 'dark' })` mid-test to switch. This sets the CSS media feature the browser reports, triggering `@media (prefers-color-scheme: dark)` styles.",
+        uk: "Playwright може емулювати `prefers-color-scheme` без зміни системного налаштування ОС. Використовуй `colorScheme: 'dark'` в `test.use()` для всього файлу/describe, або виклич `page.emulateMedia({ colorScheme: 'dark' })` в середині тесту для переключення. Це задає CSS media feature яку браузер повідомляє, тригеруючи стилі `@media (prefers-color-scheme: dark)`.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "How do you fake the user's GPS position to test location-based features like a store finder?",
+        uk: "Як підмінити GPS-позицію користувача для тестування функцій на основі локації, як-от пошук магазинів?",
+      },
+      options: [
+        { id: "a", label: { en: "Mock the `navigator.geolocation` API using `page.evaluate()`.", uk: "Замокати API `navigator.geolocation` через `page.evaluate()`." } },
+        { id: "b", label: { en: "Set `geolocation: { latitude, longitude }` in `test.use()` and grant the `'geolocation'` permission.", uk: "Встановити `geolocation: { latitude, longitude }` в `test.use()` і видати дозвіл `'geolocation'`." } },
+        { id: "c", label: { en: "Use a VPN to route test traffic through the target location's IP.", uk: "Використати VPN для маршрутизації тестового трафіку через IP цільового місця." } },
+        { id: "d", label: { en: "Set `GPS_LAT` and `GPS_LON` environment variables before running tests.", uk: "Встановити змінні середовища `GPS_LAT` і `GPS_LON` перед запуском тестів." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "You need two things together: `geolocation` in `test.use()` (or `context.setGeolocation()` for mid-test changes) to set the coordinates, AND the `'geolocation'` permission granted via `permissions: ['geolocation']`. Without the permission, the browser would show a dialog to ask the user — which Playwright can't click through.",
+        uk: "Потрібні дві речі разом: `geolocation` в `test.use()` (або `context.setGeolocation()` для змін в середині тесту) щоб задати координати, І дозвіл `'geolocation'` виданий через `permissions: ['geolocation']`. Без дозволу браузер показував би діалог для запиту у користувача — який Playwright не може клікнути.",
+      },
+    },
+  ],
 }

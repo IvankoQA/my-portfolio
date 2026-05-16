@@ -13,331 +13,616 @@ export const inputTopic: PlaywrightTopic = {
     uk: "Дії",
   },
   summary: {
-    en: "Playwright can interact with HTML Input elements such as text inputs, checkboxes, radio buttons, select options, mouse clicks, type characters, keys and shortcuts as well as upload files and focus elements.",
-    uk: "Playwright може взаємодіяти з HTML-елементами введення: текстовими полями, прапорцями, радіокнопками, вибором у `<select>`, кліками мишею, посимвольним введенням, клавішами та скороченнями, а також завантаженням файлів і фокусуванням елементів.",
+    en: "fill, click, check, selectOption — these are the actions you use in 90% of tests. Each one waits for the element to be ready before acting.",
+    uk: "fill, click, check, selectOption — це дії що використовуються в 90% тестів. Кожна чекає поки елемент буде готовий перш ніж діяти.",
   },
   sections: [
     {
-      id: "introduction",
-      title: {
-        en: "Introduction",
-        uk: "Вступ",
-      },
-      paragraphs: [
-        {
-          en: "Playwright can interact with HTML Input elements such as text inputs, checkboxes, radio buttons, select options, mouse clicks, type characters, keys and shortcuts as well as upload files and focus elements.",
-          uk: "Playwright може взаємодіяти з HTML-елементами введення: текстовими полями, прапорцями, радіокнопками, вибором у `<select>`, кліками мишею, посимвольним введенням, клавішами та скороченнями, а також завантаженням файлів і фокусуванням елементів.",
-        },
-      ],
-    },
-    {
       id: "text-input",
       title: {
-        en: "Text input",
-        uk: "Текстовий ввід",
+        en: "Text input — fill vs type",
+        uk: "Текстовий ввід — fill і type",
       },
       paragraphs: [
         {
-          en: "Using [`method: Locator.fill`] is the easiest way to fill out the form fields. It focuses the element and triggers an `input` event with the entered text. It works for ``, `` and `[contenteditable]` elements.",
-          uk: "Використання [`method: Locator.fill`] — найпростіший спосіб заповнити поля форми. Метод фокусує елемент і генерує подію `input` із введеним текстом. Працює для ``, `` і елементів `[contenteditable]`.",
+          en: "`fill` is what you want 95% of the time — it focuses the field, clears it, sets the value, and fires the `input` event. Fast and reliable. Use it for login forms, order creation, search fields.",
+          uk: "`fill` — це те що потрібно в 95% випадків: фокусує поле, очищає його, встановлює значення і генерує подію `input`. Швидко і надійно. Використовую для форм логіну, створення замовлень, пошукових полів.",
+        },
+        {
+          en: "`pressSequentially` types character by character — useful for testing autocomplete or fields that react to each keystroke. It's slower than `fill` on purpose.",
+          uk: "`pressSequentially` друкує символ за символом — корисно для тестування автодоповнення або полів що реагують на кожен натиск. Навмисно повільніше ніж `fill`.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
-          language: "js",
-          code: "// Text input\nawait page.getByRole('textbox').fill('Peter');\n\n// Date input\nawait page.getByLabel('Birth date').fill('2020-02-02');\n\n// Time input\nawait page.getByLabel('Appointment time').fill('13:15');\n\n// Local datetime input\nawait page.getByLabel('Local time').fill('2020-03-02T05:15');",
+          id: "fill-examples",
+          language: "ts",
+          code: `test('fill login form', async ({ page }) => {
+  await page.goto('/login')
+
+  // fill — найшвидший і найнадійніший спосіб
+  await page.getByLabel('Email').fill('admin@example.com')
+  await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!)
+
+  // Дата, час — теж через fill
+  await page.getByLabel('Order date').fill('2026-05-14')
+  await page.getByLabel('Delivery time').fill('14:30')
+
+  await page.getByRole('button', { name: 'Sign in' }).click()
+})
+
+test('autocomplete reacts to typing', async ({ page }) => {
+  await page.goto('/orders/new')
+
+  // pressSequentially — символ за символом, для autocomplete
+  await page.getByLabel('Customer name').pressSequentially('Iva', { delay: 50 })
+
+  // Autocomplete список з'явився
+  await expect(page.getByRole('listbox')).toBeVisible()
+  await page.getByRole('option', { name: 'Ivan Kozenko' }).click()
+})`,
         },
       ],
     },
     {
-      id: "checkboxes-and-radio-buttons",
+      id: "checkboxes-and-radio",
       title: {
         en: "Checkboxes and radio buttons",
-        uk: "Прапорці та радіокнопки",
+        uk: "Чекбокси і радіокнопки",
       },
       paragraphs: [
         {
-          en: "Using [`method: Locator.setChecked`] is the easiest way to check and uncheck a checkbox or a radio button. This method can be used with `input[type=checkbox]`, `input[type=radio]` and `[role=checkbox]` elements.",
-          uk: "Використання [`method: Locator.setChecked`] — найпростіший спосіб увімкнути або вимкнути прапорець або радіокнопку. Метод підходить для `input[type=checkbox]`, `input[type=radio]` і елементів `[role=checkbox]`.",
+          en: "`check()` and `uncheck()` are semantic — they verify the current state first. `check()` on an already-checked box does nothing. `setChecked(true/false)` explicitly sets the state regardless. I use `check()` for clarity and `setChecked` when I need to be explicit about the end state.",
+          uk: "`check()` і `uncheck()` семантичні — спочатку перевіряють поточний стан. `check()` на вже відміченому чекбоксі нічого не робить. `setChecked(true/false)` явно задає стан незалежно від поточного. Я використовую `check()` для ясності і `setChecked` коли треба явно задати кінцевий стан.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-6",
-          language: "js",
-          code: "// Check the checkbox\nawait page.getByLabel('I agree to the terms above').check();\n\n// Assert the checked state\nexpect(page.getByLabel('Subscribe to newsletter')).toBeChecked();\n\n// Select the radio button\nawait page.getByLabel('XL').check();",
+          id: "checkbox-examples",
+          language: "ts",
+          code: `test('accept terms and subscribe', async ({ page }) => {
+  await page.goto('/register')
+
+  await page.getByLabel('I agree to the terms').check()
+  await expect(page.getByLabel('I agree to the terms')).toBeChecked()
+
+  // Відмінити
+  await page.getByLabel('Subscribe to newsletter').uncheck()
+  await expect(page.getByLabel('Subscribe to newsletter')).not.toBeChecked()
+
+  // setChecked — явна установка
+  await page.getByLabel('Send notifications').setChecked(true)
+})
+
+test('select delivery method', async ({ page }) => {
+  await page.goto('/checkout')
+
+  // Радіокнопка — те саме API
+  await page.getByLabel('Express delivery').check()
+  await expect(page.getByLabel('Express delivery')).toBeChecked()
+  await expect(page.getByLabel('Standard delivery')).not.toBeChecked()
+})`,
         },
       ],
     },
     {
       id: "select-options",
       title: {
-        en: "Select options",
-        uk: "Вибір опцій у select",
+        en: "Select dropdowns",
+        uk: "Вибір з select",
       },
       paragraphs: [
         {
-          en: "Selects one or multiple options in the `` element with [`method: Locator.selectOption`].\nYou can specify option `value`, or `label` to select. Multiple options can be selected.",
-          uk: "Вибирає одну або кілька опцій у елементі `` за допомогою [`method: Locator.selectOption`].\nМожна вказати `value` або `label` для вибору. Допускається вибір кількох опцій.",
+          en: "`selectOption` works on native `<select>` elements. You can select by value (what's in the `value` attribute), by label (what the user sees), or by index. For multiple-select, pass an array.",
+          uk: "`selectOption` працює на нативних елементах `<select>`. Можна вибирати за value (що в атрибуті `value`), за label (що бачить користувач) або за індексом. Для multi-select — передай масив.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-11",
-          language: "js",
-          code: "// Single selection matching the value or label\nawait page.getByLabel('Choose a color').selectOption('blue');\n\n// Single selection matching the label\nawait page.getByLabel('Choose a color').selectOption({ label: 'Blue' });\n\n// Multiple selected items\nawait page.getByLabel('Choose multiple colors').selectOption(['red', 'green', 'blue']);",
+          id: "select-examples",
+          language: "ts",
+          code: `test('filter orders by status', async ({ page }) => {
+  await page.goto('/orders')
+
+  // За value — те що в HTML <option value="pending">
+  await page.getByRole('combobox', { name: 'Status' }).selectOption('pending')
+
+  // За label — те що бачить користувач
+  await page.getByRole('combobox', { name: 'Status' }).selectOption({ label: 'Pending' })
+
+  // За індексом (з 0)
+  await page.getByRole('combobox', { name: 'Items per page' }).selectOption({ index: 2 })
+
+  // Multi-select
+  await page.getByLabel('Tags').selectOption(['urgent', 'vip', 'export'])
+})`,
         },
       ],
     },
     {
       id: "mouse-click",
       title: {
-        en: "Mouse click",
-        uk: "Клік мишею",
+        en: "Clicks and mouse actions",
+        uk: "Кліки і дії мишею",
       },
       paragraphs: [
         {
-          en: "Performs a simple human click.",
-          uk: "Виконує простий «людський» клік.",
-        },
-        {
-          en: "Under the hood, this and other pointer-related methods:",
-          uk: "Під капотом цей і інші методи, пов’язані з вказівником:",
-        },
-        {
-          en: "- wait for element with given selector to be in DOM\n- wait for it to become displayed, i.e. not empty, no `display:none`, no `visibility:hidden`\n- wait for it to stop moving, for example, until css transition finishes\n- scroll the element into view\n- wait for it to receive pointer events at the action point, for example, waits until element becomes non-obscured by other elements\n- retry if the element is detached during any of the above checks",
-          uk: "- чекають появи елемента за селектором у DOM\n- чекають відображення: не порожній, без `display:none`, без `visibility:hidden`\n- чекають зупинки руху, наприклад завершення CSS-переходу\n- прокручують елемент у видиму область\n- чекають, поки в точці дії елемент отримає події вказівника, зокрема поки його не перекриватимуть інші елементи\n- повторюють спробу, якщо елемент від’єднали під час будь-якої з цих перевірок",
-        },
-        {
-          en: "#### Forcing the click",
-          uk: "#### Примусовий клік",
-        },
-        {
-          en: "Sometimes, apps use non-trivial logic where hovering the element overlays it with another element that intercepts the click. This behavior is indistinguishable from a bug where element gets covered and the click is dispatched elsewhere. If you know this is taking place, you can bypass the [actionability](./actionability.md) checks and force the click:",
-          uk: "Іноді застосунки мають нетривіальну логіку: наведення накладає поверх елемента інший, який перехоплює клік. Це не відрізнити від бага, коли елемент перекрито й клік потрапляє не туди. Якщо ви це очікуєте, можна обійти перевірки [дієздатності](./actionability.md) і виконати примусовий клік:",
-        },
-        {
-          en: "#### Programmatic click",
-          uk: "#### Програмний клік",
-        },
-        {
-          en: "If you are not interested in testing your app under the real conditions and want to simulate the click by any means possible, you can trigger the [`HTMLElement.click()`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click) behavior via simply dispatching a click event on the element with [`method: Locator.dispatchEvent`]:",
-          uk: "Якщо вам не потрібно тестувати застосунок у реальних умовах і ви хочете імітувати клік будь-яким способом, можна викликати поведінку [`HTMLElement.click()`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/click), просто диспатчивши подію кліку на елементі через [`method: Locator.dispatchEvent`]:",
+          en: "`click()` is the most-used action — it waits for the element to be visible, stable (animations done), and not obscured. It also scrolls the element into view first. Variants: `dblclick()`, right-click with `{ button: 'right' }`, shift+click with `{ modifiers: ['Shift'] }`.",
+          uk: "`click()` — найбільш вживана дія. Чекає поки елемент стане видимим, стабільним (анімації завершені) і не перекритим. Також прокручує елемент у видиму область. Варіанти: `dblclick()`, правий клік з `{ button: 'right' }`, shift+клік з `{ modifiers: ['Shift'] }`.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-16",
-          language: "js",
-          code: "// Generic click\nawait page.getByRole('button').click();\n\n// Double click\nawait page.getByText('Item').dblclick();\n\n// Right click\nawait page.getByText('Item').click({ button: 'right' });\n\n// Shift + click\nawait page.getByText('Item').click({ modifiers: ['Shift'] });\n\n// Ctrl + click on Windows and Linux\n// Meta + click on macOS\nawait page.getByText('Item').click({ modifiers: ['ControlOrMeta'] });\n\n// Hover over element\nawait page.getByText('Item').hover();\n\n// Click the top left corner\nawait page.getByText('Item').click({ position: { x: 0, y: 0 } });",
-        },
-        {
-          id: "cb-21",
-          language: "js",
-          code: "await page.getByRole('button').click({ force: true });",
-        },
-        {
-          id: "cb-26",
-          language: "js",
-          code: "await page.getByRole('button').dispatchEvent('click');",
+          id: "click-examples",
+          language: "ts",
+          code: `test('order table interactions', async ({ page }) => {
+  await page.goto('/orders')
+
+  // Звичайний клік
+  await page.getByRole('button', { name: 'Create order' }).click()
+
+  // Подвійний клік (відкрити для редагування)
+  await page.getByRole('row').filter({ hasText: 'ORDER-042' }).dblclick()
+
+  // Правий клік (контекстне меню)
+  await page.getByRole('row').filter({ hasText: 'ORDER-007' })
+    .click({ button: 'right' })
+  await page.getByRole('menuitem', { name: 'Archive' }).click()
+
+  // Ctrl+клік (мульти-вибір)
+  await page.getByRole('row').nth(1).click()
+  await page.getByRole('row').nth(3).click({ modifiers: ['ControlOrMeta'] })
+  await page.getByRole('row').nth(5).click({ modifiers: ['ControlOrMeta'] })
+
+  // Hover (показати тултіп)
+  await page.getByTestId('info-icon').hover()
+  await expect(page.getByRole('tooltip')).toBeVisible()
+})`,
         },
       ],
     },
     {
-      id: "type-characters",
+      id: "keyboard",
       title: {
-        en: "Type characters",
-        uk: "Введення символів",
+        en: "Keyboard shortcuts and key presses",
+        uk: "Клавіатурні скорочення і натиски",
       },
       paragraphs: [
         {
-          en: "Type into the field character by character, as if it was a user with a real keyboard with [`method: Locator.pressSequentially`].",
-          uk: "Введення в поле посимвольно, ніби користувач набирає на реальній клавіатурі, за допомогою [`method: Locator.pressSequentially`].",
-        },
-        {
-          en: "This method will emit all the necessary keyboard events, with all the `keydown`, `keyup`, `keypress` events in place. You can even specify the optional `delay` between the key presses to simulate real user behavior.",
-          uk: "Метод генерує всі потрібні події клавіатури — `keydown`, `keyup`, `keypress`. Можна також задати необов’язковий `delay` між натисканнями, щоб імітувати поведінку людини.",
+          en: "`press()` sends a keyboard event to the focused element. Common use cases: submitting forms with `Enter`, clearing fields with `Control+A` then `Backspace`, navigating with `ArrowDown`/`Tab`. For combinations, use `+` separator.",
+          uk: "`press()` надсилає подію клавіатури до сфокусованого елемента. Типові кейси: відправити форму через `Enter`, очистити поле через `Control+A` + `Backspace`, навігувати через `ArrowDown`/`Tab`. Для комбінацій — роздільник `+`.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-31",
-          language: "js",
-          code: "// Press keys one by one\nawait page.locator('#area').pressSequentially('Hello World!');",
+          id: "keyboard-examples",
+          language: "ts",
+          code: `test('keyboard navigation in order form', async ({ page }) => {
+  await page.goto('/orders/new')
+
+  const nameField = page.getByLabel('Customer name')
+  await nameField.fill('Test')
+
+  // Очистити і ввести нове значення
+  await nameField.press('Control+a')
+  await nameField.press('Backspace')
+  await nameField.fill('Ivan Kozenko')
+
+  // Enter для відправки форми
+  await page.getByLabel('Search').press('Enter')
+
+  // Tab між полями
+  await page.getByLabel('First name').press('Tab') // переходить на Last name
+
+  // Escape для закриття модального
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).not.toBeVisible()
+
+  // Arrow down в dropdown
+  await page.getByRole('combobox', { name: 'Status' }).press('ArrowDown')
+})`,
         },
       ],
     },
     {
-      id: "keys-and-shortcuts",
+      id: "file-upload",
       title: {
-        en: "Keys and shortcuts",
-        uk: "Клавіші та скорочення",
-      },
-      paragraphs: [
-        {
-          en: "The [`method: Locator.press`] method focuses the selected element and produces a single keystroke. It accepts the logical key names that are emitted in the [keyboardEvent.key](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key) property of the keyboard events:",
-          uk: "Метод [`method: Locator.press`] фокусує вибраний елемент і генерує одне натискання клавіші. Приймає логічні назви клавіш, які з’являються у властивості [keyboardEvent.key](https://developer.mozilla.org/en-US/docs/Web/API/KeyboardEvent/key) подій клавіатури:",
-        },
-        {
-          en: '- You can alternatively specify a single character you\'d like to produce such as `"a"` or `"#"`.',
-          uk: '- Альтернативно можна вказати один символ, який потрібно згенерувати, наприклад `"a"` або `"#"`.',
-        },
-        {
-          en: "- Following modification shortcuts are also supported: `Shift, Control, Alt, Meta`.",
-          uk: "- Підтримуються й модифікатори: `Shift, Control, Alt, Meta`.",
-        },
-        {
-          en: 'Simple version produces a single character. This character is case-sensitive, so `"a"` and `"A"` will produce different results.',
-          uk: 'Простий варіант генерує один символ. Регістр важливий: `"a"` та `"A"` дають різний результат.',
-        },
-        {
-          en: 'Shortcuts such as `"Control+o"` or `"Control+Shift+T"` are supported as well. When specified with the modifier, modifier is pressed and being held while the subsequent key is being pressed.',
-          uk: 'Підтримуються й скорочення на кшталт `"Control+o"` або `"Control+Shift+T"`. Якщо вказано модифікатор, він утримується під час натискання наступної клавіші.',
-        },
-        {
-          en: "Note that you still need to specify the capital `A` in `Shift-A` to produce the capital character. `Shift-a` produces a lower-case one as if you had the `CapsLock` toggled.",
-          uk: "Зверніть увагу: для великої літери в `Shift-A` потрібна саме велика `A`. `Shift-a` дає малу літеру, ніби ввімкнено `CapsLock`.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-36",
-          language: "js",
-          code: "// Hit Enter\nawait page.getByText('Submit').press('Enter');\n\n// Dispatch Control+Right\nawait page.getByRole('textbox').press('Control+ArrowRight');\n\n// Press $ sign on keyboard\nawait page.getByRole('textbox').press('$');",
-        },
-        {
-          id: "cb-41",
-          language: "txt",
-          code: "Backquote, Minus, Equal, Backslash, Backspace, Tab, Delete, Escape,\nArrowDown, End, Enter, Home, Insert, PageDown, PageUp, ArrowRight,\nArrowUp, F1 - F12, Digit0 - Digit9, KeyA - KeyZ, etc.",
-        },
-        {
-          id: "cb-42",
-          language: "js",
-          code: "// \nawait page.locator('#name').press('Shift+A');\n\n// \nawait page.locator('#name').press('Shift+ArrowLeft');",
-        },
-      ],
-    },
-    {
-      id: "upload-files",
-      title: {
-        en: "Upload files",
+        en: "File upload",
         uk: "Завантаження файлів",
       },
       paragraphs: [
         {
-          en: 'You can select input files for upload using the [`method: Locator.setInputFiles`] method. It expects first argument to point to an [input element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) with the type `"file"`. Multiple files can be passed in the array. If some of the file paths are relative, they are resolved relative to the current working directory. Empty array clears the selected files.',
-          uk: 'Вибрати файли для завантаження можна методом [`method: Locator.setInputFiles`]. Перший аргумент має вказувати на [елемент input](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/input) з типом `"file"`. Кілька файлів передають масивом. Відносні шляхи розв’язуються відносно поточної робочої директорії. Порожній масив очищає вибрані файли.',
-        },
-        {
-          en: "If you don't have input element in hand (it is created dynamically), you can handle the [`event: Page.fileChooser`] event\nor use a corresponding waiting method upon your action:",
-          uk: "Якщо елемента input під рукою немає (він створюється динамічно), можна обробити подію [`event: Page.fileChooser`]\nабо скористатися відповідним методом очікування після вашої дії:",
+          en: "`setInputFiles` sets files on an `<input type=\"file\">` element without opening the OS file picker. Pass a file path or multiple paths for multi-file inputs. For drag-and-drop upload zones, use `page.dragAndDrop()` or `dispatchEvent`.",
+          uk: "`setInputFiles` встановлює файли на `<input type=\"file\">` без відкриття системного вибору файлів. Передай шлях до файлу або кілька шляхів для multi-file. Для drag-and-drop зон завантаження — `page.dragAndDrop()` або `dispatchEvent`.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-47",
-          language: "js",
-          code: "// Select one file\nawait page.getByLabel('Upload file').setInputFiles(path.join(__dirname, 'myfile.pdf'));\n\n// Select multiple files\nawait page.getByLabel('Upload files').setInputFiles([\n  path.join(__dirname, 'file1.txt'),\n  path.join(__dirname, 'file2.txt'),\n]);\n\n// Select a directory\nawait page.getByLabel('Upload directory').setInputFiles(path.join(__dirname, 'mydir'));\n\n// Remove all the selected files\nawait page.getByLabel('Upload file').setInputFiles([]);\n\n// Upload buffer from memory\nawait page.getByLabel('Upload file').setInputFiles({\n  name: 'file.txt',\n  mimeType: 'text/plain',\n  buffer: Buffer.from('this is test')\n});",
-        },
-        {
-          id: "cb-52",
-          language: "js",
-          code: "// Start waiting for file chooser before clicking. Note no await.\nconst fileChooserPromise = page.waitForEvent('filechooser');\nawait page.getByLabel('Upload file').click();\nconst fileChooser = await fileChooserPromise;\nawait fileChooser.setFiles(path.join(__dirname, 'myfile.pdf'));",
-        },
-      ],
-    },
-    {
-      id: "focus-element",
-      title: {
-        en: "Focus element",
-        uk: "Фокус на елементі",
-      },
-      paragraphs: [
-        {
-          en: "For the dynamic pages that handle focus events, you can focus the given element with [`method: Locator.focus`].",
-          uk: "На динамічних сторінках, які обробляють події фокусу, можна сфокусувати потрібний елемент за допомогою [`method: Locator.focus`].",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-57",
-          language: "js",
-          code: "await page.getByLabel('Password').focus();",
+          id: "upload-examples",
+          language: "ts",
+          code: `test('upload order document', async ({ page }) => {
+  await page.goto('/orders/42/documents')
+
+  // Один файл
+  await page.getByLabel('Upload document').setInputFiles('tests/fixtures/invoice.pdf')
+
+  // Кілька файлів
+  await page.getByLabel('Upload documents').setInputFiles([
+    'tests/fixtures/invoice.pdf',
+    'tests/fixtures/contract.pdf',
+  ])
+
+  // Очистити вибір файлів
+  await page.getByLabel('Upload document').setInputFiles([])
+
+  await page.getByRole('button', { name: 'Submit' }).click()
+  await expect(page.getByText('2 documents uploaded')).toBeVisible()
+})`,
         },
       ],
     },
     {
       id: "drag-and-drop",
       title: {
-        en: "Drag and Drop",
-        uk: "Перетягування (drag and drop)",
+        en: "Drag and drop",
+        uk: "Drag and drop",
       },
       paragraphs: [
         {
-          en: "You can perform drag&drop operation with [`method: Locator.dragTo`]. This method will:\n- Hover the element that will be dragged.\n- Press left mouse button.\n- Move mouse to the element that will receive the drop.\n- Release left mouse button.",
-          uk: "Операцію drag&drop можна виконати через [`method: Locator.dragTo`]. Метод:\n- наводить курсор на елемент, який перетягують;\n- натискає ліву кнопку миші;\n- переміщує курсор до елемента, куди відпускають;\n- відпускає ліву кнопку миші.",
-        },
-        {
-          en: "### Dragging manually",
-          uk: "### Ручне перетягування",
-        },
-        {
-          en: "If you want precise control over the drag operation, use lower-level methods like [`method: Locator.hover`], [`method: Mouse.down`], [`method: Mouse.move`] and [`method: Mouse.up`].",
-          uk: "Для точного керування перетягуванням використовуйте нижчорівневі методи: [`method: Locator.hover`], [`method: Mouse.down`], [`method: Mouse.move`] та [`method: Mouse.up`].",
+          en: "For HTML5 drag-and-drop (elements with `draggable` attribute), `page.dragAndDrop()` handles the whole sequence. For custom drag implementations that listen to mouse events directly, use the lower-level `mouse.down()`, `mouse.move()`, `mouse.up()` sequence.",
+          uk: "Для HTML5 drag-and-drop (елементи з атрибутом `draggable`) — `page.dragAndDrop()` обробляє всю послідовність. Для кастомних реалізацій що слухають події мишей безпосередньо — використовуй нижньорівневу послідовність `mouse.down()`, `mouse.move()`, `mouse.up()`.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-62",
-          language: "js",
-          code: "await page.locator('#item-to-be-dragged').dragTo(page.locator('#item-to-drop-at'));",
-        },
-        {
-          id: "cb-67",
-          language: "js",
-          code: "await page.locator('#item-to-be-dragged').hover();\nawait page.mouse.down();\nawait page.locator('#item-to-drop-at').hover();\nawait page.mouse.up();",
-        },
-      ],
-    },
-    {
-      id: "scrolling",
-      title: {
-        en: "Scrolling",
-        uk: "Прокрутка",
-      },
-      paragraphs: [
-        {
-          en: "Most of the time, Playwright will automatically scroll for you before doing any actions. Therefore, you do not need to scroll explicitly.",
-          uk: "Зазвичай Playwright автоматично прокручує сторінку перед діями, тож явна прокрутка не потрібна.",
-        },
-        {
-          en: 'However, in rare cases you might need to manually scroll. For example, you might want to force an "infinite list" to load more elements, or position the page for a specific screenshot. In such a case, the most reliable way is to find an element that you want to make visible at the bottom, and scroll it into view.',
-          uk: "У рідких випадках може знадобитися ручна прокрутка: наприклад, щоб «нескінченний список» підвантажив елементи або щоб підготувати сторінку до скриншота. Найнадійніше знайти елемент, який має з’явитися внизу, і прокрутити до нього.",
-        },
-        {
-          en: "If you would like to control the scrolling more precisely, use [`method: Mouse.wheel`] or [`method: Locator.evaluate`]:",
-          uk: "Для точнішого керування прокруткою використовуйте [`method: Mouse.wheel`] або [`method: Locator.evaluate`]:",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-72",
-          language: "js",
-          code: "// Scrolls automatically so that button is visible\nawait page.getByRole('button').click();",
-        },
-        {
-          id: "cb-77",
-          language: "js",
-          code: "// Scroll the footer into view, forcing an \"infinite list\" to load more content\nawait page.getByText('Footer text').scrollIntoViewIfNeeded();",
-        },
-        {
-          id: "cb-82",
-          language: "js",
-          code: "// Position the mouse and scroll with the mouse wheel\nawait page.getByTestId('scrolling-container').hover();\nawait page.mouse.wheel(0, 10);\n\n// Alternatively, programmatically scroll a specific element\nawait page.getByTestId('scrolling-container').evaluate(e => e.scrollTop += 100);",
+          id: "drag-examples",
+          language: "ts",
+          code: `test('reorder items in kanban', async ({ page }) => {
+  await page.goto('/orders/kanban')
+
+  // HTML5 dragAndDrop: з "Pending" колонки до "In Progress"
+  await page.dragAndDrop(
+    '[data-testid="card-ORDER-042"]',
+    '[data-testid="column-in-progress"]'
+  )
+
+  await expect(
+    page.getByTestId('column-in-progress').getByText('ORDER-042')
+  ).toBeVisible()
+})`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "You need to test an autocomplete that triggers suggestions after each keystroke. Which method should you use instead of fill()?",
+        uk: "Треба тестувати autocomplete що показує підказки після кожного натиску. Який метод використовувати замість fill()?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "page.keyboard.type() — simulates real keystroke events",
+            uk: "page.keyboard.type() — симулює реальні події натиску",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "locator.pressSequentially() — types character by character",
+            uk: "locator.pressSequentially() — друкує символ за символом",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "locator.fill() with a delay option",
+            uk: "locator.fill() з опцією delay",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`pressSequentially` types character by character on a focused locator, which triggers `keydown`, `input`, and `keyup` events for each character — exactly what autocomplete listens to. `fill()` sets the value in one shot and only fires one `input` event, which autocomplete may not respond to correctly.",
+        uk: "`pressSequentially` друкує символ за символом на сфокусованому локаторі, що генерує `keydown`, `input` і `keyup` для кожного символу — саме те що слухає autocomplete. `fill()` встановлює значення одразу і генерує лише одну подію `input`, на яку autocomplete може не відреагувати правильно.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "What does `locator.fill('hello')` do before setting the value?",
+        uk: "Що робить `locator.fill('hello')` перед встановленням значення?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "It appends 'hello' to whatever text is already in the field.",
+            uk: "Він додає 'hello' до тексту що вже є в полі.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "It focuses the field and clears any existing value, then sets the new value.",
+            uk: "Він фокусує поле і очищає будь-яке існуюче значення, потім встановлює нове.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "It clicks the field twice to select all, then types the new value.",
+            uk: "Він двічі клікає по полю щоб виділити все, потім вводить нове значення.",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "It does nothing if the field already has a value.",
+            uk: "Він нічого не робить якщо поле вже має значення.",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`fill` focuses the input element, clears its current content, and then sets it to the given value — all in one step. It also fires the `input` event. This makes it reliable for re-filling fields without needing to manually select-all and delete first. Because it clears before setting, use `pressSequentially` when you want to test incremental typing behavior.",
+        uk: "`fill` фокусує поле вводу, очищає його поточний вміст, потім встановлює задане значення — все за один крок. Також генерує подію `input`. Це робить його надійним для повторного заповнення полів без необхідності вручну виділяти і видаляти спочатку. Оскільки він очищає перед встановленням — використовуй `pressSequentially` коли хочеш тестувати поступове введення.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "What does `locator.click()` automatically do before firing the click event?",
+        uk: "Що автоматично робить `locator.click()` перед генерацією події кліку?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "It fires the click immediately without any waiting.",
+            uk: "Він миттєво генерує клік без будь-якого очікування.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "It waits for the element to be visible, stable (no animations), and not obscured by another element — and scrolls it into view.",
+            uk: "Він чекає поки елемент стане видимим, стабільним (без анімацій) і не перекритим іншим елементом — та прокручує його у видиму область.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "It takes a screenshot of the element for the trace.",
+            uk: "Він робить скріншот елемента для трейсу.",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "It moves the mouse to the center of the page first, then to the element.",
+            uk: "Він спочатку переміщує мишу до центру сторінки, потім до елемента.",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Playwright's `click()` is actionability-aware: it waits for the element to be visible (not display:none or visibility:hidden), stable (no CSS transitions or animations in progress), and not obscured by an overlapping element. It also auto-scrolls the element into the viewport. This eliminates most timing-related test flakiness without needing manual waits.",
+        uk: "Метод `click()` Playwright враховує actionability: він чекає поки елемент стане видимим (не display:none або visibility:hidden), стабільним (немає CSS переходів або анімацій в процесі) і не перекритим елементом що накривається. Також автоматично прокручує елемент у видиму область. Це усуває більшість нестабільностей тестів пов'язаних з часом без ручних очікувань.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "You want to check a checkbox only if it is currently unchecked. Which method is most appropriate?",
+        uk: "Хочеш відмітити чекбокс лише якщо він зараз не відмічений. Який метод найбільш підходить?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "locator.click() — clicking always toggles the checkbox.",
+            uk: "locator.click() — клік завжди перемикає чекбокс.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "locator.check() — it verifies the current state and only clicks if the box is unchecked.",
+            uk: "locator.check() — він перевіряє поточний стан і клікає лише якщо чекбокс не відмічений.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "locator.setChecked(false) — explicitly sets the state.",
+            uk: "locator.setChecked(false) — явно встановлює стан.",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "locator.fill('true') — fill works for checkboxes too.",
+            uk: "locator.fill('true') — fill працює і для чекбоксів.",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`check()` is semantic — it first checks whether the element is already checked, and only performs the click if it isn't. This avoids accidentally unchecking a box that was already checked. `click()` blindly toggles. `setChecked(true)` also works and is explicit about the desired end state. `fill()` does not work on checkboxes.",
+        uk: "`check()` є семантичним — він спочатку перевіряє чи елемент вже відмічений, і виконує клік лише якщо ні. Це запобігає випадковому скасуванню відмітки чекбоксу що вже був відмічений. `click()` сліпо перемикає. `setChecked(true)` також працює і є явним щодо бажаного кінцевого стану. `fill()` не працює для чекбоксів.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "How do you select an option in a native `<select>` dropdown by the text the user sees (not the `value` attribute)?",
+        uk: "Як вибрати опцію в нативному `<select>` за текстом що бачить користувач (не атрибут `value`)?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "locator.selectOption('Pending') — passing a string matches by value or visible text.",
+            uk: "locator.selectOption('Pending') — передача рядка збігається за value або видимим текстом.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "locator.selectOption({ label: 'Pending' }) — passing an object with `label` matches by visible text.",
+            uk: "locator.selectOption({ label: 'Pending' }) — передача об'єкта з `label` збігається за видимим текстом.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "locator.click() then locator.getByText('Pending').click()",
+            uk: "locator.click() потім locator.getByText('Pending').click()",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "locator.fill('Pending') — fill works for select elements.",
+            uk: "locator.fill('Pending') — fill працює для select елементів.",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`selectOption` accepts three forms: a plain string (matches by `value` attribute), `{ label: '...' }` (matches by visible option text), or `{ index: N }` (by zero-based position). When you want to select by what the user sees in the dropdown — like 'Pending' — use `{ label: 'Pending' }`. Passing a plain string 'Pending' would match by the HTML `value` attribute, which may differ from the label.",
+        uk: "`selectOption` приймає три форми: звичайний рядок (збігається за атрибутом `value`), `{ label: '...' }` (збігається за видимим текстом опції) або `{ index: N }` (за позицією з нуля). Коли хочеш вибрати за тим що бачить користувач у dropdown — наприклад 'Pending' — використовуй `{ label: 'Pending' }`. Передача звичайного рядка 'Pending' збіжиться з атрибутом `value` HTML, який може відрізнятися від підпису.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "How do you attach a file to an `<input type=\"file\">` element in Playwright without opening the OS file picker?",
+        uk: "Як прикріпити файл до елемента `<input type=\"file\">` у Playwright без відкриття системного вибору файлів?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "locator.click() — Playwright intercepts the file picker dialog automatically.",
+            uk: "locator.click() — Playwright автоматично перехоплює діалог вибору файлів.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "page.on('filechooser', ...) combined with locator.click() — you must listen for the chooser event.",
+            uk: "page.on('filechooser', ...) у поєднанні з locator.click() — треба слухати подію chooser.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "locator.setInputFiles('path/to/file.pdf') — directly sets the file on the input without triggering the OS picker.",
+            uk: "locator.setInputFiles('path/to/file.pdf') — безпосередньо встановлює файл на інпут без запуску системного вибору.",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "locator.fill('path/to/file.pdf') — fill works for file inputs too.",
+            uk: "locator.fill('path/to/file.pdf') — fill також працює для file inputs.",
+          },
+        },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "`setInputFiles` is the dedicated Playwright API for file inputs. It bypasses the OS file picker entirely and directly sets the file(s) on the input element. Pass a single path string, an array of paths for multi-file inputs, or an empty array to clear the selection. `fill()` does not work on file inputs.",
+        uk: "`setInputFiles` — це спеціальний API Playwright для file inputs. Він повністю обходить системний вибір файлів і безпосередньо встановлює файл(и) на елемент input. Передай один рядок шляху, масив шляхів для multi-file inputs або порожній масив щоб очистити вибір. `fill()` не працює для file inputs.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "You want to send the keyboard combination Ctrl+A (select all) to an input field. Which code is correct?",
+        uk: "Хочеш надіслати комбінацію клавіш Ctrl+A (виділити все) до поля вводу. Який код правильний?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "await locator.press('Ctrl', 'A')",
+            uk: "await locator.press('Ctrl', 'A')",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "await locator.press('Control+a')",
+            uk: "await locator.press('Control+a')",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "await locator.keyboard('Ctrl+A')",
+            uk: "await locator.keyboard('Ctrl+A')",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "await locator.fill('Control+a')",
+            uk: "await locator.fill('Control+a')",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`press()` accepts key combinations with a `+` separator. Use the full key name `Control` (not `Ctrl`) combined with a lowercase letter: `'Control+a'`. On macOS you can use `'Meta+a'` or the cross-platform `'ControlOrMeta+a'`. There is no `locator.keyboard()` method, and `fill()` is for text values, not key events.",
+        uk: "`press()` приймає комбінації клавіш з роздільником `+`. Використовуй повну назву клавіші `Control` (не `Ctrl`) у поєднанні з малою літерою: `'Control+a'`. На macOS можна використовувати `'Meta+a'` або крос-платформний `'ControlOrMeta+a'`. Методу `locator.keyboard()` не існує, а `fill()` — для текстових значень, не для подій клавіш.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "Which Playwright method handles HTML5 drag-and-drop (elements with the `draggable` attribute)?",
+        uk: "Який метод Playwright обробляє HTML5 drag-and-drop (елементи з атрибутом `draggable`)?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "locator.dragTo(targetLocator) — drags from the source locator to a target locator.",
+            uk: "locator.dragTo(targetLocator) — перетягує від локатора-джерела до локатора-цілі.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "page.mouse.move() then page.mouse.down() then page.mouse.up() — only the low-level mouse API works.",
+            uk: "page.mouse.move() потім page.mouse.down() потім page.mouse.up() — працює лише низькорівневий mouse API.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "locator.click({ button: 'left', force: true }) held down.",
+            uk: "locator.click({ button: 'left', force: true }) утримуваний.",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "page.dragAndDrop(source, target) or locator.dragTo(target) — both work for HTML5 drag.",
+            uk: "page.dragAndDrop(source, target) або locator.dragTo(target) — обидва працюють для HTML5 drag.",
+          },
+        },
+      ],
+      correctOptionId: "d",
+      rationale: {
+        en: "Playwright offers two high-level APIs for HTML5 drag-and-drop: `page.dragAndDrop(sourceSelector, targetSelector)` which takes CSS/text selectors, and `locator.dragTo(targetLocator)` which works with locators. Both handle the full drag sequence (mousedown, mousemove, mouseup plus drag events). For custom implementations that listen to raw mouse events — not the native drag API — you may need the low-level `mouse.down/move/up` sequence instead.",
+        uk: "Playwright пропонує два високорівневих API для HTML5 drag-and-drop: `page.dragAndDrop(sourceSelector, targetSelector)` що приймає CSS/текстові селектори, і `locator.dragTo(targetLocator)` що працює з локаторами. Обидва обробляють повну послідовність перетягування (mousedown, mousemove, mouseup плюс drag-події). Для кастомних реалізацій що слухають сирі події миші — не нативний drag API — може знадобитися низькорівнева послідовність `mouse.down/move/up`.",
+      },
+    },
+  ],
 }

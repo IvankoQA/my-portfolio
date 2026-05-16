@@ -13,386 +13,423 @@ export const bestPracticesTopic: PlaywrightTopic = {
     uk: "Найкращі практики",
   },
   summary: {
-    en: "This guide should help you to make sure you are following our best practices and writing tests that are more resilient.",
-    uk: "Цей посібник допоможе дотримуватися рекомендованих практик і писати стійкіші тести.",
+    en: "A collection of rules I keep coming back to when reviewing Playwright test suites — things that make tests survive refactors, run reliably on CI, and stay readable months later.",
+    uk: "Набір правил до яких я повертаюся при рев'ю тест-сьютів Playwright — те що робить тести стійкими до рефакторингу, надійними на CI і читабельними через місяці.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "test-behavior-not-implementation",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "Test what the user sees, not how it's built",
+        uk: "Тестуй те що бачить користувач, не те як це зроблено",
       },
       paragraphs: [
         {
-          en: "This guide should help you to make sure you are following our best practices and writing tests that are more resilient.",
-          uk: "Цей посібник допоможе дотримуватися рекомендованих практик і писати стійкіші тести.",
-        },
-      ],
-    },
-    {
-      id: "testing-philosophy",
-      title: {
-        en: "Testing philosophy",
-        uk: "Філософія тестування",
-      },
-      paragraphs: [
-        {
-          en: "### Test user-visible behavior",
-          uk: "### Тестуйте те, що бачить користувач",
-        },
-        {
-          en: "Automated tests should verify that the application code works for the end users, and avoid relying on implementation details such as things which users will not typically use, see, or even know about such as the name of a function, whether something is an array, or the CSS class of some element. The end user will see or interact with what is rendered on the page, so your test should typically only see/interact with the same rendered output.",
-          uk: "Автотести мають перевіряти поведінку для кінцевого користувача, а не деталі реалізації — назви функцій, те, чи значення є масивом, CSS-класи тощо. Користувач бачить зрендерену сторінку, тому тест теж має орієнтуватися на той самий видимий результат.",
-        },
-        {
-          en: "### Make tests as isolated as possible",
-          uk: "### Максимально ізолюйте тести",
-        },
-        {
-          en: "Each test should be completely isolated from another test and should run independently with its own local storage, session storage, data, cookies etc. [Test isolation](./browser-contexts.md) improves reproducibility, makes debugging easier and prevents cascading test failures.",
-          uk: "Кожен тест має бути незалежним: свій local storage, session storage, дані, куки тощо. [Ізоляція тестів](./browser-contexts.md) підвищує відтворюваність, спрощує дебаг і запобігає ланцюговим падінням.",
-        },
-        {
-          en: "In order to avoid repetition for a particular part of your test you can use [before and after hooks](https://playwright.dev/api/class-test.md). Within your test file add a before hook to run a part of your test before each test such as going to a particular URL or logging in to a part of your app. This keeps your tests isolated as no test relies on another. However it is also ok to have a little duplication when tests are simple enough especially if it keeps your tests clearer and easier to read and maintain.",
-          uk: "Щоб не повторювати однакові кроки, використовуйте [before/after hooks](https://playwright.dev/api/class-test.md): наприклад, `beforeEach` для переходу на URL або входу в частину застосунку. Тести лишаються ізольованими, бо жоден не залежить від іншого.\n\nНевелике дублювання у простих тестах теж нормально, якщо так код читабельніший.",
-        },
-        {
-          en: "You can also reuse the signed-in state in the tests with [setup project](./auth.md#basic-shared-account-in-all-tests). That way you can log in only once and then skip the log in step for all of the tests.",
-          uk: "Можна повторно використовувати стан входу через [setup project](./auth.md#basic-shared-account-in-all-tests): залогінитися один раз і не повторювати це в кожному тесті.",
-        },
-        {
-          en: "### Avoid testing third-party dependencies",
-          uk: "### Не тестуйте сторонні залежності",
-        },
-        {
-          en: "Only test what you control. Don't try to test links to external sites or third party servers that you do not control. Not only is it time consuming and can slow down your tests but also you cannot control the content of the page you are linking to, or if there are cookie banners or overlay pages or anything else that might cause your test to fail.",
-          uk: "Тестуйте лише те, що контролюєте. Не варто ганяти реальні зовнішні сайти чи чужі сервери: це повільно, а контент, банери кук, оверлеї можуть зламати тест без вашої провини.",
-        },
-        {
-          en: "Instead, use the [Playwright Network API](/network.md#handle-requests) and guarantee the response needed.",
-          uk: "Краще перехоплювати мережу через [Playwright Network API](/network.md#handle-requests) і підставляти потрібну відповідь.",
-        },
-        {
-          en: "### Testing with a database",
-          uk: "### Тести з базою даних",
-        },
-        {
-          en: "If working with a database then make sure you control the data. Test against a staging environment and make sure it doesn't change. For visual regression tests make sure the operating system and browser versions are the same.",
-          uk: "Якщо є БД — контролюйте дані, тестуйте на стабільному staging. Для візуальних регресій узгодьте ОС і версії браузерів.",
+          en: "The most resilient tests click buttons by label, check text that users read, and don't care about CSS classes or component internals. When a developer renames `class=\"btn-primary\"` to `class=\"button-filled\"`, your tests shouldn't break — and they won't if you wrote them against visible behavior.",
+          uk: "Найстійкіші тести клікають кнопки за підписом, перевіряють текст який бачать користувачі, і не залежать від CSS класів або внутрішнього устрою компонентів. Коли розробник перейменує `class=\"btn-primary\"` на `class=\"button-filled\"` — твої тести не повинні зламатись. І не зламаються, якщо ти писав їх на видиму поведінку.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
-          language: "js",
-          code: "\ntest.beforeEach(async ({ page }) => {\n  // Runs before each test and signs in each page.\n  await page.goto('https://github.com/login');\n  await page.getByLabel('Username or email address').fill('username');\n  await page.getByLabel('Password').fill('password');\n  await page.getByRole('button', { name: 'Sign in' }).click();\n});\n\ntest('first', async ({ page }) => {\n  // page is signed in.\n});\n\ntest('second', async ({ page }) => {\n  // page is signed in.\n});",
-        },
-        {
-          id: "cb-2",
-          language: "js",
-          code: "await page.route('**/api/fetch_data_third_party_dependency', route => route.fulfill({\n  status: 200,\n  body: testData,\n}));\nawait page.goto('https://example.com');",
+          id: "behavior-vs-impl",
+          language: "ts",
+          code: `// ❌ Крихкі локатори — ламаються при рефакторингу
+await page.locator('.btn-primary.submit-order').click()
+await expect(page.locator('#order-success-msg')).toBeVisible()
+
+// ✅ Стійкі локатори — описують те що бачить користувач
+await page.getByRole('button', { name: 'Оформити замовлення' }).click()
+await expect(page.getByText('Замовлення прийнято')).toBeVisible()`,
         },
       ],
     },
     {
-      id: "best-practices",
+      id: "locator-priority",
       title: {
-        en: "Best Practices",
-        uk: "Найкращі практики",
+        en: "Locator priority: role > text > test-id > css",
+        uk: "Пріоритет локаторів: role > text > test-id > css",
       },
       paragraphs: [
         {
-          en: "### Use locators",
-          uk: "### Використовуйте локатори",
+          en: "Playwright recommends this order for locators, from most resilient to least:\n1. `getByRole()` — tests accessibility and behavior at once\n2. `getByText()` / `getByLabel()` — tied to visible content\n3. `getByTestId()` — stable explicit marker, add when role/text aren't enough\n4. CSS/XPath — last resort, use when nothing else works",
+          uk: "Playwright рекомендує такий порядок локаторів від найстійкішого до найслабшого:\n1. `getByRole()` — перевіряє доступність і поведінку одночасно\n2. `getByText()` / `getByLabel()` — прив'язаний до видимого вмісту\n3. `getByTestId()` — стабільний явний маркер, додай коли role/text не вистачає\n4. CSS/XPath — останній варіант, коли нічого іншого не підходить",
         },
         {
-          en: "In order to write end to end tests we need to first find elements on the webpage. We can do this by using Playwright's built in [locators](./locators.md). Locators come with auto waiting and retry-ability. Auto waiting means that Playwright performs a range of actionability checks on the elements, such as ensuring the element is visible and enabled before it performs the click. To make tests resilient, we recommend prioritizing user-facing attributes and explicit contracts.",
-          uk: "Для e2e потрібно знаходити елементи на сторінці — для цього є вбудовані [locators](./locators.md) з автоочікуванням і повторними спробами: Playwright перевіряє, що елемент видимий і доступний, перш ніж клікнути. Для стійкості орієнтуйтеся на те, що бачить користувач, і на явні «контракти» в розмітці.",
-        },
-        {
-          en: "#### Use chaining and filtering",
-          uk: "#### Ланцюжки та фільтрація",
-        },
-        {
-          en: "Locators can be [chained](./locators.md#matching-inside-a-locator) to narrow down the search to a particular part of the page.",
-          uk: "Локатори можна [ланцюжити](./locators.md#matching-inside-a-locator), щоб звузити пошук до частини сторінки.",
-        },
-        {
-          en: "You can also [filter locators](./locators.md#filtering-locators) by text or by another locator.",
-          uk: "Також можна [фільтрувати локатори](./locators.md#filtering-locators) за текстом або іншим локатором.",
-        },
-        {
-          en: "#### Prefer user-facing attributes to XPath or CSS selectors",
-          uk: "#### Надавайте перевагу атрибутам для користувача, а не XPath/CSS «наосліп»",
-        },
-        {
-          en: "Your DOM can easily change so having your tests depend on your DOM structure can lead to failing tests. For example consider selecting this button by its CSS classes. Should the designer change something then the class might change, thus breaking your test.",
-          uk: "DOM часто змінюється; якщо тест жорстко прив’язаний до структури або CSS-класів, дизайнер може зламати тест однією правкою.",
-        },
-        {
-          en: "Use locators that are resilient to changes in the DOM.",
-          uk: "Обирайте локатори, стійкі до змін DOM.",
-        },
-        {
-          en: "### Generate locators",
-          uk: "### Генерація локаторів",
-        },
-        {
-          en: "Playwright has a [test generator](./codegen.md) that can generate tests and pick locators for you. It will look at your page and figure out the best locator, prioritizing role, text and test id locators. If the generator finds multiple elements matching the locator, it will improve the locator to make it resilient and uniquely identify the target element, so you don't have to worry about failing tests due to locators.",
-          uk: "Є [генератор тестів](./codegen.md), який підбирає локатори: пріоритет — role, text і test id; за потреби локатор уточнюється, щоб унікально вказувати на елемент.",
-        },
-        {
-          en: "#### Use `codegen` to generate locators",
-          uk: "#### `codegen` для локаторів",
-        },
-        {
-          en: "To pick a locator run the `codegen` command followed by the URL that you would like to pick a locator from.",
-          uk: "Запустіть `codegen` і вкажіть URL сторінки, з якої хочете зняти локатор.",
-        },
-        {
-          en: "This will open a new browser window as well as the Playwright inspector. To pick a locator first click on the 'Record' button to stop the recording. By default when you run the `codegen` command it will start a new recording. Once you stop the recording the 'Pick Locator' button will be available to click.",
-          uk: "Відкриється браузер і Playwright Inspector. Щоб підібрати локатор, спочатку натисніть «Record», щоб зупинити запис (за замовчуванням `codegen` починає новий запис). Після зупинки з’явиться кнопка «Pick Locator».",
-        },
-        {
-          en: "You can then hover over any element on your page in the browser window and see the locator highlighted below your cursor. Clicking on an element will add the locator into the Playwright inspector. You can either copy the locator and paste into your test file or continue to explore the locator by editing it in the Playwright Inspector, for example by modifying the text, and seeing the results in the browser window.",
-          uk: "Наведіть курсор на елемент — під ним підсвітиться локатор. Клік додасть його в Inspector; можна скопіювати в тест або відредагувати в Inspector і одразу бачити результат у вікні браузера.",
-        },
-        {
-          en: "#### Use the VS Code extension to generate locators",
-          uk: "#### Розширення VS Code для локаторів",
-        },
-        {
-          en: "You can also use the [VS Code Extension](./getting-started-vscode.md) to generate locators as well as record a test. The VS Code extension also gives you a great developer experience when writing, running, and debugging tests.",
-          uk: "Також можна [розширення VS Code](./getting-started-vscode.md): генерація локаторів, запис тестів і зручний цикл написання, запуску та дебагу.",
-        },
-        {
-          en: "### Use web first assertions",
-          uk: "### Web-first assertions",
-        },
-        {
-          en: "Assertions are a way to verify that the expected result and the actual result matched or not. By using [web first assertions](./test-assertions.md) Playwright will wait until the expected condition is met. For example, when testing an alert message, a test would click a button that makes a message appear and check that the alert message is there. If the alert message takes half a second to appear, assertions such as `toBeVisible()` will wait and retry if needed.",
-          uk: "Асершени перевіряють очікуваний результат. [Web-first assertions](./test-assertions.md) чекають на умову: наприклад, після кліку повідомлення з’являється з затримкою — `toBeVisible()` дочекається й повторить спроби.",
-        },
-        {
-          en: "#### Don't use manual assertions",
-          uk: "#### Не використовуйте «ручні» асершени без очікування",
-        },
-        {
-          en: "Don't use manual assertions that are not awaiting the expect. In the code below the await is inside the expect rather than before it. When using assertions such as `isVisible()` the test won't wait a single second, it will just check the locator is there and return immediately.",
-          uk: "Не залишайте `await` лише всередині «сирих» перевірок без web-first expect: виклики на кшталт `isVisible()` без очікування миттєво повернуть результат і тест може бути flaky.",
-        },
-        {
-          en: "Use web first assertions such as `toBeVisible()` instead.",
-          uk: "Краще `await expect(...).toBeVisible()` та інші web-first matchers.",
-        },
-        {
-          en: "### Configure debugging",
-          uk: "### Налаштування дебагу",
-        },
-        {
-          en: "#### Local debugging",
-          uk: "#### Локальний дебаг",
-        },
-        {
-          en: "For local debugging we recommend you [debug your tests live in VS Code](./getting-started-vscode.md#debugging-your-tests) by installing the [VS Code extension](./getting-started-vscode.md). You can run tests in debug mode by right-clicking on the line next to the test you want to run which will open a browser window and pause at where the breakpoint is set.",
-          uk: "Локально зручно [дебажити в VS Code](./getting-started-vscode.md#debugging-your-tests) через [розширення](./getting-started-vscode.md): правий клік біля тесту — Debug, відкриється браузер і зупинка на breakpoint.",
-        },
-        {
-          en: "You can live debug your test by clicking or editing the locators in your test in VS Code which will highlight this locator in the browser window as well as show you any other matching locators found on the page.",
-          uk: "Можна клікати або редагувати локатори в коді — вони підсвічуються в браузері, видно й інші збіги на сторінці.",
-        },
-        {
-          en: "You can also debug your tests with the Playwright inspector by running your tests with the `--debug` flag.",
-          uk: "Також можна дебажити через Playwright Inspector з прапором `--debug`.",
-        },
-        {
-          en: "You can then step through your test, view actionability logs and edit the locator live and see it highlighted in the browser window. This will show you which locators match, how many of them there are.",
-          uk: "Далі крок за кроком проходьте тест, дивіться логи actionability, редагуйте локатор у реальному часі й бачте підсвітку в браузері та кількість збігів.",
-        },
-        {
-          en: "To debug a specific test add the name of the test file and the line number of the test followed by the `--debug` flag.",
-          uk: "Щоб дебажити один тест, вкажіть файл і номер рядка тесту та прапор `--debug`.",
-        },
-        {
-          en: "#### Debugging on CI",
-          uk: "#### Дебаг на CI",
-        },
-        {
-          en: "For CI failures, use the Playwright [trace viewer](./trace-viewer.md) instead of videos and screenshots. The trace viewer gives you a full trace of your tests as a local Progressive Web App (PWA) that can easily be shared. With the trace viewer you can view the timeline, inspect DOM snapshots for each action using dev tools, view network requests and more.",
-          uk: "Для падінь на CI краще [trace viewer](./trace-viewer.md), ніж лише відео чи скриншоти: повний трейс як локальний PWA, який легко передати; таймлайн, знімки DOM на кожну дію, мережа тощо.",
-        },
-        {
-          en: "Traces are configured in the Playwright config file and are set to run on CI on the first retry of a failed test. We don't recommend setting this to `on` so that traces are run on every test as it's very performance heavy. However you can run a trace locally when developing with the `--trace` flag.",
-          uk: "Трейси налаштовуються в конфігу; на CI зручно знімати їх на першому retry після падіння. Режим `on` для кожного тесту не рекомендуємо — дуже важко для продуктивності. Локально під час розробки можна `--trace`.",
-        },
-        {
-          en: "Once you run this command your traces will be recorded for each test and can be viewed directly from the HTML report.",
-          uk: "Після запуску команди трейси збережуться для кожного тесту й відкриються з HTML-звіту.",
-        },
-        {
-          en: "Traces can be opened by clicking on the icon next to the test file name or by opening each of the test reports and scrolling down to the traces section.",
-          uk: "Трейс відкривається іконкою біля назви файлу тесту або в картці тесту внизу звіту.",
-        },
-        {
-          en: "### Use Playwright's Tooling",
-          uk: "### Інструменти Playwright",
-        },
-        {
-          en: "Playwright comes with a range of tooling to help you write tests.\n- The [VS Code extension](./getting-started-vscode.md) gives you a great developer experience when writing, running, and debugging tests.\n- The [test generator](./codegen.md) can generate tests and pick locators for you.\n- The [trace viewer](./trace-viewer.md) gives you a full trace of your tests as a local PWA that can easily be shared. With the trace viewer you can view the timeline, inspect DOM snapshots for each action, view network requests and more.\n- The [UI Mode](./test-ui-mode) lets you explore, run and debug tests with a time travel experience complete with watch mode. All test files are loaded into the testing sidebar where you can expand each file and describe block to individually run, view, watch and debug each test.\n- [TypeScript](./test-typescript) in Playwright works out of the box and gives you better IDE integrations. Your IDE will show you everything you can do and highlight when you do something wrong. No TypeScript experience is needed and it is not necessary for your code to be in TypeScript, all you need to do is create your tests with a `.ts` extension.",
-          uk: "Playwright постачає набір інструментів для написання тестів.\n- [Розширення VS Code](./getting-started-vscode.md) — зручний цикл написання, запуску й дебагу.\n- [Генератор тестів](./codegen.md) — запис і підбір локаторів.\n- [Trace viewer](./trace-viewer.md) — повний трейс як локальний PWA; таймлайн, знімки DOM на дію, мережа тощо.\n- [UI Mode](./test-ui-mode) — перегляд, запуск і дебаг з «подорожжю в часі» і watch; усі файли в сайдбарі, можна розгортати `describe` і ганяти окремі тести.\n- [TypeScript](./test-typescript) працює з коробки й покращує підказки IDE. Досвід TS не обов’язковий — достатньо розширення `.ts` для тестів.",
-        },
-        {
-          en: "### Test across all browsers",
-          uk: "### Тестуйте в усіх браузерах",
-        },
-        {
-          en: "Playwright makes it easy to test your site across all [browsers](./test-projects.md#configure-projects-for-multiple-browsers) no matter what platform you are on. Testing across all browsers ensures your app works for all users. In your config file you can set up projects adding the name and which browser or device to use.",
-          uk: "Легко ганяти сайт у всіх [браузерах](./test-projects.md#configure-projects-for-multiple-browsers) незалежно від вашої ОС. У конфігу додайте проєкти з іменами та потрібним браузером або пристроєм.",
-        },
-        {
-          en: "### Keep your Playwright dependency up to date",
-          uk: "### Оновлюйте залежність Playwright",
-        },
-        {
-          en: "By keeping your Playwright version up to date you will be able to test your app on the latest browser versions and catch failures before the latest browser version is released to the public.",
-          uk: "Актуальна версія Playwright дає свіжі збірки браузерів і допомагає зловити регресії до публічного релізу браузера.",
-        },
-        {
-          en: "Check the [release notes](./release-notes.md) to see what the latest version is and what changes have been released.",
-          uk: "Дивіться [release notes](./release-notes.md) — остання версія та зміни.",
-        },
-        {
-          en: "You can see what version of Playwright you have by running the following command.",
-          uk: "Поточну версію можна подивитися командою нижче.",
-        },
-        {
-          en: "### Run tests on CI",
-          uk: "### Запуск тестів на CI",
-        },
-        {
-          en: "Setup CI/CD and run your tests frequently. The more often you run your tests the better. Ideally you should run your tests on each commit and pull request. Playwright comes with a [GitHub actions workflow](/ci-intro.md) so that tests will run on CI for you with no setup required. Playwright can also be setup on the [CI environment](/ci.md) of your choice.",
-          uk: "Налаштуйте CI/CD і ганяйте тести якнайчастіше — ідеально на кожен коміт і PR. Є готовий [GitHub Actions workflow](/ci-intro.md); Playwright ставиться й на [інший CI](/ci.md) за вашим вибором.",
-        },
-        {
-          en: "Use Linux when running your tests on CI as it is cheaper. Developers can use whatever environment when running locally but use linux on CI. Consider setting up [Sharding](./test-sharding.md) to make CI faster.",
-          uk: "На CI зручніший Linux (дешевше). Локально — будь-яка ОС. Для швидкості додайте [шардінг](./test-sharding.md).",
-        },
-        {
-          en: "#### Optimize browser downloads on CI",
-          uk: "#### Оптимізація завантаження браузерів на CI",
-        },
-        {
-          en: "Only install the browsers that you actually need, especially on CI. For example, if you're only testing with Chromium, install just Chromium.",
-          uk: "Встановлюйте лише потрібні браузери, особливо на CI — наприклад, лише Chromium.",
-        },
-        {
-          en: "This saves both download time and disk space on your CI machines.",
-          uk: "Це економить час завантаження й місце на диску.",
-        },
-        {
-          en: "### Lint your tests",
-          uk: "### Лінтуйте тести",
-        },
-        {
-          en: "We recommend TypeScript and linting with ESLint for your tests to catch errors early. Use [`@typescript-eslint/no-floating-promises`](https://typescript-eslint.io/rules/no-floating-promises/) [ESLint](https://eslint.org) rule to make sure there are no missing awaits before the asynchronous calls to the Playwright API. On your CI you can run `tsc --noEmit` to ensure that functions are called with the right signature.",
-          uk: "Рекомендуємо TypeScript і ESLint, щоб ловити помилки раніше. Правило [`@typescript-eslint/no-floating-promises`](https://typescript-eslint.io/rules/no-floating-promises/) у [ESLint](https://eslint.org) допоможе не забувати `await` перед асинхронними викликами Playwright. На CI можна `tsc --noEmit` для перевірки сигнатур.",
-        },
-        {
-          en: "### Use parallelism and sharding",
-          uk: "### Паралелізм і шардінг",
-        },
-        {
-          en: "Playwright runs tests in [parallel](./test-parallel.md) by default. Tests in a single file are run in order, in the same worker process. If you have many independent tests in a single file, you might want to run them in parallel",
-          uk: "За замовчуванням тести [паралельні](./test-parallel.md). У межах одного файлу вони йдуть по черзі в одному воркері. Якщо багато незалежних тестів у файлі — увімкніть паралельний режим для них.",
-        },
-        {
-          en: "Playwright can [shard](./test-parallel.md#shard-tests-between-multiple-machines) a test suite, so that it can be executed on multiple machines.",
-          uk: "Набір тестів можна [розбити на шарди](./test-parallel.md#shard-tests-between-multiple-machines) між кількома машинами.",
+          en: "When you need `getByTestId()`, agree with the dev team on a convention. I use `data-testid` as the attribute name — Playwright uses it by default, and it's easy to grep for in the codebase.",
+          uk: "Коли потрібен `getByTestId()` — домовся з командою розробників про конвенцію. Я використовую `data-testid` як назву атрибута — Playwright використовує його за замовчуванням, і його легко знайти грепом по кодбейсу.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-3",
-          language: "js",
-          code: "// 👍\npage.getByRole('button', { name: 'submit' });",
-        },
-        {
-          id: "cb-4",
-          language: "js",
-          code: "const product = page.getByRole('listitem').filter({ hasText: 'Product 2' });",
-        },
-        {
-          id: "cb-5",
-          language: "js",
-          code: "await page\n    .getByRole('listitem')\n    .filter({ hasText: 'Product 2' })\n    .getByRole('button', { name: 'Add to cart' })\n    .click();",
-        },
-        {
-          id: "cb-6",
-          language: "js",
-          code: "// 👎\npage.locator('button.buttonIcon.episode-actions-later');",
-        },
-        {
-          id: "cb-7",
-          language: "js",
-          code: "// 👍\npage.getByRole('button', { name: 'submit' });",
-        },
-        {
-          id: "cb-8",
-          language: "js",
-          code: "// 👍\nawait expect(page.getByText('welcome')).toBeVisible();\n\n// 👎\nexpect(await page.getByText('welcome').isVisible()).toBe(true);",
-        },
-        {
-          id: "cb-9",
-          language: "js",
-          code: "// 👎\nexpect(await page.getByText('welcome').isVisible()).toBe(true);",
-        },
-        {
-          id: "cb-10",
-          language: "js",
-          code: "// 👍\nawait expect(page.getByText('welcome')).toBeVisible();",
-        },
-        {
-          id: "cb-11",
-          language: "js",
-          code: "\nexport default defineConfig({\n  projects: [\n    {\n      name: 'chromium',\n      use: { ...devices['Desktop Chrome'] },\n    },\n    {\n      name: 'firefox',\n      use: { ...devices['Desktop Firefox'] },\n    },\n    {\n      name: 'webkit',\n      use: { ...devices['Desktop Safari'] },\n    },\n  ],\n});",
-        },
-        {
-          id: "cb-12",
-          language: "bash",
-          code: "# Instead of installing all browsers\nnpx playwright install --with-deps\n\n# Install only Chromium\nnpx playwright install chromium --with-deps",
-        },
-        {
-          id: "cb-13",
-          language: "js",
-          code: "\ntest.describe.configure({ mode: 'parallel' });\n\ntest('runs in parallel 1', async ({ page }) => { /* ... */ });\ntest('runs in parallel 2', async ({ page }) => { /* ... */ });",
+          id: "locator-examples",
+          language: "ts",
+          code: `// getByRole — найкраще для інтерактивних елементів
+await page.getByRole('button', { name: 'Зберегти' }).click()
+await page.getByRole('link', { name: 'Замовлення' }).click()
+await page.getByRole('textbox', { name: 'Email' }).fill('test@example.com')
+
+// getByLabel — для форм
+await page.getByLabel('Пароль').fill('secret123')
+
+// getByTestId — коли немає стабільного тексту
+await page.getByTestId('order-status-badge').click()
+
+// Ланцюжки — звужуємо до конкретної картки
+const orderCard = page.getByRole('article').filter({ hasText: 'ORD-001' })
+await orderCard.getByRole('button', { name: 'Деталі' }).click()`,
         },
       ],
     },
     {
-      id: "productivity-tips",
+      id: "isolation",
       title: {
-        en: "Productivity tips",
-        uk: "Поради продуктивності",
+        en: "Keep tests independent",
+        uk: "Тримай тести незалежними",
       },
       paragraphs: [
         {
-          en: "### Use Soft assertions",
-          uk: "### М’які (soft) асершени",
+          en: "Each test should run correctly regardless of which tests ran before it or whether it runs in parallel. If test B relies on data that test A created, you have a hidden dependency — and when tests run in a different order, B breaks for no obvious reason.",
+          uk: "Кожен тест має коректно виконуватись незалежно від того які тести були до нього або чи виконуються паралельно. Якщо тест B залежить від даних що створив тест A — це прихована залежність. Коли порядок запуску зміниться, B впаде без очевидної причини.",
         },
         {
-          en: "If your test fails, Playwright will give you an error message showing what part of the test failed which you can see either in VS Code, the terminal, the HTML report, or the trace viewer. However, you can also use [soft assertions](/test-assertions.md#soft-assertions). These do not immediately terminate the test execution, but rather compile and display a list of failed assertions once the test ended.",
-          uk: "При падінні тесту Playwright покаже, що зламалося — у VS Code, терміналі, HTML-звіті або trace viewer. Альтернатива — [soft assertions](/test-assertions.md#soft-assertions): тест не зупиняється одразу, а наприкінці збирається список невдалих перевірок.",
+          en: "Practical rule: if you can't run a test in isolation with `npx playwright test --grep \"test name\"` and have it pass, it's not truly isolated.",
+          uk: "Практичне правило: якщо неможливо запустити тест ізольовано через `npx playwright test --grep \"назва тесту\"` і він проходить — він не є справді ізольованим.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-14",
-          language: "js",
-          code: "// Make a few checks that will not stop the test when failed...\nawait expect.soft(page.getByTestId('status')).toHaveText('Success');\n\n// ... and continue the test to check more things.\nawait page.getByRole('link', { name: 'next page' }).click();",
+          id: "isolation-example",
+          language: "ts",
+          code: `// ❌ Тести залежать один від одного
+test('create order', async ({ page }) => {
+  // Створює замовлення — тест A
+  await page.goto('/orders/new')
+  await page.getByRole('button', { name: 'Підтвердити' }).click()
+})
+
+test('see order in list', async ({ page }) => {
+  // ❌ Якщо "create order" не запустився — цей тест впаде
+  await page.goto('/orders')
+  await expect(page.getByRole('row')).toHaveCount(1)
+})
+
+// ✅ Кожен тест незалежний — сам створює свої дані
+test('see order in list', async ({ page, request }) => {
+  // Створюємо замовлення через API (швидко, без UI)
+  await request.post('/api/orders', { data: { item: 'Laptop', qty: 1 } })
+
+  await page.goto('/orders')
+  await expect(page.getByRole('row')).toHaveCount(1)
+})`,
+        },
+      ],
+    },
+    {
+      id: "avoid-flaky-waits",
+      title: {
+        en: "Never hardcode waits",
+        uk: "Ніколи не хардкодь затримки",
+      },
+      paragraphs: [
+        {
+          en: "`await page.waitForTimeout(2000)` is a 2-second gamble: too short on a slow CI machine, too long on a fast local machine. It makes tests slow, flaky, and hard to maintain. Playwright's auto-waiting and explicit assertions handle timing correctly — use those instead.",
+          uk: "`await page.waitForTimeout(2000)` — це 2-секундна лотерея: мало для повільного CI, надто багато для швидкої локалки. Це робить тести повільними, нестабільними і важкими для підтримки. Auto-waiting і явні асерти Playwright правильно обробляють тайміни — використовуй їх.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "no-sleep",
+          language: "ts",
+          code: `// ❌ Хардкодна затримка
+await page.waitForTimeout(2000)
+await page.click('#submit')
+
+// ✅ Явне очікування стану
+await expect(page.getByRole('button', { name: 'Зберегти' })).toBeEnabled()
+await page.getByRole('button', { name: 'Зберегти' }).click()
+
+// ✅ Чекаємо поки мережевий запит завершиться
+const responsePromise = page.waitForResponse('**/api/orders')
+await page.getByRole('button', { name: 'Оновити' }).click()
+await responsePromise
+
+// ✅ Чекаємо поки елемент з'явиться
+await expect(page.getByText('Завантаження...')).toBeHidden()
+await expect(page.getByRole('table')).toBeVisible()`,
+        },
+      ],
+    },
+    {
+      id: "mock-external",
+      title: {
+        en: "Mock external services",
+        uk: "Мокай зовнішні сервіси",
+      },
+      paragraphs: [
+        {
+          en: "Third-party APIs, payment gateways, SMS providers — don't call them in tests. They're slow, rate-limited, cost money, and can return unexpected responses. Mock them with `page.route()` and return exactly the response your test needs.",
+          uk: "Сторонні API, платіжні шлюзи, SMS провайдери — не викликай їх у тестах. Вони повільні, мають ліміти запитів, коштують грошей і можуть повернути несподівану відповідь. Підмінь їх через `page.route()` і повертай рівно ту відповідь що потрібна тесту.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "mock-external",
+          language: "ts",
+          code: `test('payment success flow', async ({ page }) => {
+  // Підмінюємо Stripe — не витрачаємо реальну картку
+  await page.route('**/stripe.com/**', route =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ status: 'succeeded', id: 'pi_test_123' }),
+    })
+  )
+
+  await page.goto('/checkout')
+  await page.getByRole('button', { name: 'Оплатити' }).click()
+  await expect(page.getByText('Оплата успішна')).toBeVisible()
+})`,
+        },
+      ],
+    },
+    {
+      id: "page-objects",
+      title: {
+        en: "Use Page Objects for repeated flows",
+        uk: "Page Objects для повторюваних дій",
+      },
+      paragraphs: [
+        {
+          en: "If login, navigation, or form filling appears in 5+ tests, extract it to a Page Object. When the UI changes — you update one class, not 20 test files. Keep Page Objects thin: just locators and actions, no assertions. Assertions belong in tests.",
+          uk: "Якщо логін, навігація або заповнення форми зустрічаються в 5+ тестах — витягни це в Page Object. Коли UI зміниться — оновиш один клас, а не 20 тестових файлів. Тримай Page Objects тонкими: лише локатори і дії, без асертів. Асерти належать тестам.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "page-object",
+          language: "ts",
+          code: `// pages/OrdersPage.ts
+export class OrdersPage {
+  constructor(private page: Page) {}
+
+  async goto() {
+    await this.page.goto('/orders')
+  }
+
+  async filterByStatus(status: 'pending' | 'shipped' | 'delivered') {
+    await this.page.getByRole('combobox', { name: 'Статус' }).selectOption(status)
+  }
+
+  orderRow(orderId: string) {
+    return this.page.getByRole('row').filter({ hasText: orderId })
+  }
+}
+
+// tests/orders.spec.ts
+test('filter shows only pending orders', async ({ page }) => {
+  const orders = new OrdersPage(page)
+  await orders.goto()
+  await orders.filterByStatus('pending')
+  await expect(orders.orderRow('ORD-001')).toBeVisible()
+  await expect(orders.orderRow('ORD-002')).toBeHidden()
+})`,
+        },
+      ],
+    },
+    {
+      id: "ci-tips",
+      title: {
+        en: "CI-specific tips",
+        uk: "Поради для CI",
+      },
+      paragraphs: [
+        {
+          en: "A few things that save pain on CI:\n1. Always run in headless mode — headed mode needs a display server\n2. Set `retries: 1` in config to catch flakiness without masking real bugs\n3. Use `--reporter=github` on GitHub Actions for inline test annotations\n4. Save traces on failure (`trace: 'on-first-retry'`) — you'll thank yourself when debugging\n5. Pin browser versions in `package.json` — `@playwright/test` version determines browser binaries",
+          uk: "Кілька речей що рятують від болю на CI:\n1. Завжди запускай headless — headed режим потребує дисплей-сервера\n2. Встанови `retries: 1` в конфізі щоб ловити нестабільність без маскування реальних багів\n3. Використовуй `--reporter=github` на GitHub Actions для анотацій прямо в PR\n4. Зберігай traces при падінні (`trace: 'on-first-retry'`) — подякуєш собі при дебазі\n5. Прив'язуй версію браузерів через `@playwright/test` — версія пакета визначає версію бінарників",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "ci-config",
+          language: "ts",
+          code: `// playwright.config.ts — типовий CI конфіг
+export default defineConfig({
+  retries: process.env.CI ? 1 : 0,
+  use: {
+    headless: true,
+    screenshot: 'only-on-failure',
+    trace: 'on-first-retry',
+    video: 'on-first-retry',
+  },
+  reporter: process.env.CI
+    ? [['github'], ['html', { open: 'never' }]]
+    : 'list',
+})`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "Which locator is most resilient to UI refactoring?",
+        uk: "Який локатор найстійкіший до рефакторингу UI?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "page.locator('.btn-primary')",
+            uk: "page.locator('.btn-primary')",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "page.getByRole('button', { name: 'Save' })",
+            uk: "page.getByRole('button', { name: 'Зберегти' })",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "page.locator('#save-btn')",
+            uk: "page.locator('#save-btn')",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`getByRole()` tests what users perceive — the button's role and accessible name. CSS classes and IDs are implementation details that change during refactoring. Role + name stay stable as long as the button does the same thing.",
+        uk: "`getByRole()` перевіряє те що сприймають користувачі — роль кнопки та її доступне ім'я. CSS класи та ID — це деталі реалізації що змінюються при рефакторингу. Role + name залишаються стабільними поки кнопка виконує те саме.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "What's wrong with page.waitForTimeout(3000) before an assertion?",
+        uk: "Що не так з page.waitForTimeout(3000) перед асертом?",
+      },
+      options: [
+        { id: "a", label: { en: "It's deprecated in newer Playwright versions.", uk: "Він deprecated в нових версіях Playwright." } },
+        { id: "b", label: { en: "It adds a fixed delay — too slow on fast machines, too short on slow CI.", uk: "Додає фіксовану затримку — надто повільно на швидких машинах, надто мало на повільному CI." } },
+        { id: "c", label: { en: "It only works in headed mode.", uk: "Він працює тільки в headed режимі." } },
+        { id: "d", label: { en: "It blocks all network requests during the timeout.", uk: "Він блокує всі мережеві запити під час затримки." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Hardcoded waits are a gamble: 3 seconds might be too short on a slow CI runner and wastes time on a fast local machine. Use explicit assertions like `expect(element).toBeVisible()` — they retry automatically until the condition is met.",
+        uk: "Хардкодні затримки — лотерея: 3 секунди може бути мало на повільному CI раннері і марна трата часу на швидкій локалці. Використовуй явні асерти на кшталт `expect(element).toBeVisible()` — вони автоматично повторюють перевірку до виконання умови.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "Test B fails only when test A doesn't run first. What is this problem called, and how do you fix it?",
+        uk: "Тест B падає тільки коли тест A не виконується перед ним. Як називається ця проблема і як її виправити?",
+      },
+      options: [
+        { id: "a", label: { en: "Flakiness — fix it by adding retries in `playwright.config.ts`.", uk: "Нестабільність — виправити додавши retries в `playwright.config.ts`." } },
+        { id: "b", label: { en: "Test coupling — fix it by making test B create its own data (e.g., via API call) instead of relying on test A's side effects.", uk: "Зв'язність тестів — виправити зробивши тест B самостійним у створенні своїх даних (напр. через API-запит) замість покладання на побічні ефекти тесту A." } },
+        { id: "c", label: { en: "Race condition — fix it by adding `await page.waitForTimeout(1000)` between tests.", uk: "Race condition — виправити додавши `await page.waitForTimeout(1000)` між тестами." } },
+        { id: "d", label: { en: "A worker conflict — fix it by setting `workers: 1` in config.", uk: "Конфлікт воркерів — виправити встановивши `workers: 1` в конфізі." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "This is test coupling (hidden dependency). Test B relies on state that test A created, so running B alone fails. The fix is making each test independent — test B should set up the data it needs itself, typically via a fast API call rather than re-running the UI flow.",
+        uk: "Це зв'язність тестів (прихована залежність). Тест B покладається на стан що створив тест A, тому запуск B окремо падає. Виправлення — зробити кожен тест незалежним — тест B має сам підготувати необхідні дані, зазвичай через швидкий API-запит а не повторення UI-флоу.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "When should you use `getByTestId()` over `getByRole()` or `getByText()`?",
+        uk: "Коли варто використовувати `getByTestId()` замість `getByRole()` або `getByText()`?",
+      },
+      options: [
+        { id: "a", label: { en: "Always — test IDs are the most stable locator type.", uk: "Завжди — test IDs є найстабільнішим типом локаторів." } },
+        { id: "b", label: { en: "When the element has no stable accessible role or visible text, and adding an accessible name would be impractical.", uk: "Коли елемент не має стабільної доступної ролі або видимого тексту, і додати доступне ім'я було б непрактично." } },
+        { id: "c", label: { en: "Only for buttons — role-based locators don't work reliably for buttons.", uk: "Лише для кнопок — локатори на основі ролей ненадійно працюють для кнопок." } },
+        { id: "d", label: { en: "In CI environments only — locally you should always use CSS selectors.", uk: "Тільки в CI-оточеннях — локально завжди варто використовувати CSS-селектори." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`getByRole()` and `getByText()` are preferred because they test the visible interface. Use `getByTestId()` as a fallback when there's no stable accessible role or text — for example, a status badge or a custom icon button with no label. Agree on a convention (e.g., `data-testid`) with your dev team.",
+        uk: "`getByRole()` і `getByText()` переважніші бо перевіряють видимий інтерфейс. Використовуй `getByTestId()` як запасний варіант коли немає стабільної доступної ролі або тексту — наприклад статусний бейдж або кастомна кнопка-іконка без підпису. Домовся про конвенцію (напр. `data-testid`) з командою розробників.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "You need to click a 'Details' button inside a specific order card (by order ID). Which approach is correct?",
+        uk: "Потрібно клікнути кнопку 'Деталі' всередині конкретної картки замовлення (за ID замовлення). Який підхід правильний?",
+      },
+      options: [
+        { id: "a", label: { en: "`page.getByRole('button', { name: 'Details' }).first().click()`", uk: "`page.getByRole('button', { name: 'Деталі' }).first().click()`" } },
+        { id: "b", label: { en: "`page.locator('[data-orderid=\"ORD-001\"] button').click()`", uk: "`page.locator('[data-orderid=\"ORD-001\"] button').click()`" } },
+        { id: "c", label: { en: "`page.getByRole('article').filter({ hasText: 'ORD-001' }).getByRole('button', { name: 'Details' }).click()`", uk: "`page.getByRole('article').filter({ hasText: 'ORD-001' }).getByRole('button', { name: 'Деталі' }).click()`" } },
+        { id: "d", label: { en: "`page.locator('.order-card:first-child button.details').click()`", uk: "`page.locator('.order-card:first-child button.details').click()`" } },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "Chaining locators is the idiomatic approach: first narrow to the article (card) containing the order ID text using `.filter({ hasText: 'ORD-001' })`, then find the 'Details' button within that scope. This avoids positional assumptions (`.first()`) and fragile CSS selectors.",
+        uk: "Ланцюжок локаторів — ідіоматичний підхід: спочатку звузити до article (картки) що містить текст ID замовлення через `.filter({ hasText: 'ORD-001' })`, потім знайти кнопку 'Деталі' в цьому контексті. Це уникає позиційних припущень (`.first()`) і крихких CSS-селекторів.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "Where do assertions belong in a Page Object Model?",
+        uk: "Де мають знаходитися асерти в моделі Page Object?",
+      },
+      options: [
+        { id: "a", label: { en: "Inside the Page Object methods — keeps tests short.", uk: "Всередині методів Page Object — тести стають коротшими." } },
+        { id: "b", label: { en: "In the tests — Page Objects contain only locators and actions.", uk: "В тестах — Page Objects містять лише локатори і дії." } },
+        { id: "c", label: { en: "In a separate Assertions class that extends the Page Object.", uk: "В окремому класі Assertions що розширює Page Object." } },
+        { id: "d", label: { en: "In `beforeEach` hooks — assertions there apply to all tests.", uk: "В хуках `beforeEach` — асерти там застосовуються до всіх тестів." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Keep Page Objects thin — only locators and action methods (click, fill, select). Assertions belong in tests because different tests on the same page may expect different outcomes. If you embed assertions in Page Object actions, you lose flexibility and make debugging harder.",
+        uk: "Тримай Page Objects тонкими — лише локатори і методи дій (click, fill, select). Асерти належать тестам, бо різні тести на тій самій сторінці можуть очікувати різних результатів. Якщо вбудувати асерти в методи Page Object — втрачаєш гнучкість і ускладнюєш дебаг.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "You're testing a payment flow that calls a real Stripe API. What should you do instead?",
+        uk: "Ти тестуєш платіжний флоу що викликає реальний Stripe API. Що варто зробити натомість?",
+      },
+      options: [
+        { id: "a", label: { en: "Use a Stripe test-mode API key — it's designed for automated testing.", uk: "Використати тестовий API-ключ Stripe — він призначений для автоматизованого тестування." } },
+        { id: "b", label: { en: "Mock the Stripe endpoint with `page.route()` and return the exact response your test needs.", uk: "Змокати endpoint Stripe через `page.route()` і повернути саме ту відповідь що потрібна тесту." } },
+        { id: "c", label: { en: "Skip the payment test in CI and run it only locally.", uk: "Пропускати тест оплати в CI і запускати лише локально." } },
+        { id: "d", label: { en: "Add a `waitForTimeout(5000)` to allow the Stripe request to complete.", uk: "Додати `waitForTimeout(5000)` щоб дати Stripe-запиту завершитись." } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Real third-party APIs are slow, rate-limited, cost money, and return inconsistent responses. Mock them with `page.route()` to intercept the network call and return exactly the JSON your test scenario requires. This makes tests fast, deterministic, and free of external dependencies.",
+        uk: "Реальні сторонні API повільні, мають ліміти, коштують грошей і повертають непостійні відповіді. Підміняй їх через `page.route()` — перехоплюй мережевий виклик і повертай саме той JSON що потрібен твоєму тест-сценарію. Це робить тести швидкими, детермінованими і незалежними від зовнішніх сервісів.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "Which `playwright.config.ts` setting saves traces for debugging failures without slowing down passing tests?",
+        uk: "Яке налаштування `playwright.config.ts` зберігає trace для дебагу падінь, не сповільнюючи тести що проходять?",
+      },
+      options: [
+        { id: "a", label: { en: "`trace: 'on'`", uk: "`trace: 'on'`" } },
+        { id: "b", label: { en: "`trace: 'on-first-retry'`", uk: "`trace: 'on-first-retry'`" } },
+        { id: "c", label: { en: "`trace: 'off'`", uk: "`trace: 'off'`" } },
+        { id: "d", label: { en: "`trace: 'retain-on-failure'`", uk: "`trace: 'retain-on-failure'`" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`trace: 'on-first-retry'` records a trace only when a test fails and is retried, which is exactly when you need debugging information. `trace: 'on'` records for every test (slow), `trace: 'off'` never records, and `trace: 'retain-on-failure'` records all runs but keeps only failed ones.",
+        uk: "`trace: 'on-first-retry'` записує trace лише коли тест падає і перезапускається — саме тоді потрібна інформація для дебагу. `trace: 'on'` записує для кожного тесту (повільно), `trace: 'off'` не записує ніколи, `trace: 'retain-on-failure'` записує всі запуски але зберігає лише провалені.",
+      },
+    },
+  ],
 }

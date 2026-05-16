@@ -13,535 +13,580 @@ export const testFixturesTopic: PlaywrightTopic = {
     uk: "Фікстури",
   },
   summary: {
-    en: "Playwright Test is based on the concept of test fixtures. Test fixtures are used to establish the environment for each test, giving the test everything it needs and nothing else. Test fixtures are isolated between tests. With fixtures, you can group tests based on their meaning, instead of their common setup.",
-    uk: "Playwright Test базується на концепції тестових фікстур. Фікстури готують середовище для кожного тесту: дають лише те, що потрібно, і нічого зайвого. Фікстури ізольовані між тестами. З ними можна групувати тести за змістом, а не за спільним setup.",
+    en: "Fixtures are the better alternative to beforeEach/afterEach. They're composable, on-demand, and automatically cleaned up. Once you understand them, you won't go back to setup hooks.",
+    uk: "Фікстури — краща альтернатива beforeEach/afterEach. Вони компонуються, запускаються за потреби і автоматично прибирають за собою. Як тільки розумієш їх — повертатися до хуків не хочеться.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "what-are-fixtures",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "What fixtures are",
+        uk: "Що таке фікстури",
+      },
+      diagram: {
+        mermaid: `sequenceDiagram
+  participant PW as Playwright
+  participant F as Fixture
+  participant T as Test
+  PW->>F: Setup (everything before use())
+  F->>T: use(value) — тест отримує значення
+  T->>T: Runs test body
+  T->>F: Test done
+  F->>F: Teardown (everything after use())`,
+        caption: {
+          en: "use() is the yield point — setup before, teardown after",
+          uk: "use() — точка передачі. Setup до, teardown після",
+        },
       },
       paragraphs: [
         {
-          en: "Playwright Test is based on the concept of test fixtures. Test fixtures are used to establish the environment for each test, giving the test everything it needs and nothing else. Test fixtures are isolated between tests. With fixtures, you can group tests based on their meaning, instead of their common setup.",
-          uk: "Playwright Test базується на концепції тестових фікстур. Фікстури готують середовище для кожного тесту: дають лише те, що потрібно, і нічого зайвого. Фікстури ізольовані між тестами. З ними можна групувати тести за змістом, а не за спільним setup.",
+          en: "A fixture is a function that prepares something for a test and cleans it up after. The split is at `await use(value)` — everything before is setup, everything after is teardown. When you request a fixture in a test's argument list, Playwright runs it automatically and passes the value.",
+          uk: "Фікстура — це функція що готує щось для тесту і прибирає після. Точка розділення — `await use(value)`: все до — це setup, все після — teardown. Коли запитуєш фікстуру в списку аргументів тесту — Playwright автоматично запускає її і передає значення.",
         },
         {
-          en: "### Built-in fixtures",
-          uk: "### Вбудовані фікстури",
-        },
-        {
-          en: "You have already used test fixtures in your first test.",
-          uk: "Ви вже використовували фікстури в першому тесті.",
-        },
-        {
-          en: "The `{ page }` argument tells Playwright Test to set up the `page` fixture and provide it to your test function.",
-          uk: "Аргумент `{ page }` каже Playwright Test підготувати фікстуру `page` і передати її у функцію тесту.",
-        },
-        {
-          en: "Here is a list of the pre-defined fixtures that you are likely to use most of the time:",
-          uk: "Ось попередньо визначені фікстури, які найчастіше знадобляться:",
-        },
-        {
-          en: "|Fixture    |Type               |Description                      |\n|:----------|:------------------|:--------------------------------|\n|page       |[Page]             |Isolated page for this test run. |\n|context    |[BrowserContext]   |Isolated context for this test run. The `page` fixture belongs to this context as well. Learn how to [configure context](./test-configuration.md). |\n|browser    |[Browser]          |Browsers are shared across tests to optimize resources. Learn how to [configure browsers](./test-configuration.md). |\n|browserName|[string]           |The name of the browser currently running the test. Either `chromium`, `firefox` or `webkit`.|\n|request    |[APIRequestContext]|Isolated [APIRequestContext](./api/class-apirequestcontext.md) instance for this test run.|",
-          uk: "|Фікстура   |Тип                |Опис                             |\n|:----------|:------------------|:--------------------------------|\n|page       |[Page]             |Ізольована сторінка для цього запуску тесту. |\n|context    |[BrowserContext]   |Ізольований контекст для цього запуску тесту. Фікстура `page` також належить цьому контексту. Див. [налаштування контексту](./test-configuration.md). |\n|browser    |[Browser]          |Браузери спільні між тестами для економії ресурсів. Див. [налаштування браузерів](./test-configuration.md). |\n|browserName|[string]           |Назва браузера, у якому зараз виконується тест: `chromium`, `firefox` або `webkit`.|\n|request    |[APIRequestContext]|Ізольований екземпляр [APIRequestContext](./api/class-apirequestcontext.md) для цього запуску тесту.|",
-        },
-        {
-          en: "### Without fixtures",
-          uk: "### Без фікстур",
-        },
-        {
-          en: "Here is how a typical test environment setup differs between the traditional test style and the fixture-based one.",
-          uk: "Ось чим типове налаштування середовища тестів відрізняється між класичним стилем і підходом на фікстурах.",
-        },
-        {
-          en: '`TodoPage` is a class that helps us interact with a "todo list" page of the web app, following the [Page Object Model](./pom.md) pattern. It uses Playwright\'s `page` internally.',
-          uk: "`TodoPage` — клас для роботи зі сторінкою «todo list» вебзастосунку за патерном [Page Object Model](./pom.md). Всередині використовує `page` Playwright.",
-        },
-        {
-          en: "Click to expand the code for the TodoPage",
-          uk: "Натисніть, щоб розгорнути код TodoPage",
-        },
-        {
-          en: "### With fixtures",
-          uk: "### З фікстурами",
-        },
-        {
-          en: "Fixtures have a number of advantages over before/after hooks:\n- Fixtures **encapsulate** setup and teardown in the same place so it is easier to write. So if you have an after hook that tears down what was created in a before hook, consider turning them into a fixture.\n- Fixtures are **reusable** between test files - you can define them once and use them in all your tests. That's how Playwright's built-in `page` fixture works. So if you have a helper function that is used in multiple tests, consider turning it into a fixture.\n- Fixtures are **on-demand** - you can define as many fixtures as you'd like, and Playwright Test will setup only the ones needed by your test and nothing else.\n- Fixtures are **composable** - they can depend on each other to provide complex behaviors.\n- Fixtures are **flexible**. Tests can use any combination of fixtures to precisely tailor the environment to their needs, without affecting other tests.\n- Fixtures simplify **grouping**. You no longer need to wrap tests in `describe`s that set up their environment, and are free to group your tests by their meaning instead.",
-          uk: "Фікстури мають низку переваг над хуками before/after:\n- Фікстури **інкапсулюють** setup і teardown в одному місці — простіше писати. Якщо after знімає те, що створив before, краще об’єднати це в одну фікстуру.\n- Фікстури **повторно використовуються** між файлами тестів — визначте один раз і використовуйте скрізь. Так працює вбудована фікстура `page`. Якщо хелпер викликається в багатьох тестах, зробіть із нього фікстуру.\n- Фікстури **за запитом** — можна оголосити скільки завгодно, а Playwright Test підготує лише ті, що потрібні конкретному тесту.\n- Фікстури **компонуються** — можуть залежати одна від одної для складної поведінки.\n- Фікстури **гнучкі**. Тест може комбінувати їх довільно, підлаштовуючи середовище, не впливаючи на інші тести.\n- Фікстури спрощують **групування**. Не потрібно обгортати тести в `describe` лише заради середовища — групуйте за змістом.",
-        },
-        {
-          en: "Click to expand the code for the TodoPage",
-          uk: "Натисніть, щоб розгорнути код TodoPage",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-1",
-          language: "js",
-          code: "\ntest('basic test', async ({ page }) => {\n  await page.goto('https://playwright.dev/');\n\n  await expect(page).toHaveTitle(/Playwright/);\n});",
-        },
-        {
-          id: "cb-2",
-          language: "js",
-          code: "\nexport class TodoPage {\n  private readonly inputBox: Locator;\n  private readonly todoItems: Locator;\n\n  constructor(public readonly page: Page) {\n    this.inputBox = this.page.locator('input.new-todo');\n    this.todoItems = this.page.getByTestId('todo-item');\n  }\n\n  async goto() {\n    await this.page.goto('https://demo.playwright.dev/todomvc/');\n  }\n\n  async addToDo(text: string) {\n    await this.inputBox.fill(text);\n    await this.inputBox.press('Enter');\n  }\n\n  async remove(text: string) {\n    const todo = this.todoItems.filter({ hasText: text });\n    await todo.hover();\n    await todo.getByLabel('Delete').click();\n  }\n\n  async removeAll() {\n    while ((await this.todoItems.count()) > 0) {\n      await this.todoItems.first().hover();\n      await this.todoItems.getByLabel('Delete').first().click();\n    }\n  }\n}",
-        },
-        {
-          id: "cb-3",
-          language: "js",
-          code: "const { test } = require('@playwright/test');\nconst { TodoPage } = require('./todo-page');\n\ntest.describe('todo tests', () => {\n  let todoPage;\n\n  test.beforeEach(async ({ page }) => {\n    todoPage = new TodoPage(page);\n    await todoPage.goto();\n    await todoPage.addToDo('item1');\n    await todoPage.addToDo('item2');\n  });\n\n  test.afterEach(async () => {\n    await todoPage.removeAll();\n  });\n\n  test('should add an item', async () => {\n    await todoPage.addToDo('my item');\n    // ...\n  });\n\n  test('should remove an item', async () => {\n    await todoPage.remove('item1');\n    // ...\n  });\n});",
-        },
-        {
-          id: "cb-4",
-          language: "js",
-          code: "\nexport class TodoPage {\n  private readonly inputBox: Locator;\n  private readonly todoItems: Locator;\n\n  constructor(public readonly page: Page) {\n    this.inputBox = this.page.locator('input.new-todo');\n    this.todoItems = this.page.getByTestId('todo-item');\n  }\n\n  async goto() {\n    await this.page.goto('https://demo.playwright.dev/todomvc/');\n  }\n\n  async addToDo(text: string) {\n    await this.inputBox.fill(text);\n    await this.inputBox.press('Enter');\n  }\n\n  async remove(text: string) {\n    const todo = this.todoItems.filter({ hasText: text });\n    await todo.hover();\n    await todo.getByLabel('Delete').click();\n  }\n\n  async removeAll() {\n    while ((await this.todoItems.count()) > 0) {\n      await this.todoItems.first().hover();\n      await this.todoItems.getByLabel('Delete').first().click();\n    }\n  }\n}",
-        },
-        {
-          id: "cb-5",
-          language: "js",
-          code: "\n// Extend basic test by providing a \"todoPage\" fixture.\nconst test = base.extend({\n  todoPage: async ({ page }, use) => {\n    const todoPage = new TodoPage(page);\n    await todoPage.goto();\n    await todoPage.addToDo('item1');\n    await todoPage.addToDo('item2');\n    await use(todoPage);\n    await todoPage.removeAll();\n  },\n});\n\ntest('should add an item', async ({ todoPage }) => {\n  await todoPage.addToDo('my item');\n  // ...\n});\n\ntest('should remove an item', async ({ todoPage }) => {\n  await todoPage.remove('item1');\n  // ...\n});",
+          en: "Built-in fixtures you already use: `page`, `context`, `browser`, `request`. They all work this way — Playwright creates them before the test and cleans up after.",
+          uk: "Вбудовані фікстури що ти вже використовуєш: `page`, `context`, `browser`, `request`. Всі вони працюють так само — Playwright створює їх до тесту і прибирає після.",
         },
       ],
     },
     {
-      id: "creating-a-fixture",
+      id: "fixtures-vs-hooks",
       title: {
-        en: "Creating a fixture",
-        uk: "Створення фікстури",
+        en: "Why fixtures beat beforeEach",
+        uk: "Чому фікстури кращі за beforeEach",
       },
       paragraphs: [
         {
-          en: "To create your own fixture, use [`method: Test.extend`] to create a new `test` object that will include it.",
-          uk: "Щоб створити власну фікстуру, використайте [`method: Test.extend`] і отримайте новий об’єкт `test`, який її міститиме.",
+          en: "With `beforeEach`, setup and teardown are in separate blocks that have to share state through outer variables. The test has no way to know what was set up without reading all the hooks. Fixtures solve this: setup, value, and teardown are all in one place, and the test explicitly declares what it needs in its argument list.",
+          uk: "З `beforeEach` — setup і teardown в окремих блоках що мають ділити стан через зовнішні змінні. Тест не може знати що було підготовлено без читання всіх хуків. Фікстури вирішують це: setup, значення і teardown — все в одному місці, і тест явно оголошує що йому потрібно у списку аргументів.",
         },
         {
-          en: "Below we create two fixtures `todoPage` and `settingsPage` that follow the [Page Object Model](./pom.md) pattern.",
-          uk: "Нижче створюємо дві фікстури — `todoPage` і `settingsPage` — за патерном [Page Object Model](./pom.md).",
-        },
-        {
-          en: "Click to expand the code for the TodoPage and SettingsPage",
-          uk: "Натисніть, щоб розгорнути код TodoPage і SettingsPage",
-        },
-        {
-          en: "SettingsPage is similar:",
-          uk: "SettingsPage влаштований подібно:",
+          en: "Another advantage: fixtures are on-demand. If a test doesn't need `loggedInPage`, Playwright doesn't create it. With `beforeEach`, it runs for every test whether or not the test needs what it sets up.",
+          uk: "Ще перевага: фікстури — за потреби. Якщо тест не потребує `loggedInPage` — Playwright не створює її. З `beforeEach` — запускається для кожного тесту незалежно від того чи потрібне те що він готує.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-6",
-          language: "js",
-          code: "\nexport class TodoPage {\n  private readonly inputBox: Locator;\n  private readonly todoItems: Locator;\n\n  constructor(public readonly page: Page) {\n    this.inputBox = this.page.locator('input.new-todo');\n    this.todoItems = this.page.getByTestId('todo-item');\n  }\n\n  async goto() {\n    await this.page.goto('https://demo.playwright.dev/todomvc/');\n  }\n\n  async addToDo(text: string) {\n    await this.inputBox.fill(text);\n    await this.inputBox.press('Enter');\n  }\n\n  async remove(text: string) {\n    const todo = this.todoItems.filter({ hasText: text });\n    await todo.hover();\n    await todo.getByLabel('Delete').click();\n  }\n\n  async removeAll() {\n    while ((await this.todoItems.count()) > 0) {\n      await this.todoItems.first().hover();\n      await this.todoItems.getByLabel('Delete').first().click();\n    }\n  }\n}",
-        },
-        {
-          id: "cb-7",
-          language: "js",
-          code: "\nexport class SettingsPage {\n  constructor(public readonly page: Page) {\n  }\n\n  async switchToDarkMode() {\n    // ...\n  }\n}",
-        },
-        {
-          id: "cb-8",
-          language: "js",
-          code: "\n// Declare the types of your fixtures.\ntype MyFixtures = {\n  todoPage: TodoPage;\n  settingsPage: SettingsPage;\n};\n\n// Extend base test by providing \"todoPage\" and \"settingsPage\".\n// This new \"test\" can be used in multiple test files, and each of them will get the fixtures.\nexport const test = base.extend({\n  todoPage: async ({ page }, use) => {\n    // Set up the fixture.\n    const todoPage = new TodoPage(page);\n    await todoPage.goto();\n    await todoPage.addToDo('item1');\n    await todoPage.addToDo('item2');\n\n    // Use the fixture value in the test.\n    await use(todoPage);\n\n    // Clean up the fixture.\n    await todoPage.removeAll();\n  },\n\n  settingsPage: async ({ page }, use) => {\n    await use(new SettingsPage(page));\n  },\n});\nexport { expect } from '@playwright/test';",
+          id: "hooks-vs-fixtures",
+          language: "ts",
+          code: `// ❌ З beforeEach — setup розкиданий по хуках
+let ordersPage: OrdersPage
+
+test.beforeEach(async ({ page }) => {
+  ordersPage = new OrdersPage(page)
+  await ordersPage.goto()
+  await ordersPage.seedTestOrders()
+})
+
+test.afterEach(async () => {
+  await ordersPage.cleanup()
+})
+
+test('filter by status', async () => {
+  await ordersPage.filterByStatus('pending')
+  // ...
+})
+
+// ✅ З fixtures — все разом, явно
+const test = base.extend<{ ordersPage: OrdersPage }>({
+  ordersPage: async ({ page }, use) => {
+    const ordersPage = new OrdersPage(page)
+    await ordersPage.goto()
+    await ordersPage.seedTestOrders()
+    await use(ordersPage)         // <-- тут тест запускається
+    await ordersPage.cleanup()
+  },
+})
+
+test('filter by status', async ({ ordersPage }) => {
+  await ordersPage.filterByStatus('pending')
+  // ...
+})`,
         },
       ],
     },
     {
-      id: "using-a-fixture",
+      id: "creating-fixtures",
       title: {
-        en: "Using a fixture",
-        uk: "Використання фікстури",
+        en: "Create custom fixtures",
+        uk: "Власні фікстури",
       },
       paragraphs: [
         {
-          en: "Just mention a fixture in your test function argument, and the test runner will take care of it. Fixtures are also available in hooks and other fixtures. If you use TypeScript, fixtures will be type safe.",
-          uk: "Просто вкажіть фікстуру в аргументах функції тесту — тестраннер підготує її сам. Фікстури доступні в хуках і в інших фікстурах. У TypeScript вони типобезпечні.",
-        },
-        {
-          en: "Below we use the `todoPage` and `settingsPage` fixtures that we defined above.",
-          uk: "Нижче використовуємо фікстури `todoPage` і `settingsPage`, визначені вище.",
+          en: "Use `test.extend()` to add fixtures. Define types for your fixtures, then implement each one. Export the extended `test` and `expect` — your test files import from this instead of `@playwright/test`.",
+          uk: "Використовуй `test.extend()` щоб додати фікстури. Визнач типи для своїх фікстур, потім реалізуй кожну. Експортуй розширений `test` і `expect` — файли тестів імпортують з цього файлу замість `@playwright/test`.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-9",
-          language: "js",
-          code: "\ntest.beforeEach(async ({ settingsPage }) => {\n  await settingsPage.switchToDarkMode();\n});\n\ntest('basic test', async ({ todoPage, page }) => {\n  await todoPage.addToDo('something nice');\n  await expect(page.getByTestId('todo-title')).toContainText(['something nice']);\n});",
+          id: "create-fixture",
+          language: "ts",
+          code: `// fixtures/index.ts
+import { test as base, expect } from '@playwright/test'
+import { OrdersPage } from '../pages/orders-page'
+import { LoginPage } from '../pages/login-page'
+
+type Fixtures = {
+  ordersPage: OrdersPage
+  loggedInPage: Page
+}
+
+export const test = base.extend<Fixtures>({
+  // Фікстура що залежить від page
+  ordersPage: async ({ page }, use) => {
+    const orders = new OrdersPage(page)
+    await orders.goto()
+    await use(orders)
+    // Нічого не прибираємо — кожен тест отримує свій ізольований page
+  },
+
+  // Фікстура що залежить від іншої фікстури
+  loggedInPage: async ({ page }, use) => {
+    await page.goto('/login')
+    await page.getByLabel('Email').fill('admin@example.com')
+    await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!)
+    await page.getByRole('button', { name: 'Sign in' }).click()
+    await page.waitForURL('/dashboard')
+    await use(page)
+    // page прибирається автоматично вбудованою фікстурою
+  },
+})
+
+export { expect }`,
+        },
+        {
+          id: "use-fixture",
+          language: "ts",
+          code: `// tests/orders.spec.ts
+import { test, expect } from '../fixtures'
+
+// Тест явно оголошує що йому потрібно
+test('create order', async ({ ordersPage }) => {
+  await ordersPage.createOrder({ item: 'Laptop', quantity: 1 })
+  await expect(ordersPage.orderList).toContainText('Laptop')
+})
+
+// Можна запитувати кілька фікстур одночасно
+test('admin views all orders', async ({ loggedInPage, ordersPage }) => {
+  await expect(ordersPage.orderList).toBeVisible()
+})`,
         },
       ],
     },
     {
       id: "overriding-fixtures",
       title: {
-        en: "Overriding fixtures",
-        uk: "Перевизначення фікстур",
+        en: "Override built-in fixtures",
+        uk: "Перевизначення вбудованих фікстур",
       },
       paragraphs: [
         {
-          en: "In addition to creating your own fixtures, you can also override existing fixtures to fit your needs. Consider the following example which overrides the `page` fixture by automatically navigating to the `baseURL`:",
-          uk: "Окрім власних фікстур, можна перевизначати наявні під свої потреби. У прикладі нижче фікстура `page` автоматично переходить на `baseURL`:",
-        },
-        {
-          en: "Notice that in this example, the `page` fixture is able to depend on other built-in fixtures such as [`property: TestOptions.baseURL`]. We can now configure `baseURL` in the configuration file, or locally in the test file with [`method: Test.use`].",
-          uk: "Тут фікстура `page` залежить від інших вбудованих, зокрема [`property: TestOptions.baseURL`]. `baseURL` можна задати в конфігурації або локально в файлі тестів через [`method: Test.use`].",
-        },
-        {
-          en: "Fixtures can also be overridden, causing the base fixture to be completely replaced with something different. For example, we could override the [`property: TestOptions.storageState`] fixture to provide our own data.",
-          uk: "Фікстуру можна перевизначити так, що базова версія повністю замінюється. Наприклад, перевизначити [`property: TestOptions.storageState`], щоб підставити власні дані.",
+          en: "You can override the built-in `page` fixture to add behavior that applies to every test — like auto-navigating to the app's base URL, or listening for console errors.",
+          uk: "Можна перевизначити вбудовану фікстуру `page` щоб додати поведінку що застосовується до кожного тесту — наприклад автоматичний перехід на базовий URL застосунку або прослуховування помилок консолі.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-10",
-          language: "js",
-          code: "\nexport const test = base.extend({\n  page: async ({ baseURL, page }, use) => {\n    await page.goto(baseURL);\n    await use(page);\n  },\n});",
-        },
-        {
-          id: "cb-11",
-          language: "js",
-          code: "\ntest.use({ baseURL: 'https://playwright.dev' });",
-        },
-        {
-          id: "cb-12",
-          language: "js",
-          code: "\nexport const test = base.extend({\n  storageState: async ({}, use) => {\n    const cookie = await getAuthCookie();\n    await use({ cookies: [cookie] });\n  },\n});",
+          id: "override-page",
+          language: "ts",
+          code: `// Перевизначити page — auto-navigate і збирати console errors
+export const test = base.extend({
+  page: async ({ baseURL, page }, use) => {
+    const consoleErrors: string[] = []
+    page.on('console', msg => {
+      if (msg.type() === 'error') consoleErrors.push(msg.text())
+    })
+
+    await page.goto(baseURL!)
+    await use(page)
+
+    // Після тесту — перевірити що не було JS помилок
+    if (consoleErrors.length > 0) {
+      console.warn('Console errors during test:', consoleErrors)
+    }
+  },
+})`,
         },
       ],
     },
     {
       id: "worker-scoped-fixtures",
       title: {
-        en: "Worker-scoped fixtures",
-        uk: "Фікстури рівня worker",
+        en: "Worker-scoped fixtures — share between tests",
+        uk: "Worker-scoped фікстури — спільні між тестами",
+      },
+      diagram: {
+        mermaid: `flowchart LR
+  subgraph W1["Worker 1"]
+    WF1["worker fixture\n(created once)"] --> T1A["test A"]
+    WF1 --> T1B["test B"]
+    WF1 --> T1C["test C"]
+  end
+  subgraph W2["Worker 2"]
+    WF2["worker fixture\n(created once)"] --> T2A["test D"]
+    WF2 --> T2B["test E"]
+  end`,
+        caption: {
+          en: "Worker-scoped fixtures are created once per worker process and shared across all tests in that worker — ideal for expensive DB connections or login sessions",
+          uk: "Worker-scoped фікстури створюються один раз на воркер-процес і діляться між усіма тестами — ідеально для дорогих підключень до БД або логін-сесій",
+        },
       },
       paragraphs: [
         {
-          en: "Playwright Test uses [worker processes](./test-parallel.md) to run test files. Similar to how test fixtures are set up for individual test runs, worker fixtures are set up for each worker process. That's where you can set up services, run servers, etc. Playwright Test will reuse the worker process for as many test files as it can, provided their worker fixtures match and hence environments are identical.",
-          uk: "Playwright Test запускає файли тестів у [воркер-процесах](./test-parallel.md). Як тестові фікстури готуються для кожного тесту, worker-фікстури — для кожного воркера. Тут зручно піднімати сервіси, сервери тощо. Воркер перевикористовується для якомога більшої кількості файлів, якщо worker-фікстури збігаються й середовище ідентичне.",
-        },
-        {
-          en: "Below we'll create an `account` fixture that will be shared by all tests in the same worker, and override the `page` fixture to log in to this account for each test. To generate unique accounts, we'll use the [`property: WorkerInfo.workerIndex`] that is available to any test or fixture. Note the tuple-like syntax for the worker fixture - we have to pass `{scope: 'worker'}` so that test runner sets this fixture up once per worker.",
-          uk: "Нижче створюємо фікстуру `account`, спільну для всіх тестів одного воркера, і перевизначаємо `page`, щоб кожен тест входив у цей акаунт. Для унікальних акаунтів використаємо [`property: WorkerInfo.workerIndex`], доступний у будь-якому тесті чи фікстурі. Для worker-фікстури — кортежний синтаксис і `{scope: 'worker'}`, щоб тестраннер підготував її один раз на воркер.",
-        },
-        {
-          en: "In addition to only being run once per worker, worker-scoped fixtures also get a separate timeout equal to the default test timeout. You can change it by passing the `timeout` option. See [fixture timeout](#fixture-timeout) for more details.",
-          uk: "Окрім одноразового запуску на воркер, worker-фікстури мають окремий таймаут, рівний дефолтному таймауту тесту. Його можна змінити опцією `timeout`. Деталі — у розділі [fixture timeout](#fixture-timeout).",
+          en: "By default, fixtures are test-scoped — created fresh for each test. Worker-scoped fixtures are created once per parallel worker and shared across all tests in that worker. Use this for expensive operations like database connections or browser-level authentication.",
+          uk: "За замовчуванням фікстури test-scoped — створюються заново для кожного тесту. Worker-scoped фікстури створюються один раз на паралельний worker і діляться між усіма тестами в ньому. Використовуй для дорогих операцій: підключення до бази або автентифікація на рівні браузера.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-13",
-          language: "js",
-          code: "\ntype Account = {\n  username: string;\n  password: string;\n};\n\n// Note that we pass worker fixture types as a second template parameter.\nexport const test = base.extend({\n  account: [async ({ browser }, use, workerInfo) => {\n    // Unique username.\n    const username = 'user' + workerInfo.workerIndex;\n    const password = 'verysecure';\n\n    // Create the account with Playwright.\n    const page = await browser.newPage();\n    await page.goto('/signup');\n    await page.getByLabel('User Name').fill(username);\n    await page.getByLabel('Password').fill(password);\n    await page.getByText('Sign up').click();\n    // Make sure everything is ok.\n    await expect(page.getByTestId('result')).toHaveText('Success');\n    // Do not forget to cleanup.\n    await page.close();\n\n    // Use the account value.\n    await use({ username, password });\n  }, { scope: 'worker' }],\n\n  page: async ({ page, account }, use) => {\n    // Sign in with our account.\n    const { username, password } = account;\n    await page.goto('/signin');\n    await page.getByLabel('User Name').fill(username);\n    await page.getByLabel('Password').fill(password);\n    await page.getByText('Sign in').click();\n    await expect(page.getByTestId('userinfo')).toHaveText(username);\n\n    // Use signed-in page in the test.\n    await use(page);\n  },\n});\nexport { expect } from '@playwright/test';",
-        },
-      ],
+          id: "worker-fixture",
+          language: "ts",
+          code: `// Авторизація один раз на worker, а не на кожний тест
+export const test = base.extend({
+  workerAuthState: [
+    async ({ browser }, use) => {
+      // Це виконується один раз на worker
+      const page = await browser.newPage({ storageState: undefined })
+      await page.goto('/login')
+      await page.getByLabel('Email').fill(\`worker\${test.info().parallelIndex}@test.com\`)
+      await page.getByLabel('Password').fill(process.env.TEST_PASSWORD!)
+      await page.getByRole('button', { name: 'Sign in' }).click()
+      await page.waitForURL('/dashboard')
+
+      const state = await page.context().storageState()
+      await page.close()
+
+      await use(state) // всі тести у worker'і отримують цей стан
     },
-    {
-      id: "automatic-fixtures",
-      title: {
-        en: "Automatic fixtures",
-        uk: "Автоматичні фікстури",
-      },
-      paragraphs: [
-        {
-          en: "Automatic fixtures are set up for each test/worker, even when the test does not list them directly. To create an automatic fixture, use the tuple syntax and pass `{ auto: true }`.",
-          uk: "Автоматичні фікстури підготовлюються для кожного тесту/воркера, навіть якщо тест їх явно не перелічує. Створюйте їх кортежним синтаксисом з `{ auto: true }`.",
-        },
-        {
-          en: "Here is an example fixture that automatically attaches debug logs when the test fails, so we can later review the logs in the reporter. Note how it uses the [TestInfo] object that is available in each test/fixture to retrieve metadata about the test being run.",
-          uk: "Приклад фікстури, яка автоматично додає debug-логи при падінні тесту, щоб потім переглянути їх у репортері. Використовується об’єкт [TestInfo], доступний у кожному тесті/фікстурі для метаданих про запуск.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-14",
-          language: "js",
-          code: "\nexport const test = base.extend({\n  saveLogs: [async ({}, use, testInfo) => {\n    // Collecting logs during the test.\n    const logs = [];\n    debug.log = (...args) => logs.push(args.map(String).join(''));\n    debug.enable('myserver');\n\n    await use();\n\n    // After the test we can check whether the test passed or failed.\n    if (testInfo.status !== testInfo.expectedStatus) {\n      // outputPath() API guarantees a unique file name.\n      const logFile = testInfo.outputPath('logs.txt');\n      await fs.promises.writeFile(logFile, logs.join('\\n'), 'utf8');\n      testInfo.attachments.push({ name: 'logs', contentType: 'text/plain', path: logFile });\n    }\n  }, { auto: true }],\n});\nexport { expect } from '@playwright/test';",
-        },
-      ],
-    },
-    {
-      id: "fixture-timeout",
-      title: {
-        en: "Fixture timeout",
-        uk: "Таймаут фікстури",
-      },
-      paragraphs: [
-        {
-          en: "Fixture is considered to be a part of a test, and so its setup and teardown running time counts towards the test timeout. Therefore, a slow fixture may cause test timeouts. You can set a separate larger timeout for such a fixture, and keep the overall test timeout small.",
-          uk: "Фікстура вважається частиною тесту: час setup і teardown входить у таймаут тесту. Повільна фікстура може спричинити таймаут. Для неї можна задати окремий більший таймаут, залишивши загальний таймаут тесту малим.",
-        },
-        {
-          en: "Unlike regular test-scoped fixtures, each [worker-scoped](#worker-scoped-fixtures) fixture has its own timeout, equal to the test timeout. You can change the timeout for a worker-scoped fixture in the same way.",
-          uk: "На відміну від звичайних тестових фікстур, кожна [worker-scoped](#worker-scoped-fixtures) фікстура має власний таймаут, рівний таймауту тесту. Змінити його можна так само.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-15",
-          language: "js",
-          code: "\nconst test = base.extend({\n  slowFixture: [async ({}, use) => {\n    // ... perform a slow operation ...\n    await use('hello');\n  }, { timeout: 60000 }]\n});\n\ntest('example test', async ({ slowFixture }) => {\n  // ...\n});",
-        },
-      ],
-    },
-    {
-      id: "fixtures-options",
-      title: {
-        en: "Fixtures-options",
-        uk: "Опції-фікстури",
-      },
-      paragraphs: [
-        {
-          en: 'Playwright Test supports running multiple test projects that can be configured separately. You can use "option" fixtures to make your configuration options declarative and type safe. Learn more about [parameterizing tests](./test-parameterize.md).',
-          uk: "Playwright Test підтримує кілька тестових проєктів з окремою конфігурацією. «Опційні» фікстури роблять опції декларативними й типобезпечними. Див. [параметризацію тестів](./test-parameterize.md).",
-        },
-        {
-          en: "Below we'll create a `defaultItem` option in addition to the `todoPage` fixture from other examples. This option will be set in the configuration file. Note the tuple syntax and `{ option: true }` argument.",
-          uk: "Нижче додаємо опцію `defaultItem` поруч із фікстурою `todoPage` з інших прикладів. Значення задається в конфігу. Зверніть увагу на кортежний синтаксис і аргумент `{ option: true }`.",
-        },
-        {
-          en: "Click to expand the code for the TodoPage",
-          uk: "Натисніть, щоб розгорнути код TodoPage",
-        },
-        {
-          en: "We can now use the `todoPage` fixture as usual, and set the `defaultItem` option in the configuration file.",
-          uk: "Фікстуру `todoPage` використовуємо як завжди, а `defaultItem` задаємо в конфігураційному файлі.",
-        },
-        {
-          en: "**Array as an option value**",
-          uk: "**Масив як значення опції**",
-        },
-        {
-          en: "If the value of your option is an array, for example `[{ name: 'Alice' }, { name: 'Bob' }]`, you'll need to wrap it into an extra array when providing the value. This is best illustrated with an example.",
-          uk: "Якщо значення опції — масив, наприклад `[{ name: 'Alice' }, { name: 'Bob' }]`, його треба обгорнути в додатковий масив під час передачі. Краще видно на прикладі.",
-        },
-        {
-          en: "**Reset an option**",
-          uk: "**Скидання опції**",
-        },
-        {
-          en: "You can reset an option to the value defined in the config file by setting it to `undefined`. Consider the following config that sets a `baseURL`:",
-          uk: "Опцію можна повернути до значення з конфігу, встановивши `undefined`. Наприклад, конфіг із `baseURL`:",
-        },
-        {
-          en: "You can now configure `baseURL` for a file, and also opt-out for a single test.",
-          uk: "Тепер можна задати `baseURL` для файлу й відмовитися від нього для одного тесту.",
-        },
-        {
-          en: "If you would like to completely reset the value to `undefined`, use a long-form fixture notation.",
-          uk: "Щоб повністю скинути значення до `undefined`, використайте довгу форму запису фікстури.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-16",
-          language: "js",
-          code: "\nexport class TodoPage {\n  private readonly inputBox: Locator;\n  private readonly todoItems: Locator;\n\n  constructor(public readonly page: Page) {\n    this.inputBox = this.page.locator('input.new-todo');\n    this.todoItems = this.page.getByTestId('todo-item');\n  }\n\n  async goto() {\n    await this.page.goto('https://demo.playwright.dev/todomvc/');\n  }\n\n  async addToDo(text: string) {\n    await this.inputBox.fill(text);\n    await this.inputBox.press('Enter');\n  }\n\n  async remove(text: string) {\n    const todo = this.todoItems.filter({ hasText: text });\n    await todo.hover();\n    await todo.getByLabel('Delete').click();\n  }\n\n  async removeAll() {\n    while ((await this.todoItems.count()) > 0) {\n      await this.todoItems.first().hover();\n      await this.todoItems.getByLabel('Delete').first().click();\n    }\n  }\n}",
-        },
-        {
-          id: "cb-17",
-          language: "js",
-          code: "\n// Declare your options to type-check your configuration.\nexport type MyOptions = {\n  defaultItem: string;\n};\ntype MyFixtures = {\n  todoPage: TodoPage;\n};\n\n// Specify both option and fixture types.\nexport const test = base.extend({\n  // Define an option and provide a default value.\n  // We can later override it in the config.\n  defaultItem: ['Something nice', { option: true }],\n\n  // Our \"todoPage\" fixture depends on the option.\n  todoPage: async ({ page, defaultItem }, use) => {\n    const todoPage = new TodoPage(page);\n    await todoPage.goto();\n    await todoPage.addToDo(defaultItem);\n    await use(todoPage);\n    await todoPage.removeAll();\n  },\n});\nexport { expect } from '@playwright/test';",
-        },
-        {
-          id: "cb-18",
-          language: "js",
-          code: "\nexport default defineConfig({\n  projects: [\n    {\n      name: 'shopping',\n      use: { defaultItem: 'Buy milk' },\n    },\n    {\n      name: 'wellbeing',\n      use: { defaultItem: 'Exercise!' },\n    },\n  ]\n});",
-        },
-        {
-          id: "cb-19",
-          language: "js",
-          code: "type Person = { name: string };\nconst test = base.extend({\n  // Declare the option, default value is an empty array.\n  persons: [[], { option: true }],\n});\n\n// Option value is an array of persons.\nconst actualPersons = [{ name: 'Alice' }, { name: 'Bob' }];\ntest.use({\n  // CORRECT: Wrap the value into an array and pass the scope.\n  persons: [actualPersons, { scope: 'test' }],\n});\n\ntest.use({\n  // WRONG: passing an array value directly will not work.\n  persons: actualPersons,\n});",
-        },
-        {
-          id: "cb-20",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    baseURL: 'https://playwright.dev',\n  },\n});",
-        },
-        {
-          id: "cb-21",
-          language: "js",
-          code: "\n// Configure baseURL for this file.\ntest.use({ baseURL: 'https://playwright.dev/docs/intro' });\n\ntest('check intro contents', async ({ page }) => {\n  // This test will use \"https://playwright.dev/docs/intro\" base url as defined above.\n});\n\ntest.describe(() => {\n  // Reset the value to a config-defined one.\n  test.use({ baseURL: undefined });\n\n  test('can navigate to intro from the home page', async ({ page }) => {\n    // This test will use \"https://playwright.dev\" base url as defined in the config.\n  });\n});",
-        },
-        {
-          id: "cb-22",
-          language: "js",
-          code: "\n// Completely unset baseURL for this file.\ntest.use({\n  baseURL: [async ({}, use) => use(undefined), { scope: 'test' }],\n});\n\ntest('no base url', async ({ page }) => {\n  // This test will not have a base url.\n});",
-        },
-      ],
-    },
-    {
-      id: "execution-order",
-      title: {
-        en: "Execution order",
-        uk: "Порядок виконання",
-      },
-      paragraphs: [
-        {
-          en: "Each fixture has a setup and teardown phase before and after the `await use()` call in the fixture. Setup is executed before the test/hook requiring it is run, and teardown is executed when the fixture is no longer being used by the test/hook.",
-          uk: "У кожної фікстури є фази setup і teardown до й після `await use()` у її коді. Setup виконується перед тестом/хуком, який її потребує; teardown — коли тест/хук більше не використовує фікстуру.",
-        },
-        {
-          en: "Fixtures follow these rules to determine the execution order:\n* When fixture A depends on fixture B: B is always set up before A and torn down after A.\n* Non-automatic fixtures are executed lazily, only when the test/hook needs them.\n* Test-scoped fixtures are torn down after each test, while worker-scoped fixtures are only torn down when the worker process executing tests is torn down.",
-          uk: "Фікстури дотримуються таких правил порядку:\n* Якщо фікстура A залежить від B: B завжди підготовлюється перед A і знімається після A.\n* Неавтоматичні фікстури виконуються ліниво — лише коли їх потребує тест/хук.\n* Тестові фікстури знімаються після кожного тесту; worker-фікстури — лише коли завершується воркер, що виконує тести.",
-        },
-        {
-          en: "Consider the following example:",
-          uk: "Розгляньте такий приклад:",
-        },
-        {
-          en: "Normally, if all tests pass and no errors are thrown, the order of execution is as following.\n* worker setup and `beforeAll` section:\n  * `browser` setup because it is required by `autoWorkerFixture`.\n  * `autoWorkerFixture` setup because automatic worker fixtures are always set up before anything else.\n  * `beforeAll` runs.\n* `first test` section:\n  * `autoTestFixture` setup because automatic test fixtures are always set up before test and `beforeEach` hooks.\n  * `page` setup because it is required in `beforeEach` hook.\n  * `beforeEach` runs.\n  * `first test` runs.\n  * `afterEach` runs.\n  * `page` teardown because it is a test-scoped fixture and should be torn down after the test finishes.\n  * `autoTestFixture` teardown because it is a test-scoped fixture and should be torn down after the test finishes.\n* `second test` section:\n  * `autoTestFixture` setup because automatic test fixtures are always set up before test and `beforeEach` hooks.\n  * `page` setup because it is required in `beforeEach` hook.\n  * `beforeEach` runs.\n  * `workerFixture` setup because it is required by `testFixture` that is required by the `second test`.\n  * `testFixture` setup because it is required by the `second test`.\n  * `second test` runs.\n  * `afterEach` runs.\n  * `testFixture` teardown because it is a test-scoped fixture and should be torn down after the test finishes.\n  * `page` teardown because it is a test-scoped fixture and should be torn down after the test finishes.\n  * `autoTestFixture` teardown because it is a test-scoped fixture and should be torn down after the test finishes.\n* `afterAll` and worker teardown section:\n  * `afterAll` runs.\n  * `workerFixture` teardown because it is a workers-scoped fixture and should be torn down once at the end.\n  * `autoWorkerFixture` teardown because it is a workers-scoped fixture and should be torn down once at the end.\n  * `browser` teardown because it is a workers-scoped fixture and should be torn down once at the end.",
-          uk: "Зазвичай, якщо всі тести проходять без помилок, порядок такий.\n* Підготовка воркера та секція `beforeAll`:\n  * setup `browser`, бо його потребує `autoWorkerFixture`.\n  * setup `autoWorkerFixture`, бо автоматичні worker-фікстури завжди першими.\n  * виконується `beforeAll`.\n* Секція `first test`:\n  * setup `autoTestFixture`, бо автоматичні тестові фікстури перед тестом і `beforeEach`.\n  * setup `page`, бо він потрібен у `beforeEach`.\n  * виконується `beforeEach`.\n  * виконується `first test`.\n  * виконується `afterEach`.\n  * teardown `page` (тестова фікстура після тесту).\n  * teardown `autoTestFixture` (тестова фікстура після тесту).\n* Секція `second test`:\n  * setup `autoTestFixture`.\n  * setup `page` для `beforeEach`.\n  * `beforeEach`.\n  * setup `workerFixture`, бо він потрібен `testFixture`, яку потребує `second test`.\n  * setup `testFixture` для `second test`.\n  * `second test`.\n  * `afterEach`.\n  * teardown `testFixture`.\n  * teardown `page`.\n  * teardown `autoTestFixture`.\n* Секція `afterAll` і завершення воркера:\n  * `afterAll`.\n  * teardown `workerFixture` (worker-scoped — один раз наприкінці).\n  * teardown `autoWorkerFixture`.\n  * teardown `browser`.",
-        },
-        {
-          en: "A few observations:\n* `page` and `autoTestFixture` are set up and torn down for each test, as test-scoped fixtures.\n* `unusedFixture` is never set up because it is not used by any tests/hooks.\n* `testFixture` depends on `workerFixture` and triggers its setup.\n* `workerFixture` is lazily set up before the second test, but torn down once during worker shutdown, as a worker-scoped fixture.\n* `autoWorkerFixture` is set up for `beforeAll` hook, but `autoTestFixture` is not.",
-          uk: "Кілька спостережень:\n* `page` і `autoTestFixture` — тестові: setup і teardown на кожен тест.\n* `unusedFixture` не запускається, бо ніхто її не використовує.\n* `testFixture` залежить від `workerFixture` і ініціює його setup.\n* `workerFixture` ліниво підготовлюється перед другим тестом і знімається один раз при завершенні воркера.\n* `autoWorkerFixture` готується для `beforeAll`, а `autoTestFixture` — ні.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-23",
-          language: "js",
-          code: "\nconst test = base.extend<{\n  testFixture: string,\n  autoTestFixture: string,\n  unusedFixture: string,\n}, {\n  workerFixture: string,\n  autoWorkerFixture: string,\n}>({\n  workerFixture: [async ({ browser }) => {\n    // workerFixture setup...\n    await use('workerFixture');\n    // workerFixture teardown...\n  }, { scope: 'worker' }],\n\n  autoWorkerFixture: [async ({ browser }) => {\n    // autoWorkerFixture setup...\n    await use('autoWorkerFixture');\n    // autoWorkerFixture teardown...\n  }, { scope: 'worker', auto: true }],\n\n  testFixture: [async ({ page, workerFixture }) => {\n    // testFixture setup...\n    await use('testFixture');\n    // testFixture teardown...\n  }, { scope: 'test' }],\n\n  autoTestFixture: [async () => {\n    // autoTestFixture setup...\n    await use('autoTestFixture');\n    // autoTestFixture teardown...\n  }, { scope: 'test', auto: true }],\n\n  unusedFixture: [async ({ page }) => {\n    // unusedFixture setup...\n    await use('unusedFixture');\n    // unusedFixture teardown...\n  }, { scope: 'test' }],\n});\n\ntest.beforeAll(async () => { /* ... */ });\ntest.beforeEach(async ({ page }) => { /* ... */ });\ntest('first test', async ({ page }) => { /* ... */ });\ntest('second test', async ({ testFixture }) => { /* ... */ });\ntest.afterEach(async () => { /* ... */ });\ntest.afterAll(async () => { /* ... */ });",
-        },
-      ],
-    },
-    {
-      id: "combine-custom-fixtures-from-multiple-modules",
-      title: {
-        en: "Combine custom fixtures from multiple modules",
-        uk: "Об’єднання власних фікстур із кількох модулів",
-      },
-      paragraphs: [
-        {
-          en: "You can merge test fixtures from multiple files or modules:",
-          uk: "Можна об’єднати тестові фікстури з кількох файлів або модулів:",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-24",
-          language: "js",
-          code: "\nexport const test = mergeTests(dbTest, a11yTest);",
-        },
-        {
-          id: "cb-25",
-          language: "js",
-          code: "\ntest('passes', async ({ database, page, a11y }) => {\n  // use database and a11y fixtures.\n});",
-        },
-      ],
-    },
-    {
-      id: "box-fixtures",
-      title: {
-        en: "Box fixtures",
-        uk: "Box-фікстури",
-      },
-      paragraphs: [
-        {
-          en: 'Usually, custom fixtures are reported as separate steps in the UI mode, Trace Viewer and various test reports. They also appear in error messages from the test runner. For frequently used fixtures, this can mean lots of noise. You can stop the fixtures steps from being shown in the UI by "boxing" it.',
-          uk: "Зазвичай власні фікстури показуються окремими кроками в UI mode, Trace Viewer і звітах. Вони також з’являються в повідомленнях про помилки. Для частих фікстур це шум. Можна приховати кроки фікстури в UI через «boxing».",
-        },
-        {
-          en: "This is useful for non-interesting helper fixtures. For example, an [automatic](./test-fixtures.md#automatic-fixtures) fixture that sets up some common data can be safely hidden from a test report.",
-          uk: "Корисно для допоміжних фікстур «без сюжету». Наприклад, [автоматичну](./test-fixtures.md#automatic-fixtures) фікстуру зі спільними даними можна приховати зі звіту.",
-        },
-        {
-          en: "You can also mark the fixture as `box: 'self'` to only hide that particular fixture, but include all the steps inside the fixture in the test report.",
-          uk: "Можна позначити фікстуру як `box: 'self'`, щоб приховати лише її оболонку, але залишити в звіті всі кроки всередині фікстури.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-26",
-          language: "js",
-          code: "\nexport const test = base.extend({\n  helperFixture: [async ({}, use, testInfo) => {\n    // ...\n  }, { box: true }],\n});",
-        },
-      ],
-    },
-    {
-      id: "custom-fixture-title",
-      title: {
-        en: "Custom fixture title",
-        uk: "Власний заголовок фікстури",
-      },
-      paragraphs: [
-        {
-          en: "Instead of the usual fixture name, you can give fixtures a custom title that will be shown in test reports and error messages.",
-          uk: "Замість звичайної назви фікстури можна задати власний заголовок для звітів і повідомлень про помилки.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-27",
-          language: "js",
-          code: "\nexport const test = base.extend({\n  innerFixture: [async ({}, use, testInfo) => {\n    // ...\n  }, { title: 'my fixture' }],\n});",
-        },
-      ],
-    },
-    {
-      id: "adding-global-beforeeach-aftereach-hooks",
-      title: {
-        en: "Adding global beforeEach/afterEach hooks",
-        uk: "Глобальні хуки beforeEach/afterEach",
-      },
-      paragraphs: [
-        {
-          en: "[`method: Test.beforeEach`] and [`method: Test.afterEach`] hooks run before/after each test declared in the same file and same [`method: Test.describe`] block (if any). If you want to declare hooks that run before/after each test globally, you can declare them as auto fixtures like this:",
-          uk: "[`method: Test.beforeEach`] і [`method: Test.afterEach`] виконуються перед/після кожного тесту в тому самому файлі та блоці [`method: Test.describe`] (якщо є). Щоб хуки спрацьовували глобально перед/після кожного тесту, оголосіть їх як auto-фікстури:",
-        },
-        {
-          en: "And then import the fixtures in all your tests:",
-          uk: "Потім імпортуйте фікстури в усіх тестах:",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-28",
-          language: "js",
-          code: "\nexport const test = base.extend({\n  forEachTest: [async ({ page }, use) => {\n    // This code runs before every test.\n    await page.goto('http://localhost:8000');\n    await use();\n    // This code runs after every test.\n    console.log('Last URL:', page.url());\n  }, { auto: true }],  // automatically starts for every test.\n});",
-        },
-        {
-          id: "cb-29",
-          language: "js",
-          code: "\ntest('basic', async ({ page }) => {\n  expect(page).toHaveURL('http://localhost:8000');\n  await page.goto('https://playwright.dev');\n});",
-        },
-      ],
-    },
-    {
-      id: "adding-global-beforeall-afterall-hooks",
-      title: {
-        en: "Adding global beforeAll/afterAll hooks",
-        uk: "Глобальні хуки beforeAll/afterAll",
-      },
-      paragraphs: [
-        {
-          en: "[`method: Test.beforeAll`] and [`method: Test.afterAll`] hooks run before/after all tests declared in the same file and same [`method: Test.describe`] block (if any), once per worker process. If you want to declare hooks\nthat run before/after all tests in every file, you can declare them as auto fixtures with `scope: 'worker'` as follows:",
-          uk: "[`method: Test.beforeAll`] і [`method: Test.afterAll`] виконуються перед/після всіх тестів у тому самому файлі та блоці [`method: Test.describe`] (якщо є), один раз на воркер. Щоб хуки спрацьовували перед/після всіх тестів у кожному файлі, оголосіть auto-фікстури з `scope: 'worker'`:",
-        },
-        {
-          en: "And then import the fixtures in all your tests:",
-          uk: "Потім імпортуйте фікстури в усіх тестах:",
-        },
-        {
-          en: "Note that the fixtures will still run once per [worker process](./test-parallel.md#worker-processes), but you don't need to redeclare them in every file.",
-          uk: "Фікстури все одно виконуються один раз на [воркер-процес](./test-parallel.md#worker-processes), але не потрібно повторно оголошувати їх у кожному файлі.",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-30",
-          language: "js",
-          code: "\nexport const test = base.extend({\n  forEachWorker: [async ({}, use) => {\n    // This code runs before all the tests in the worker process.\n    console.log(`Starting test worker ${test.info().workerIndex}`);\n    await use();\n    // This code runs after all the tests in the worker process.\n    console.log(`Stopping test worker ${test.info().workerIndex}`);\n  }, { scope: 'worker', auto: true }],  // automatically starts for every worker.\n});",
-        },
-        {
-          id: "cb-31",
-          language: "js",
-          code: "\ntest('basic', async ({ }) => {\n  // ...\n});",
+    { scope: 'worker' }, // <-- ключовий параметр
+  ],
+})`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "In a fixture, what happens AFTER await use(value)?",
+        uk: "У фікстурі, що відбувається ПІСЛЯ await use(value)?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Nothing — the fixture function ends",
+            uk: "Нічого — функція фікстури завершується",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "The teardown code runs — cleanup after the test",
+            uk: "Запускається teardown код — прибирання після тесту",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The next test's setup begins",
+            uk: "Починається setup наступного тесту",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`await use(value)` is the yield point: the test runs while this line is 'awaiting'. When the test finishes, `use()` resolves and the fixture continues — running any cleanup code after it. This is why setup and teardown can be in the same function.",
+        uk: "`await use(value)` — точка передачі: тест виконується поки цей рядок 'чекає'. Коли тест завершується — `use()` резолвиться і фікстура продовжується, виконуючи будь-який код прибирання після неї. Тому setup і teardown можуть бути в одній функції.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "You want to create a database connection that's shared across all tests in a worker (not recreated per test). What scope do you use?",
+        uk: "Хочеш створити підключення до бази що ділиться між усіма тестами у воркері (не перестворюється для кожного тесту). Який scope використовувати?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "{ scope: 'test' } — the default",
+            uk: "{ scope: 'test' } — за замовчуванням",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "{ scope: 'worker' } — shared across all tests in one parallel worker",
+            uk: "{ scope: 'worker' } — спільний між усіма тестами в одному паралельному воркері",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "{ scope: 'global' } — shared across all tests in the entire run",
+            uk: "{ scope: 'global' } — спільний між усіма тестами всього запуску",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`{ scope: 'worker' }` creates the fixture once per parallel worker and shares it across all tests that run in that worker. There is no 'global' scope in Playwright — for global setup/teardown use globalSetup in the config instead.",
+        uk: "`{ scope: 'worker' }` створює фікстуру один раз на паралельний worker і ділиться між усіма тестами що виконуються в ньому. 'global' scope у Playwright не існує — для глобального setup/teardown використовуй globalSetup у конфізі.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "How do you create a custom fixture and make it available to test files?",
+        uk: "Як створити власну фікстуру і зробити її доступною для файлів тестів?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Call test.addFixture() anywhere in the test file before using it",
+            uk: "Викликати test.addFixture() будь-де у файлі тесту перед використанням",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Use test.extend<Fixtures>({...}) to create a new test object and export it; test files import this extended test instead of @playwright/test",
+            uk: "Використати test.extend<Fixtures>({...}) для створення нового об'єкта test і експортувати його; файли тестів імпортують цей розширений test замість @playwright/test",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Register fixtures in playwright.config.ts under the fixtures key",
+            uk: "Зареєструвати фікстури у playwright.config.ts під ключем fixtures",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Declare fixtures as global variables and use beforeAll to initialise them",
+            uk: "Оголосити фікстури як глобальні змінні і використовувати beforeAll для їхньої ініціалізації",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`test.extend<Fixtures>({...})` creates a new `test` object that includes your custom fixtures. You export this extended `test` (and `expect`) from a fixtures file, and all your test files import from there instead of directly from `@playwright/test`. This is the canonical pattern — there is no `fixtures` key in the config.",
+        uk: "`test.extend<Fixtures>({...})` створює новий об'єкт `test` що включає твої власні фікстури. Ти експортуєш цей розширений `test` (і `expect`) з файлу фікстур, а всі файли тестів імпортують звідти замість `@playwright/test`. Це канонічний патерн — у конфігу немає ключа `fixtures`.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "A fixture is defined but a test does not list it in its argument list. When does Playwright run that fixture?",
+        uk: "Фікстура визначена але тест не включає її в список аргументів. Коли Playwright виконує цю фікстуру?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Always — fixtures always run for every test whether or not they are requested",
+            uk: "Завжди — фікстури завжди виконуються для кожного тесту незалежно від того чи вони запитані",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Never — fixtures are on-demand and only run when a test explicitly requests them",
+            uk: "Ніколи — фікстури запускаються за потреби і виконуються лише коли тест явно їх запитує",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Only when the test file imports the fixture module",
+            uk: "Лише коли файл тесту імпортує модуль фікстури",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Only on the first test in the file",
+            uk: "Лише для першого тесту у файлі",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Fixtures are on-demand. If a test does not include the fixture name in its argument list, Playwright does not run it. This is a key advantage over `beforeEach` — which runs for every test whether it needs the setup or not. On-demand fixtures keep tests faster and their dependencies explicit.",
+        uk: "Фікстури — за потреби. Якщо тест не включає назву фікстури в список аргументів — Playwright її не запускає. Це ключова перевага над `beforeEach` — який виконується для кожного тесту незалежно від того чи потрібен йому setup. Фікстури за потреби роблять тести швидшими і їхні залежності явними.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "Which of the following are built-in Playwright fixtures available in every test without any custom setup?",
+        uk: "Які з наведених є вбудованими фікстурами Playwright доступними в кожному тесті без додаткового налаштування?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "page, context, browser, request, browserName",
+            uk: "page, context, browser, request, browserName",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "page, context, fetch, driver, browserName",
+            uk: "page, context, fetch, driver, browserName",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "page, window, storage, request, browserName",
+            uk: "page, window, storage, request, browserName",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "page, context, browser, apiContext, platform",
+            uk: "page, context, browser, apiContext, platform",
+          },
+        },
+      ],
+      correctOptionId: "a",
+      rationale: {
+        en: "The built-in Playwright fixtures are `page` (a new Page in an isolated context), `context` (the BrowserContext for that page), `browser` (the shared Browser instance), `request` (an APIRequestContext for API testing), and `browserName` (a string like 'chromium', 'firefox', 'webkit'). All others in the options are invented.",
+        uk: "Вбудовані фікстури Playwright: `page` (нова Page в ізольованому контексті), `context` (BrowserContext для цієї сторінки), `browser` (спільний екземпляр Browser), `request` (APIRequestContext для API-тестування) і `browserName` (рядок типу 'chromium', 'firefox', 'webkit'). Решта варіантів — вигадані.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "You want to override the built-in `page` fixture to automatically navigate to the base URL before every test. What is the correct approach?",
+        uk: "Хочеш перевизначити вбудовану фікстуру `page` щоб автоматично переходити на базовий URL перед кожним тестом. Який правильний підхід?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Add a beforeEach hook in every test file that calls page.goto(baseURL)",
+            uk: "Додати хук beforeEach у кожен файл тестів що викликає page.goto(baseURL)",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Use test.extend({ page: async ({ baseURL, page }, use) => { await page.goto(baseURL!); await use(page) } }) and export the result",
+            uk: "Використати test.extend({ page: async ({ baseURL, page }, use) => { await page.goto(baseURL!); await use(page) } }) і експортувати результат",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Set autoNavigate: true in the playwright.config.ts use block",
+            uk: "Встановити autoNavigate: true у блоці use playwright.config.ts",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Override page in globalSetup by calling browser.newPage() with a startURL option",
+            uk: "Перевизначити page у globalSetup викликавши browser.newPage() з опцією startURL",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "You can override built-in fixtures including `page` using `test.extend()`. The override receives the original `page` fixture as a dependency, adds behavior (navigation, console error tracking, etc.) before calling `await use(page)`, and can also add teardown after. There is no `autoNavigate` config option.",
+        uk: "Можна перевизначити вбудовані фікстури включно з `page` за допомогою `test.extend()`. Перевизначення отримує оригінальну фікстуру `page` як залежність, додає поведінку (навігація, відстеження помилок консолі тощо) перед викликом `await use(page)` і може додавати teardown після. Опції `autoNavigate` у конфігу немає.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "Why are fixtures considered better than beforeEach/afterEach for sharing setup and teardown?",
+        uk: "Чому фікстури вважаються кращими за beforeEach/afterEach для спільного setup і teardown?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Fixtures run faster because they skip the browser startup step",
+            uk: "Фікстури виконуються швидше бо пропускають крок запуску браузера",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Fixtures keep setup, the value, and teardown in one place; tests declare dependencies explicitly; and fixtures only run when actually needed",
+            uk: "Фікстури тримають setup, значення і teardown в одному місці; тести явно оголошують залежності; і фікстури виконуються лише коли справді потрібні",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Fixtures are the only way to share state between parallel workers",
+            uk: "Фікстури — єдиний спосіб ділити стан між паралельними воркерами",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Fixtures automatically retry when they fail, unlike beforeEach hooks",
+            uk: "Фікстури автоматично повторюються при падінні, на відміну від хуків beforeEach",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The three advantages of fixtures over hooks: (1) setup and teardown live in one function — no shared outer variables needed; (2) a test's argument list explicitly shows what it depends on, making tests self-documenting; (3) fixtures are on-demand — if a test doesn't need `loggedInPage`, Playwright doesn't create it. `beforeEach` always runs regardless.",
+        uk: "Три переваги фікстур над хуками: (1) setup і teardown в одній функції — не потрібні спільні зовнішні змінні; (2) список аргументів тесту явно показує від чого він залежить — тести самодокументуються; (3) фікстури за потреби — якщо тест не потребує `loggedInPage` Playwright не створює її. `beforeEach` завжди виконується незалежно.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "A fixture function receives `({ page, browser }, use)` as arguments. What does this mean?",
+        uk: "Функція фікстури отримує `({ page, browser }, use)` як аргументи. Що це означає?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The fixture depends on both the page and browser fixtures — Playwright will create them first before running this fixture",
+            uk: "Фікстура залежить від фікстур page і browser — Playwright створить їх спочатку перед запуском цієї фікстури",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "The fixture receives a copy of the page and browser objects from the previous test",
+            uk: "Фікстура отримує копію об'єктів page і browser з попереднього тесту",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The fixture will run twice — once for page and once for browser",
+            uk: "Фікстура запуститься двічі — один раз для page і один для browser",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The fixture overrides both the page and browser built-in fixtures at the same time",
+            uk: "Фікстура одночасно перевизначає вбудовані фікстури page і browser",
+          },
+        },
+      ],
+      correctOptionId: "a",
+      rationale: {
+        en: "Fixtures can declare other fixtures as dependencies simply by listing them in the first argument object. Playwright resolves the dependency graph automatically — `page` and `browser` are set up first, then passed into your fixture. This composability is what makes fixtures so powerful: you can build layered abstractions (e.g. a `loggedInPage` fixture that depends on `page`, which depends on `context`).",
+        uk: "Фікстури можуть оголошувати інші фікстури як залежності — просто перераховуючи їх у першому об'єкті аргументів. Playwright автоматично вирішує граф залежностей — `page` і `browser` налаштовуються спочатку, потім передаються у твою фікстуру. Ця компонованість і робить фікстури такими потужними: можна будувати шаруваті абстракції (наприклад, фікстура `loggedInPage` залежить від `page`, яка залежить від `context`).",
+      },
+    },
+  ],
 }

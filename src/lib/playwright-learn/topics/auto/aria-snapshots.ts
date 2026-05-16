@@ -13,609 +13,532 @@ export const ariaSnapshotsTopic: PlaywrightTopic = {
     uk: "Snapshot-тестування",
   },
   summary: {
-    en: "With Playwright's Snapshot testing you can assert the accessibility tree of a page against a predefined snapshot template.",
-    uk: "У Playwright snapshot-тести дозволяють звіряти дерево доступності сторінки з наперед заданим шаблоном знімка.",
+    en: "ARIA snapshots capture the accessibility tree of a page as YAML and compare it on re-run. Unlike HTML snapshots, they survive CSS/class refactors — they only break when the meaningful structure changes.",
+    uk: "ARIA snapshot фіксує дерево доступності сторінки як YAML і порівнює при повторному запуску. На відміну від HTML snapshots — переживає рефакторинг CSS і класів. Ламається лише коли змінюється значуща структура.",
   },
   sections: [
     {
-      id: "overview",
+      id: "what-aria-snapshots-capture",
       title: {
-        en: "Overview",
-        uk: "Огляд",
+        en: "What gets captured",
+        uk: "Що фіксується",
       },
       paragraphs: [
         {
-          en: "With Playwright's Snapshot testing you can assert the accessibility tree of a page against a predefined snapshot template.",
-          uk: "У Playwright snapshot-тести дозволяють звіряти дерево доступності сторінки з наперед заданим шаблоном знімка.",
+          en: "An ARIA snapshot is not HTML. It's the accessibility tree — the same view a screen reader sees. It captures roles, accessible names, and attributes like `checked`, `expanded`, `disabled`. Implementation details like CSS classes, data attributes, or HTML tags don't appear.",
+          uk: "ARIA snapshot — це не HTML. Це дерево доступності — той самий вигляд що бачить screen reader. Фіксує ролі, доступні назви і атрибути як `checked`, `expanded`, `disabled`. Деталі реалізації на зразок CSS класів, data атрибутів або HTML тегів не з'являються.",
         },
-      ],
-      codeBlocks: [
         {
-          id: "cb-1",
-          language: "js",
-          code: 'await page.goto(\'https://playwright.dev/\');\nawait expect(page).toMatchAriaSnapshot(`\n  - banner:\n    - heading /Playwright enables reliable end-to-end/ [level=1]\n    - link "Get started":\n      - /url: /docs/intro\n    - link "Star microsoft/playwright on GitHub":\n      - /url: https://github.com/microsoft/playwright\n    - link /[\\\\d]+k\\\\+ stargazers on GitHub/\n`);',
+          en: "This is the key advantage: a developer can rewrite the component's internals, change the markup, rename classes — the snapshot won't break unless the component's accessible structure actually changes.",
+          uk: "Це ключова перевага: розробник може переписати внутрішній код компонента, змінити верстку, перейменувати класи — snapshot не зламається поки не зміниться доступна структура компонента.",
         },
       ],
     },
     {
-      id: "assertion-testing-vs-snapshot-testing",
+      id: "basic-snapshot",
       title: {
-        en: "Assertion testing vs Snapshot testing",
-        uk: "Перевірки твердженнями (assertions) проти snapshot-тестів",
+        en: "Write and match a snapshot",
+        uk: "Написати та перевірити snapshot",
       },
       paragraphs: [
         {
-          en: "Snapshot testing and assertion testing serve different purposes in test automation:",
-          uk: "Snapshot-тести й перевірки твердженнями вирішують різні задачі в автоматизації:",
-        },
-        {
-          en: "### Assertion testing\nAssertion testing is a targeted approach where you assert specific values or conditions about elements or components. For instance, with Playwright, [`method: LocatorAssertions.toHaveText`]\nverifies that an element contains the expected text, and [`method: LocatorAssertions.toHaveValue`]\nconfirms that an input field has the expected value.\nAssertion tests are specific and generally check the current state of an element or property\nagainst an expected, predefined state.\nThey work well for predictable, single-value checks but are limited in scope when testing the\nbroader structure or variations.",
-          uk: "### Перевірки твердженнями (assertions)\nТут ви явно перевіряєте конкретні значення або умови для елементів. Наприклад, у Playwright [`method: LocatorAssertions.toHaveText`]\nперевіряє текст елемента, а [`method: LocatorAssertions.toHaveValue`] — значення поля вводу.\nТакі тести зазвичай звіряють поточний стан з наперед заданим очікуванням.\nВони добре підходять для передбачуваних одиничних перевірок, але гірше масштабуються на широку структуру або багато варіацій.",
-        },
-        {
-          en: "**Advantages**\n- **Clarity**: The intent of the test is explicit and easy to understand.\n- **Specificity**: Tests focus on particular aspects of functionality, making them more robust\n  against unrelated changes.\n- **Debugging**: Failures provide targeted feedback, pointing directly to the problematic aspect.",
-          uk: "**Переваги**\n- **Зрозумілість**: намір тесту явний.\n- **Фокус**: перевіряються конкретні аспекти — менше хибних спрацьовувань від сторонніх змін.\n- **Дебаг**: падіння вказують прямо на проблемне місце.",
-        },
-        {
-          en: "**Disadvantages**\n- **Verbose for complex outputs**: Writing assertions for complex data structures or large outputs\n  can be cumbersome and error-prone.\n- **Maintenance overhead**: As code evolves, manually updating assertions can be time-consuming.",
-          uk: "**Недоліки**\n- **Багато коду** для складних структур або великих виходів.\n- **Підтримка**: при еволюції коду ручне оновлення асершенів забирає час.",
-        },
-        {
-          en: "### Snapshot testing\nSnapshot testing captures a “snapshot” or representation of the entire\nstate of an element, component, or data at a given moment, which is then saved for future\ncomparisons. When re-running tests, the current state is compared to the snapshot, and if there\nare differences, the test fails. This approach is especially useful for complex or dynamic\nstructures, where manually asserting each detail would be too time-consuming. Snapshot testing\nis broader and more holistic than assertion testing, allowing you to track more complex changes over time.",
-          uk: "### Snapshot-тестування\nЗнімок фіксує стан елемента, компонента або даних у момент часу й зберігається для подальших порівнянь.\nПри повторному запуску поточний стан звіряється зі знімком; розбіжність — падіння тесту.\nЗручно для складних структур, де ручні асершени на кожну деталь були б надто дорогими.\nSnapshot охоплює ширше й дозволяє відстежувати складніші зміни в часі.",
-        },
-        {
-          en: "**Advantages**\n- **Simplifies complex outputs**: For example, testing a UI component's rendered output can be tedious with traditional assertions. Snapshots capture the entire output for easy comparison.\n- **Quick Feedback loop**: Developers can easily spot unintended changes in the output.\n- **Encourages consistency**: Helps maintain consistent output as code evolves.",
-          uk: "**Переваги**\n- **Спрощує складні виходи**: увесь рендер можна порівняти одним знімком.\n- **Швидкий зворотний зв’язок**: неочікувані зміни видно одразу.\n- **Послідовність**: легше тримати стабільний вигляд при змінах коду.",
-        },
-        {
-          en: "**Disadvantages**\n- **Over-Reliance**: It can be tempting to accept changes to snapshots without fully understanding\n  them, potentially hiding bugs.\n- **Granularity**: Large snapshots may be hard to interpret when differences arise, especially\n  if minor changes affect large portions of the output.\n- **Suitability**: Not ideal for highly dynamic content where outputs change frequently or\n  unpredictably.",
-          uk: "**Недоліки**\n- **Сліпе оновлення**: легко «погодити» знімок, не розібравшись, і сховати баг.\n- **Деталізація**: великі знімки важко читати при дифах.\n- **Не для всього**: погано для сильно динамічного контенту з хаотичними змінами.",
-        },
-        {
-          en: "### When to use",
-          uk: "### Коли що використовувати",
-        },
-        {
-          en: "- **Snapshot testing** is ideal for:\n  - UI testing of whole pages and components.\n  - Broad structural checks for complex UI components.\n  - Regression testing for outputs that rarely change structure.",
-          uk: "- **Snapshot-тести** доречні для:\n  - UI цілих сторінок і компонентів.\n  - широких структурних перевірок складного UI.\n  - регресій, де структура рідко змінюється.",
-        },
-        {
-          en: "- **Assertion testing** is ideal for:\n  - Core logic validation.\n  - Computed value testing.\n  - Fine-grained tests requiring precise conditions.",
-          uk: "- **Асершени** доречні для:\n  - перевірки бізнес-логіки.\n  - обчислених значень.\n  - дрібнозернистих умов.",
-        },
-        {
-          en: "By combining snapshot testing for broad, structural checks and assertion testing for specific functionality, you can achieve a well-rounded testing strategy.",
-          uk: "Поєднуючи snapshot для структури та асершени для конкретної поведінки, отримуєте збалансовану стратегію тестування.",
-        },
-      ],
-    },
-    {
-      id: "aria-snapshots",
-      title: {
-        en: "Aria snapshots",
-        uk: "Aria snapshots",
-      },
-      paragraphs: [
-        {
-          en: "In Playwright, aria snapshots provide a YAML representation of the accessibility tree of a page.\nThese snapshots can be stored and compared later to verify if the page structure remains consistent or meets defined\nexpectations.",
-          uk: "У Playwright aria snapshot — це YAML-подання дерева доступності сторінки.\nЗнімки можна зберігати й пізніше звіряти з поточною структурою або вимогами.",
-        },
-        {
-          en: "The YAML format describes the hierarchical structure of accessible elements on the page, detailing **roles**, **attributes**, **values**, and **text content**.\nThe structure follows a tree-like syntax, where each node represents an accessible element, and indentation indicates\nnested elements.",
-          uk: "YAML описує ієрархію доступних елементів: **ролі**, **атрибути**, **значення** та **текст**.\nВузол — елемент дерева; відступи показують вкладеність.",
-        },
-        {
-          en: "Each accessible element in the tree is represented as a YAML node:",
-          uk: "Кожен доступний елемент — окремий вузол YAML:",
-        },
-        {
-          en: '- **role**: Specifies the ARIA or HTML role of the element (e.g., `heading`, `list`, `listitem`, `button`).\n- **"name"**: Accessible name of the element. Quoted strings indicate exact values, `/patterns/` are used for regular expression.\n- **[attribute=value]**: Attributes and values, in square brackets, represent specific ARIA attributes, such\n  as `checked`, `disabled`, `expanded`, `level`, `pressed`, or `selected`.',
-          uk: '- **role** — ARIA або HTML-роль (`heading`, `list`, `listitem`, `button` тощо).\n- **"name"** — доступна назва; у лапках точний рядок, `/шаблон/` — регулярний вираз.\n- **[attribute=value]** — атрибути в квадратних дужках (`checked`, `disabled`, `expanded`, `level`, `pressed`, `selected` тощо).',
-        },
-        {
-          en: "These values are derived from ARIA attributes or calculated based on HTML semantics. To inspect the accessibility tree\nstructure of a page, use the [Chrome DevTools Accessibility Tab](https://developer.chrome.com/docs/devtools/accessibility/reference#tab).",
-          uk: "Значення беруться з ARIA або обчислюються з HTML-семантики. Дерево доступності можна переглянути у [вкладці Accessibility Chrome DevTools](https://developer.chrome.com/docs/devtools/accessibility/reference#tab).",
+          en: "The template is a YAML-like string where each line is `- role \"accessible name\"`. You can match the whole page with `expect(page).toMatchAriaSnapshot()` or scope to a specific element with a locator.",
+          uk: "Шаблон — це YAML-подібний рядок де кожен рядок є `- роль \"доступна назва\"`. Можна перевірити всю сторінку через `expect(page).toMatchAriaSnapshot()` або обмежити scope конкретним елементом через локатор.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-6",
-          language: "yaml",
-          code: '- role "name" [attribute=value]',
+          id: "basic-match",
+          language: "ts",
+          code: `test('order detail page structure', async ({ page }) => {
+  await page.goto('/orders/42')
+
+  // Перевіряємо структуру всієї сторінки
+  await expect(page).toMatchAriaSnapshot(\`
+    - heading "Order #42" [level=1]
+    - region "Order details":
+      - text: Customer: Ivan Kozenko
+      - text: Status: Pending
+    - region "Actions":
+      - button "Approve order"
+      - button "Cancel order"
+  \`)
+})
+
+// Або лише конкретну частину сторінки
+test('action buttons are correct', async ({ page }) => {
+  await page.goto('/orders/42')
+
+  await expect(page.getByRole('region', { name: 'Actions' })).toMatchAriaSnapshot(\`
+    - button "Approve order"
+    - button "Cancel order"
+  \`)
+})`,
         },
       ],
     },
     {
-      id: "snapshot-matching",
+      id: "partial-matching",
       title: {
-        en: "Snapshot matching",
-        uk: "Звіряння зі знімком",
+        en: "Partial matching — check what matters",
+        uk: "Часткове збігання — перевіряй що важливо",
       },
       paragraphs: [
         {
-          en: "The [`method: PageAssertions.toMatchAriaSnapshot`] assertion method in Playwright compares the accessible\nstructure of the page with a predefined aria snapshot template, helping validate the page's state against\ntesting requirements. You can also use [`method: LocatorAssertions.toMatchAriaSnapshot`] to match a specific part of the page.",
-          uk: "[`method: PageAssertions.toMatchAriaSnapshot`] порівнює доступну структуру сторінки з шаблоном aria snapshot.\n[`method: LocatorAssertions.toMatchAriaSnapshot`] — звірити лише частину сторінки.",
+          en: "By default, a snapshot template matches a subset — you don't need to list every element. Only what you put in the template is checked. If the page has 20 nav links but you only care that the Orders link exists, include just that one.",
+          uk: "За замовчуванням шаблон перевіряє підмножину — не треба перераховувати кожен елемент. Перевіряється лише те що ти поклав у шаблон. Якщо на сторінці 20 nav посилань але тебе цікавить лише що посилання Orders існує — включи лише його.",
         },
         {
-          en: "For the following DOM:",
-          uk: "Для такого DOM:",
-        },
-        {
-          en: "You can match it using the following snapshot template:",
-          uk: "Підійде такий шаблон знімка:",
-        },
-        {
-          en: "When matching, the snapshot template is compared to the current accessibility tree of the page:",
-          uk: "При звірянні шаблон порівнюється з поточним деревом доступності:",
-        },
-        {
-          en: "* If the tree structure matches the template, the test passes; otherwise, it fails, indicating a mismatch between\n  expected and actual accessibility states.\n* The comparison is case-sensitive and collapses whitespace, so indentation and line breaks are ignored.\n* The comparison is order-sensitive, meaning the order of elements in the snapshot template must match the order in the\n  page's accessibility tree.",
-          uk: "* Якщо структура збігається — тест проходить; інакше — розбіжність очікуваного й фактичного стану доступності.\n* Порівняння чутливе до регістру; пробіли згортаються — відступи й переноси рядків ігноруються.\n* Порядок вузлів має збігатися з порядком у дереві доступності сторінки.",
-        },
-        {
-          en: "### Partial matching",
-          uk: "### Часткове збігання",
-        },
-        {
-          en: "You can perform partial matches on nodes by omitting attributes or accessible names, enabling verification of specific\nparts of the accessibility tree without requiring exact matches. This flexibility is helpful for dynamic or irrelevant\nattributes.",
-          uk: "Можна опускати атрибути або доступні назви — перевіряється лише потрібна частина дерева. Зручно для динамічних або неважливих атрибутів.",
-        },
-        {
-          en: 'In this example, the button role is matched, but the accessible name ("Submit") is not specified, allowing the test to\npass regardless of the button\'s label.',
-          uk: "Тут збігається роль `button`, але не вказано назву «Submit» — тест проходить з будь-яким підписом кнопки.",
-        },
-        {
-          en: "For elements with ARIA attributes like `checked` or `disabled`, omitting these attributes allows partial matching,\nfocusing solely on role and hierarchy.",
-          uk: "Для елементів з `checked` чи `disabled` можна не вказувати ці атрибути — перевіряються роль і ієрархія.",
-        },
-        {
-          en: "In this partial match, the `checked` attribute is ignored, so the test will pass regardless of the checkbox state.",
-          uk: "У цьому частковому збіганні `checked` ігнорується — тест проходить незалежно від стану чекбокса.",
-        },
-        {
-          en: "Similarly, you can partially match children in lists or groups by omitting specific list items or nested elements.",
-          uk: "Аналогічно можна опускати окремі елементи списку або вкладені вузли.",
-        },
-        {
-          en: "Partial matches let you create flexible snapshot tests that verify essential page structure without enforcing\nspecific content or attributes.",
-          uk: "Часткові збігання дають гнучкі тести структури без жорсткої фіксації всього контенту й атрибутів.",
-        },
-        {
-          en: "### Strict matching",
-          uk: "### Суворе збігання",
-        },
-        {
-          en: "By default, a template containing the subset of children will be matched:",
-          uk: "За замовчуванням шаблон із підмножиною нащадків збігається так:",
-        },
-        {
-          en: "The `/children` property can be used to control how child elements are matched:\n- `contain` (default): Matches if all specified children are present in order\n- `equal`: Matches if the children exactly match the specified list in order\n- `deep-equal`: Matches if the children exactly match the specified list in order, including nested children",
-          uk: "Властивість `/children` керує збіганням нащадків:\n- `contain` (за замовчуванням): усі вказані діти присутні в тому ж порядку\n- `equal`: діти точно збігаються зі списком у тому ж порядку\n- `deep-equal`: те саме, включно з вкладеними рівнями",
-        },
-        {
-          en: "Following snapshot will fail due to Feature C not being in the template:",
-          uk: "Наступний знімок впаде, бо в шаблоні немає Feature C:",
-        },
-        {
-          en: "#### Setting `children` mode globally",
-          uk: "#### Глобальний режим `children`",
-        },
-        {
-          en: "Instead of adding a `/children` property to every snapshot, you can set the default children matching mode for all\n`toMatchAriaSnapshot` calls in the configuration file:",
-          uk: "Замість `/children` у кожному знімку можна задати режим за замовчуванням для всіх викликів `toMatchAriaSnapshot` у конфігурації:",
-        },
-        {
-          en: "Individual snapshots can still override the global setting by including an explicit `/children` property in the template.",
-          uk: "Окремий знімок може перевизначити глобальне значення явним `/children` у шаблоні.",
-        },
-        {
-          en: "### Matching with regular expressions",
-          uk: "### Збігання з регулярними виразами",
-        },
-        {
-          en: "Regular expressions allow flexible matching for elements with dynamic or variable text. Accessible names and text can\nsupport regex patterns.",
-          uk: "Регулярні вирази зручні для динамічного тексту; доступні назви й текст підтримують патерни `/.../`.",
+          en: "You can also omit the accessible name to match any element with that role, or use regex for dynamic text.",
+          uk: "Можна також опустити доступну назву щоб збіг з будь-яким елементом тієї ролі, або використати regex для динамічного тексту.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-7",
-          language: "html",
-          code: "title",
+          id: "partial-match",
+          language: "ts",
+          code: `// Перевірити що кнопка з роллю button існує (без вказання назви)
+await expect(page.getByRole('dialog')).toMatchAriaSnapshot(\`
+  - dialog:
+    - button
+\`)
+
+// Regex для динамічного тексту
+await expect(page).toMatchAriaSnapshot(\`
+  - heading /Order #\\d+/ [level=1]
+  - text: /\\d+ items/
+\`)
+
+// Перевірити що список містить хоча б ці елементи (порядок — не важливий)
+await expect(page.getByRole('navigation')).toMatchAriaSnapshot(\`
+  - navigation:
+    - link "Dashboard"
+    - link "Orders"
+\`)`,
         },
+      ],
+    },
+    {
+      id: "strict-children",
+      title: {
+        en: "Strict children — exact list",
+        uk: "Strict children — точний список",
+      },
+      paragraphs: [
         {
-          id: "cb-8",
-          language: "js",
-          code: 'await expect(page).toMatchAriaSnapshot(`\n  - heading "title"\n`);',
+          en: "When you need to assert that the element has EXACTLY these children and no others, add `/children: equal` to the template. This is useful for navigation menus, action toolbars, or select options where unexpected extra items are a bug.",
+          uk: "Коли треба перевірити що елемент має РІВНО ці нащадки і жодних інших — додай `/children: equal` до шаблону. Корисно для меню навігації, тулбарів дій або select опцій де несподівані зайві елементи — це баг.",
         },
+      ],
+      codeBlocks: [
         {
-          id: "cb-13",
-          language: "html",
-          code: "Submit",
-        },
-        {
-          id: "cb-14",
-          language: "yaml",
-          code: "- button",
-        },
-        {
-          id: "cb-15",
-          language: "html",
-          code: "",
-        },
-        {
-          id: "cb-16",
-          language: "yaml",
-          code: "- checkbox",
-        },
-        {
-          id: "cb-17",
-          language: "html",
-          code: "\n  Feature A\n  Feature B\n  Feature C",
-        },
-        {
-          id: "cb-18",
-          language: "yaml",
-          code: "- list\n  - listitem: Feature B",
-        },
-        {
-          id: "cb-19",
-          language: "html",
-          code: "\n  Feature A\n  Feature B\n  Feature C",
-        },
-        {
-          id: "cb-20",
-          language: "yaml",
-          code: "- list\n  - listitem: Feature B",
-        },
-        {
-          id: "cb-21",
-          language: "html",
-          code: "\n  Feature A\n  Feature B\n  Feature C",
-        },
-        {
-          id: "cb-22",
-          language: "yaml",
-          code: "- list\n  - /children: equal\n  - listitem: Feature A\n  - listitem: Feature B",
-        },
-        {
-          id: "cb-23",
-          language: "js",
-          code: "\nexport default defineConfig({\n  expect: {\n    toMatchAriaSnapshot: {\n      children: 'equal',\n    },\n  },\n});",
-        },
-        {
-          id: "cb-24",
-          language: "html",
-          code: "Issues 12",
-        },
-        {
-          id: "cb-25",
-          language: "yaml",
-          code: "- heading /Issues \\d+/",
+          id: "strict-children",
+          language: "ts",
+          code: `// Точно ці 3 кнопки, не більше і не менше
+await expect(page.getByRole('toolbar')).toMatchAriaSnapshot(\`
+  - toolbar "Order actions":
+    - /children: equal
+    - button "Approve"
+    - button "Reject"
+    - button "Archive"
+\`)
+
+// Глобально в конфізі — щоб всі snapshots перевіряли рівно
+// playwright.config.ts
+export default defineConfig({
+  expect: {
+    toMatchAriaSnapshot: {
+      children: 'equal',
+    },
+  },
+})`,
         },
       ],
     },
     {
       id: "generating-snapshots",
       title: {
-        en: "Generating snapshots",
-        uk: "Генерація знімків",
+        en: "Auto-generate snapshot templates",
+        uk: "Автогенерація шаблонів",
       },
       paragraphs: [
         {
-          en: "Creating aria snapshots in Playwright helps ensure and maintain your application's structure.\nYou can generate snapshots in various ways depending on your testing setup and workflow.",
-          uk: "Aria snapshots допомагають зафіксувати й підтримувати структуру застосунку.\nСпособи генерації залежать від вашого workflow.",
+          en: "You don't have to write snapshot templates by hand. Two ways to generate them: run with `--update-snapshots` flag (updates in-test inline strings), or use the VS Code extension's \"Update snapshot\" button next to a failing test.",
+          uk: "Не обов'язково писати шаблони вручну. Два способи згенерувати: запустити з прапором `--update-snapshots` (оновлює inline рядки у тесті), або використати кнопку \"Update snapshot\" у VS Code extension поруч з падаючим тестом.",
         },
         {
-          en: "### Generating snapshots with the Playwright code generator",
-          uk: "### Генерація через Code Generator",
-        },
-        {
-          en: "If you're using Playwright's [Code Generator](./codegen.md), generating aria snapshots is streamlined with its\ninteractive interface:",
-          uk: "У [Code Generator](./codegen.md) aria snapshots зручно створювати через інтерактивний інтерфейс:",
-        },
-        {
-          en: '- **"Assert snapshot" Action**: In the code generator, you can use the "Assert snapshot" action to automatically create\na snapshot assertion for the selected elements. This is a quick way to capture the aria snapshot as part of your\nrecorded test flow.',
-          uk: "- **Дія «Assert snapshot»**: автоматично додає assertion зі знімком для вибраних елементів у записаному сценарії.",
-        },
-        {
-          en: '- **"Aria snapshot" Tab**: The "Aria snapshot" tab within the code generator interface visually represents the\naria snapshot for a selected locator, letting you explore, inspect, and verify element roles, attributes, and\naccessible names to aid snapshot creation and review.',
-          uk: "- **Вкладка «Aria snapshot»**: показує знімок для вибраного локатора — ролі, атрибути та доступні назви для перегляду й редагування.",
-        },
-        {
-          en: "### Updating snapshots with `@playwright/test` and the `--update-snapshots` flag",
-          uk: "### Оновлення знімків через `@playwright/test` і `--update-snapshots`",
-        },
-        {
-          en: "When using the Playwright test runner (`@playwright/test`), you can automatically update snapshots with the `--update-snapshots` flag, `-u` for short.",
-          uk: "У `@playwright/test` знімки оновлюються прапором `--update-snapshots` (скорочено `-u`).",
-        },
-        {
-          en: "Running tests with the `--update-snapshots` flag will update snapshots that did not match. Matching snapshots will not be updated.",
-          uk: "Оновлюються лише знімки, що не збіглися; ті, що вже ок — лишаються без змін.",
-        },
-        {
-          en: "Updating snapshots is useful when application structure changes require new snapshots as a baseline. Note that Playwright will wait for the maximum expect timeout specified in the test runner configuration to ensure the page is settled before taking the snapshot. It might be necessary to adjust the `--timeout` if the test hits the timeout while generating snapshots.",
-          uk: "Оновлення базової лінії зручне після зміни структури UI. Playwright чекає до expect timeout з конфігу, поки сторінка «встигне». За таймауту під час генерації збільшіть `--timeout`.",
-        },
-        {
-          en: "#### Empty template for snapshot generation",
-          uk: "#### Порожній шаблон для генерації",
-        },
-        {
-          en: "Passing an empty string as the template in an assertion generates a snapshot on-the-fly:",
-          uk: "Порожній рядок як шаблон у assertion згенерує знімок на льоту:",
-        },
-        {
-          en: "Note that Playwright will wait for the maximum expect timeout specified in the test runner configuration to ensure the\npage is settled before taking the snapshot. It might be necessary to adjust the `--timeout` if the test hits the timeout\nwhile generating snapshots.",
-          uk: "Знову діє очікування до expect timeout; за потреби збільшіть `--timeout`.",
-        },
-        {
-          en: "#### Snapshot patch files",
-          uk: "#### Patch-файли знімків",
-        },
-        {
-          en: "When updating snapshots, Playwright creates patch files that capture differences. These patch files can be reviewed,\napplied, and committed to source control, allowing teams to track structural changes over time and ensure updates are\nconsistent with application requirements.",
-          uk: "При оновленні створюються patch-файли з різницею — їх можна переглянути, застосувати (`git apply`) й закомітити, щоб відстежувати зміни структури.",
-        },
-        {
-          en: "The way source code is updated can be changed using the `--update-source-method` flag. There are several options available:",
-          uk: "Спосіб запису в код задає `--update-source-method`:",
-        },
-        {
-          en: '- **"patch"** (default): Generates a unified diff file that can be applied to the source code using `git apply`.\n- **"3way"**: Generates merge conflict markers in your source code, allowing you to choose whether to accept changes.\n- **"overwrite"**: Overwrites the source code with the new snapshot values.',
-          uk: '- **"patch"** (за замовчуванням): unified diff для `git apply`.\n- **"3way"**: маркери конфлікту злиття в коді — вибір змін вручну.\n- **"overwrite"**: повністю перезаписує значення знімка в коді.',
-        },
-        {
-          en: "#### Snapshots as separate files",
-          uk: "#### Знімки в окремих файлах",
-        },
-        {
-          en: "To store your snapshots in a separate file, use the `toMatchAriaSnapshot` method with the `name` option, specifying a `.aria.yml` file extension.",
-          uk: "Для файлу використовуйте `toMatchAriaSnapshot` з опцією `name` і розширенням `.aria.yml`.",
-        },
-        {
-          en: "By default, snapshots from a test file `example.spec.ts` are placed in the `example.spec.ts-snapshots` directory. As snapshots should be the same across browsers, only one snapshot is saved even if testing with multiple browsers. Should you wish, you can customize the [snapshot path template](./api/class-testconfig#test-config-snapshot-path-template) using the following configuration:",
-          uk: "За замовчуванням знімки для `example.spec.ts` лежать у `example.spec.ts-snapshots`. Між браузерами зберігається один файл. Шлях можна змінити через [snapshot path template](./api/class-testconfig#test-config-snapshot-path-template).",
-        },
-        {
-          en: "### Using [`method: Page.ariaSnapshot`] and [`method: Locator.ariaSnapshot`]",
-          uk: "### Методи [`method: Page.ariaSnapshot`] та [`method: Locator.ariaSnapshot`]",
-        },
-        {
-          en: "Methods [`method: Page.ariaSnapshot`] and [`method: Locator.ariaSnapshot`] allow you to programmatically create a YAML representation of accessible\nelements within a locator's scope, especially helpful for generating snapshots dynamically during test execution.",
-          uk: "Ці методи повертають YAML доступних елементів у межах локатора — зручно генерувати знімки динамічно під час тесту.",
-        },
-        {
-          en: "**Example**:",
-          uk: "**Приклад**:",
-        },
-        {
-          en: "This command outputs the aria snapshot within the specified locator's scope in YAML format, which you can validate\nor store as needed.",
-          uk: "Команда виводить aria snapshot у YAML для перевірки або збереження.",
+          en: "On the first run when there's no existing snapshot, Playwright auto-generates it and the test passes. After that, any deviation fails the test until you explicitly update.",
+          uk: "При першому запуску коли немає існуючого snapshot — Playwright автоматично генерує його і тест проходить. Після цього будь-яке відхилення падає поки ти явно не оновиш.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-26",
+          id: "update-snapshots",
           language: "bash",
-          code: "npx playwright test --update-snapshots",
+          code: `# Оновити всі застарілі snapshots
+npx playwright test --update-snapshots
+
+# Або лише конкретний файл
+npx playwright test tests/orders.spec.ts --update-snapshots`,
         },
         {
-          id: "cb-27",
-          language: "js",
-          code: "await expect(locator).toMatchAriaSnapshot('');",
-        },
-        {
-          id: "cb-28",
-          language: "bash",
-          code: "npx playwright test --update-snapshots --update-source-method=3way",
-        },
-        {
-          id: "cb-29",
-          language: "js",
-          code: "await expect(page.getByRole('main')).toMatchAriaSnapshot({ name: 'main.aria.yml' });",
-        },
-        {
-          id: "cb-30",
-          language: "js",
-          code: "export default defineConfig({\n  expect: {\n    toMatchAriaSnapshot: {\n      pathTemplate: '__snapshots__/{testFilePath}/{arg}{ext}',\n    },\n  },\n});",
-        },
-        {
-          id: "cb-31",
-          language: "js",
-          code: "const snapshot = await page.ariaSnapshot();\nconsole.log(snapshot);",
-        },
-      ],
-    },
-    {
-      id: "accessibility-tree-examples",
-      title: {
-        en: "Accessibility tree examples",
-        uk: "Приклади дерева доступності",
-      },
-      paragraphs: [
-        {
-          en: "### Headings with level attributes",
-          uk: "### Заголовки з атрибутом level",
-        },
-        {
-          en: "Headings can include a `level` attribute indicating their heading level.",
-          uk: "У заголовків може бути атрибут `level` — рівень заголовка.",
-        },
-        {
-          en: "### Text nodes",
-          uk: "### Текстові вузли",
-        },
-        {
-          en: "Standalone or descriptive text elements appear as text nodes.",
-          uk: "Окремий або описовий текст з’являється як text node.",
-        },
-        {
-          en: "### Inline multiline text",
-          uk: "### Багаторядковий текст",
-        },
-        {
-          en: "Multiline text, such as paragraphs, is normalized in the aria snapshot.",
-          uk: "Багаторядковий текст (наприклад, абзаци) нормалізується в знімку.",
-        },
-        {
-          en: "### Links",
-          uk: "### Посилання",
-        },
-        {
-          en: "Links display their text or composed content from pseudo-elements. The link’s destination may be matched using the\n`/url` property.",
-          uk: "Посилання показують текст або вміст з псевдоелементів. Адресу можна звіряти через властивість `/url`.",
-        },
-        {
-          en: "The value of `/url` may also be a regular expression:",
-          uk: "Значення `/url` може бути регулярним виразом:",
-        },
-        {
-          en: "### Text boxes",
-          uk: "### Поля вводу (textbox)",
-        },
-        {
-          en: "Input elements of type `text` show their `value` attribute content.",
-          uk: 'Для `input type="text"` у знімку відображається вміст `value`.',
-        },
-        {
-          en: "### Lists with items",
-          uk: "### Списки з елементами",
-        },
-        {
-          en: "Ordered and unordered lists include their list items.",
-          uk: "Нумеровані та марковані списки містять свої `listitem`.",
-        },
-        {
-          en: "### Grouped elements",
-          uk: "### Згруповані елементи",
-        },
-        {
-          en: "Groups capture nested elements, such as `` elements with summary content.",
-          uk: "Групи описують вкладені елементи, зокрема вміст summary у згрупованих блоках.",
-        },
-        {
-          en: "### Attributes and states",
-          uk: "### Атрибути та стани",
-        },
-        {
-          en: "Commonly used ARIA attributes, like `checked`, `disabled`, `expanded`, `level`, `pressed`, and `selected`, represent\ncontrol states.",
-          uk: "Типові ARIA-атрибути — `checked`, `disabled`, `expanded`, `level`, `pressed`, `selected` — відображають стан контролів.",
-        },
-        {
-          en: "#### Checkbox with `checked` attribute",
-          uk: "#### Чекбокс з атрибутом `checked`",
-        },
-        {
-          en: "#### Button with `pressed` attribute",
-          uk: "#### Кнопка з атрибутом `pressed`",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-36",
-          language: "html",
-          code: "Title\nSubtitle",
-        },
-        {
-          id: "cb-37",
-          language: "yaml",
-          code: '- heading "Title" [level=1]\n- heading "Subtitle" [level=2]',
-        },
-        {
-          id: "cb-38",
-          language: "html",
-          code: "Sample accessible name",
-        },
-        {
-          id: "cb-39",
-          language: "yaml",
-          code: "- text: Sample accessible name",
-        },
-        {
-          id: "cb-40",
-          language: "html",
-          code: "Line 1Line 2",
-        },
-        {
-          id: "cb-41",
-          language: "yaml",
-          code: "- paragraph: Line 1 Line 2",
-        },
-        {
-          id: "cb-42",
-          language: "html",
-          code: "Read more about Accessibility",
-        },
-        {
-          id: "cb-43",
-          language: "yaml",
-          code: '- link "Read more about Accessibility":\n    - /url: "#more-info"',
-        },
-        {
-          id: "cb-44",
-          language: "html",
-          code: "YouTube channel",
-        },
-        {
-          id: "cb-45",
-          language: "yaml",
-          code: "- link:\n  - /url: /https://www.youtube.com/channel/.*/",
-        },
-        {
-          id: "cb-46",
-          language: "html",
-          code: "",
-        },
-        {
-          id: "cb-47",
-          language: "yaml",
-          code: "- textbox: Enter your name",
-        },
-        {
-          id: "cb-48",
-          language: "html",
-          code: "\n  Feature 1\n  Feature 2",
-        },
-        {
-          id: "cb-49",
-          language: "yaml",
-          code: '- list "Main Features":\n  - listitem: Feature 1\n  - listitem: Feature 2',
-        },
-        {
-          id: "cb-50",
-          language: "html",
-          code: "\n  Summary\n  Detail content here",
-        },
-        {
-          id: "cb-51",
-          language: "yaml",
-          code: "- group: Summary",
-        },
-        {
-          id: "cb-52",
-          language: "html",
-          code: "",
-        },
-        {
-          id: "cb-53",
-          language: "yaml",
-          code: "- checkbox [checked]",
-        },
-        {
-          id: "cb-54",
-          language: "html",
-          code: "Toggle",
-        },
-        {
-          id: "cb-55",
-          language: "yaml",
-          code: '- button "Toggle" [pressed=true]',
+          id: "first-run",
+          language: "ts",
+          code: `// При першому запуску — пустий шаблон, Playwright заповнить
+test('nav structure', async ({ page }) => {
+  await page.goto('/dashboard')
+
+  // Перший запуск: Playwright запише шаблон
+  await expect(page.getByRole('navigation')).toMatchAriaSnapshot(\`\`)
+})
+
+// Після першого запуску шаблон буде заповнений:
+// await expect(page.getByRole('navigation')).toMatchAriaSnapshot(\`
+//   - navigation:
+//     - link "Dashboard"
+//     - link "Orders"
+//     - link "Customers"
+// \`)`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "A developer renames a CSS class on the order table from .orders-table to .data-table. Will the ARIA snapshot test break?",
+        uk: "Розробник перейменовує CSS клас таблиці замовлень з .orders-table на .data-table. Чи зламається ARIA snapshot тест?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Yes — the snapshot includes class names",
+            uk: "Так — snapshot включає назви класів",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "No — ARIA snapshots capture the accessibility tree, not CSS classes",
+            uk: "Ні — ARIA snapshots фіксують дерево доступності, а не CSS класи",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "It depends on whether the table has an aria-label attribute",
+            uk: "Залежить від того чи таблиця має атрибут aria-label",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Yes — the snapshot records every DOM attribute including class names",
+            uk: "Так — snapshot записує кожен DOM атрибут включно з назвами класів",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "ARIA snapshots capture roles, accessible names, and semantic attributes — not CSS classes, HTML tags, or data attributes. A CSS class rename is invisible to the accessibility tree and won't affect the snapshot.",
+        uk: "ARIA snapshots фіксують ролі, доступні назви і семантичні атрибути — не CSS класи, HTML теги або data атрибути. Перейменування CSS класу невидиме для дерева доступності і не вплине на snapshot.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "You want to assert that a toolbar has EXACTLY 3 buttons and no more. What do you add to the template?",
+        uk: "Хочеш перевірити що тулбар має РІВНО 3 кнопки і не більше. Що додаєш до шаблону?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Add count: 3 to each button entry",
+            uk: "Додати count: 3 до кожного запису кнопки",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Add /children: equal to the toolbar node in the template",
+            uk: "Додати /children: equal до вузла toolbar у шаблоні",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Use expect(toolbar).toHaveCount(3) instead of toMatchAriaSnapshot",
+            uk: "Використати expect(toolbar).toHaveCount(3) замість toMatchAriaSnapshot",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Add strict: true as an option to toMatchAriaSnapshot()",
+            uk: "Додати strict: true як опцію до toMatchAriaSnapshot()",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`/children: equal` switches the matching from 'contains these children' (default) to 'has exactly these children in this order'. Without it, extra buttons would be silently allowed.",
+        uk: "`/children: equal` перемикає збігання з 'містить ці нащадки' (за замовчуванням) на 'має рівно ці нащадки в цьому порядку'. Без цього зайві кнопки були б мовчки дозволені.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "What does an ARIA snapshot actually capture about a page element?",
+        uk: "Що насправді фіксує ARIA snapshot про елемент сторінки?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The full HTML markup including CSS classes and data attributes",
+            uk: "Повну HTML-розмітку включно з CSS класами і data-атрибутами",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "A pixel-by-pixel screenshot of the rendered element",
+            uk: "Попіксельний знімок відрендереного елемента",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Roles, accessible names, and semantic attributes like checked, expanded, disabled",
+            uk: "Ролі, доступні назви і семантичні атрибути як checked, expanded, disabled",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The computed CSS styles and layout coordinates of each element",
+            uk: "Обчислені CSS-стилі і координати розташування кожного елемента",
+          },
+        },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "ARIA snapshots capture the accessibility tree — the same view a screen reader sees. This means roles (button, heading, link), accessible names, and state attributes (checked, expanded, disabled). HTML tags, CSS classes, data attributes, and visual properties are deliberately excluded, which is why snapshots survive CSS refactors.",
+        uk: "ARIA snapshots фіксують дерево доступності — той самий вигляд що бачить screen reader. Це означає ролі (button, heading, link), доступні назви і атрибути стану (checked, expanded, disabled). HTML теги, CSS класи, data атрибути і візуальні властивості навмисно виключені — тому snapshots переживають CSS рефакторинг.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "You run a snapshot test for the first time with an empty template string. What happens?",
+        uk: "Запускаєш snapshot тест вперше з порожнім рядком шаблону. Що відбувається?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The test fails immediately because an empty template never matches",
+            uk: "Тест одразу падає бо порожній шаблон ніколи не збігається",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Playwright auto-generates the snapshot template and the test passes",
+            uk: "Playwright автоматично генерує шаблон snapshot і тест проходить",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The test is skipped and a warning is printed to the console",
+            uk: "Тест пропускається і у консоль виводиться попередження",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "You must run --update-snapshots first before any snapshot test can run",
+            uk: "Потрібно спочатку запустити --update-snapshots перш ніж будь-який snapshot тест може виконатися",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "On the first run with no existing snapshot (or an empty template string), Playwright automatically generates the ARIA snapshot and writes it into the template. The test passes. On subsequent runs, any deviation from the captured template causes a failure. This bootstrap behavior means you can write the test with empty templates and let Playwright fill them in.",
+        uk: "При першому запуску без існуючого snapshot (або з порожнім рядком шаблону) Playwright автоматично генерує ARIA snapshot і записує його в шаблон. Тест проходить. При наступних запусках будь-яке відхилення від зафіксованого шаблону призводить до падіння. Ця bootstrap-поведінка означає що можна написати тест з порожніми шаблонами і дати Playwright заповнити їх.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "How do you update all outdated ARIA snapshot templates after a legitimate UI restructure?",
+        uk: "Як оновити всі застарілі шаблони ARIA snapshot після законної реструктуризації UI?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Delete the snapshot files manually and re-run the tests",
+            uk: "Видалити файли snapshot вручну і перезапустити тести",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Run npx playwright test --update-snapshots",
+            uk: "Запустити npx playwright test --update-snapshots",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Edit each YAML snapshot file by hand to match the new structure",
+            uk: "Відредагувати кожен YAML файл snapshot вручну відповідно до нової структури",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Run npx playwright test --reset to clear all snapshots",
+            uk: "Запустити npx playwright test --reset щоб очистити всі snapshot",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The `--update-snapshots` flag tells Playwright to regenerate snapshot templates for all tests, updating any that no longer match. This is the standard workflow: make your UI change, run tests to see which snapshots fail, then run with `--update-snapshots` to accept the new structure. You can also use the VS Code extension's 'Update snapshot' button next to a failing test.",
+        uk: "Прапор `--update-snapshots` наказує Playwright регенерувати шаблони snapshot для всіх тестів, оновлюючи ті що більше не збігаються. Це стандартний workflow: внести зміну в UI, запустити тести щоб побачити які snapshot падають, потім запустити з `--update-snapshots` щоб прийняти нову структуру. Також можна використовувати кнопку 'Update snapshot' у VS Code extension поруч із падаючим тестом.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "You want to check that a navigation menu contains a 'Dashboard' link without listing every other link in the nav. How does ARIA snapshot matching work by default?",
+        uk: "Хочеш перевірити що меню навігації містить посилання 'Dashboard' не перераховуючи всі інші посилання. Як за замовчуванням працює збігання ARIA snapshot?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "By default matching is strict — you must list every element or the test fails",
+            uk: "За замовчуванням збігання суворе — потрібно перерахувати кожен елемент або тест падає",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "By default matching is partial — the template checks a subset, so you only include what you care about",
+            uk: "За замовчуванням збігання часткове — шаблон перевіряє підмножину, тому включаєш лише те що важливо",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "You must add a wildcard '...' entry to allow unspecified elements",
+            uk: "Потрібно додати запис-шаблон '...' щоб дозволити невказані елементи",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Partial matching requires passing { partial: true } as an option",
+            uk: "Часткове збігання вимагає передати { partial: true } як опцію",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "By default, ARIA snapshot templates use partial (subset) matching. You only list the elements you want to assert — any additional elements on the page are silently ignored. This lets you write focused assertions. To switch to exact matching (no unspecified children allowed), add `/children: equal` to the parent node.",
+        uk: "За замовчуванням шаблони ARIA snapshot використовують часткове (підмножинне) збігання. Перераховуєш лише ті елементи що хочеш перевірити — будь-які додаткові елементи на сторінці мовчки ігноруються. Це дозволяє писати сфокусовані assertions. Щоб перейти до точного збігання (ніяких незазначених нащадків), додай `/children: equal` до батьківського вузла.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "What is the key difference between ARIA snapshot testing and visual screenshot testing?",
+        uk: "Яка ключова відмінність між ARIA snapshot тестуванням і візуальним скріншот тестуванням?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "ARIA snapshots are faster because they skip rendering; screenshot tests require a real browser",
+            uk: "ARIA snapshots швидші бо пропускають рендеринг; скріншот тести вимагають реального браузера",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "ARIA snapshots check semantic structure and accessibility; screenshot tests check visual pixel output. ARIA snapshots survive CSS/layout refactors; screenshots break on any visual change",
+            uk: "ARIA snapshots перевіряють семантичну структуру і доступність; скріншот тести перевіряють візуальний піксельний вивід. ARIA snapshots переживають CSS/layout рефакторинг; скріншоти ламаються при будь-якій візуальній зміні",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Screenshot tests are more reliable because they capture exactly what the user sees",
+            uk: "Скріншот тести надійніші бо фіксують саме те що бачить користувач",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "ARIA snapshots work across all browsers; screenshot tests are Chromium-only",
+            uk: "ARIA snapshots працюють у всіх браузерах; скріншот тести тільки для Chromium",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "ARIA snapshots capture semantic structure (roles, names, states) — the same view a screen reader sees. Screenshot tests capture exact pixel output. A button that moves 2px to the right will break a screenshot test but not an ARIA snapshot. Conversely, a button whose accessible name changes from 'Delete' to 'Remove' will break an ARIA snapshot but might not be caught by a screenshot test if the visual looks identical.",
+        uk: "ARIA snapshots фіксують семантичну структуру (ролі, назви, стани) — той самий вигляд що бачить screen reader. Скріншот тести фіксують точний піксельний вивід. Кнопка що зсунулася на 2px вправо зламає скріншот тест але не ARIA snapshot. Навпаки, кнопка чия доступна назва змінилася з 'Delete' на 'Remove' зламає ARIA snapshot але може не бути виявлена скріншот тестом якщо вигляд ідентичний.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "You can scope an ARIA snapshot assertion to a specific part of the page. Which call checks only the 'Actions' region instead of the whole page?",
+        uk: "Можна обмежити ARIA snapshot assertion до конкретної частини сторінки. Який виклик перевіряє лише регіон 'Actions' замість всієї сторінки?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "await expect(page).toMatchAriaSnapshot('region Actions')",
+            uk: "await expect(page).toMatchAriaSnapshot('region Actions')",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "await expect(page.getByRole('region', { name: 'Actions' })).toMatchAriaSnapshot(`- button \"Approve order\"`)",
+            uk: "await expect(page.getByRole('region', { name: 'Actions' })).toMatchAriaSnapshot(`- button \"Approve order\"`)",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "await expect(page).toMatchAriaSnapshot({ scope: 'Actions' })",
+            uk: "await expect(page).toMatchAriaSnapshot({ scope: 'Actions' })",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Scoping is not supported — toMatchAriaSnapshot always checks the entire page",
+            uk: "Scoping не підтримується — toMatchAriaSnapshot завжди перевіряє всю сторінку",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "You can pass any locator to `expect()` before calling `toMatchAriaSnapshot()`. The snapshot is then taken from that locator's subtree only. Using `page.getByRole('region', { name: 'Actions' })` scopes the assertion to just the Actions region, making the test more focused and resilient to changes in other parts of the page.",
+        uk: "Можна передати будь-який локатор до `expect()` перед викликом `toMatchAriaSnapshot()`. Snapshot тоді береться лише з піддерева того локатора. Використання `page.getByRole('region', { name: 'Actions' })` обмежує assertion лише регіоном Actions, роблячи тест більш сфокусованим і стійким до змін в інших частинах сторінки.",
+      },
+    },
+  ],
 }

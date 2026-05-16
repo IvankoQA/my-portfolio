@@ -13,465 +13,572 @@ export const testReportersTopic: PlaywrightTopic = {
     uk: "Репортери",
   },
   summary: {
-    en: "Playwright Test comes with a few built-in reporters for different needs and ability to provide custom reporters. The easiest way to try out built-in reporters is to pass `--reporter` [command line option](./test-cli.md).",
-    uk: "Playwright Test постачає кілька вбудованих репортерів для різних сценаріїв і дає змогу підключати власні. Найпростіше спробувати вбудовані репортери — передати `--reporter` як [опцію командного рядка](./test-cli.md).",
+    en: "My CI config always uses two reporters simultaneously: 'dot' for terminal output (quiet, one char per test) and 'blob' when sharding for later merging. Locally I use 'html' so failures open automatically in the browser with traces attached. The 'github' reporter adds inline annotations to PR diffs — worth adding if the team reviews failures directly in GitHub.",
+    uk: "Мій CI-конфіг завжди використовує два репортери одночасно: 'dot' для термінального виводу (тихий, один символ на тест) і 'blob' при шардингу для подальшого злиття. Локально використовую 'html' щоб падіння відкривалися автоматично в браузері з прикріпленими трейсами. Репортер 'github' додає вбудовані анотації до PR-дифів — варто додати якщо команда переглядає падіння прямо в GitHub.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "choosing-reporters",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "Which reporter to use and when",
+        uk: "Який репортер вибрати і коли",
+      },
+      diagram: {
+        mermaid: `flowchart TD
+  TR["Test run"] --> L["list / dot / line\nterminal output"]
+  TR --> H["html\nstatic report site"]
+  TR --> B["blob\nCI shard artifact"]
+  TR --> G["github\nPR annotations"]
+  TR --> J["json / junit\nmachine-readable"]
+  B -->|"npx playwright merge-reports"| H`,
+        caption: {
+          en: "Reporters can be combined; use blob on sharded CI runs and merge-reports to produce one HTML report from all shards",
+          uk: "Репортери можна комбінувати; використовуйте blob при шардингу і merge-reports для об'єднання в один HTML-звіт",
+        },
       },
       paragraphs: [
         {
-          en: "Playwright Test comes with a few built-in reporters for different needs and ability to provide custom reporters. The easiest way to try out built-in reporters is to pass `--reporter` [command line option](./test-cli.md).",
-          uk: "Playwright Test постачає кілька вбудованих репортерів для різних сценаріїв і дає змогу підключати власні. Найпростіше спробувати вбудовані репортери — передати `--reporter` як [опцію командного рядка](./test-cli.md).",
-        },
-        {
-          en: "For more control, you can specify reporters programmatically in the [configuration file](./test-configuration.md).",
-          uk: "Для тоншого керування репортери можна задати програмно у [файлі конфігурації](./test-configuration.md).",
-        },
-        {
-          en: "### Multiple reporters",
-          uk: "### Кілька репортерів",
-        },
-        {
-          en: "You can use multiple reporters at the same time. For example  you can use `'list'` for nice terminal output and `'json'` to get a comprehensive json file with the test results.",
-          uk: "Можна використовувати кілька репортерів одночасно. Наприклад, `'list'` — зручний вивід у термінал, а `'json'` — повний JSON-файл із результатами тестів.",
-        },
-        {
-          en: "### Reporters on CI",
-          uk: "### Репортери в CI",
-        },
-        {
-          en: "You can use different reporters locally and on CI. For example, using concise `'dot'` reporter avoids too much output. This is the default on CI.",
-          uk: "Локально й у CI можна використовувати різні репортери. Наприклад, стислий `'dot'` зменшує обсяг виводу; у CI він типовий за замовчуванням.",
+          en: "The default is `list` locally and `dot` on CI. I usually override CI to use `dot` explicitly to avoid the verbose list output. You can combine reporters — the config takes an array, so I get terminal output AND a file simultaneously.",
+          uk: "За замовчуванням — `list` локально і `dot` на CI. Зазвичай явно перевизначаю CI на `dot` щоб уникнути деталізованого list-виводу. Можна комбінувати репортери — конфіг приймає масив, тому отримую термінальний вивід І файл одночасно.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
-          language: "bash",
-          code: "npx playwright test --reporter=line",
+          id: "multiple-reporters",
+          language: "ts",
+          code: `// playwright.config.ts — два репортери одночасно
+export default defineConfig({
+  reporter: [
+    ['list'],
+    ['json', { outputFile: 'test-results.json' }],
+  ],
+})`,
         },
         {
-          id: "cb-2",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: 'line',\n});",
-        },
-        {
-          id: "cb-3",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: [\n    ['list'],\n    ['json', {  outputFile: 'test-results.json' }]\n  ],\n});",
-        },
-        {
-          id: "cb-4",
-          language: "js",
-          code: "\nexport default defineConfig({\n  // Concise 'dot' for CI, default 'list' when running locally\n  reporter: process.env.CI ? 'dot' : 'list',\n});",
+          id: "ci-vs-local",
+          language: "ts",
+          code: `// playwright.config.ts — різні репортери для CI і локально
+export default defineConfig({
+  reporter: process.env.CI ? 'dot' : 'list',
+})`,
         },
       ],
     },
     {
-      id: "built-in-reporters",
+      id: "terminal-reporters",
       title: {
-        en: "Built-in reporters",
-        uk: "Вбудовані репортери",
+        en: "Terminal reporters — list, line, dot",
+        uk: "Термінальні репортери — list, line, dot",
       },
       paragraphs: [
         {
-          en: "All built-in reporters show detailed information about failures, and mostly differ in verbosity for successful runs.",
-          uk: "Усі вбудовані репортери детально показують збої; для успішних прогонів вони переважно відрізняються деталізацією виводу.",
-        },
-        {
-          en: "### List reporter",
-          uk: "### Репортер list",
-        },
-        {
-          en: "List reporter is default (except on CI where the `dot` reporter is default). It prints a line for each test being run.",
-          uk: "Репортер `list` типовий за замовчуванням (на CI за замовчуванням — `dot`). Для кожного тесту друкується окремий рядок.",
-        },
-        {
-          en: "Here is an example output in the middle of a test run. Failures will be listed at the end.",
-          uk: "Ось приклад виводу під час прогону. Збої будуть перелічені в кінці.",
-        },
-        {
-          en: "You can opt into the step rendering via passing the following config option:",
-          uk: "Відображення кроків можна увімкнути такою опцією конфігурації:",
-        },
-        {
-          en: "List report supports the following configuration options and environment variables:",
-          uk: "Звіт list підтримує такі опції конфігурації та змінні середовища:",
-        },
-        {
-          en: "| Environment Variable Name | Reporter Config Option| Description | Default\n|---|---|---|---|\n| `PLAYWRIGHT_LIST_PRINT_STEPS` | `printSteps` | Whether to print each step on its own line. | `false`\n| `PLAYWRIGHT_FORCE_TTY` | | Whether to produce output suitable for a live terminal. Supports `true`, `1`, `false`, `0`, `[WIDTH]`, and `[WIDTH]x[HEIGHT]`. `[WIDTH]` and `[WIDTH]x[HEIGHT]` specifies the TTY dimensions. | `true` when terminal is in TTY mode, `false` otherwise.\n| `FORCE_COLOR` | | Whether to produce colored output. | `true` when terminal is in TTY mode, `false` otherwise.",
-          uk: "| Назва змінної середовища | Опція конфігурації репортера| Опис | Типово\n|---|---|---|---|\n| `PLAYWRIGHT_LIST_PRINT_STEPS` | `printSteps` | Чи друкувати кожен крок на окремому рядку. | `false`\n| `PLAYWRIGHT_FORCE_TTY` | | Чи формувати вивід, придатний для інтерактивного термінала. Підтримує `true`, `1`, `false`, `0`, `[WIDTH]` та `[WIDTH]x[HEIGHT]`. `[WIDTH]` і `[WIDTH]x[HEIGHT]` задають розміри TTY. | `true`, якщо термінал у режимі TTY, інакше `false`.\n| `FORCE_COLOR` | | Чи формувати кольоровий вивід. | `true`, якщо термінал у режимі TTY, інакше `false`.",
-        },
-        {
-          en: "### Line reporter",
-          uk: "### Репортер line",
-        },
-        {
-          en: "Line reporter is more concise than the list reporter. It uses a single line to report last finished test, and prints failures when they occur. Line reporter is useful for large test suites where it shows the progress but does not spam the output by listing all the tests.",
-          uk: "Репортер `line` стисліший за `list`: один рядок для останнього завершеного тесту, збої виводяться одразу. Зручний для великих збірок — видно прогрес без переліку всіх тестів.",
-        },
-        {
-          en: "Here is an example output in the middle of a test run. Failures are reported inline.",
-          uk: "Ось приклад виводу під час прогону. Збої показуються в тому ж потоці.",
-        },
-        {
-          en: "Line report supports the following configuration options and environment variables:",
-          uk: "Звіт line підтримує такі опції конфігурації та змінні середовища:",
-        },
-        {
-          en: "| Environment Variable Name | Reporter Config Option| Description | Default\n|---|---|---|---|\n| `PLAYWRIGHT_FORCE_TTY` | | Whether to produce output suitable for a live terminal. Supports `true`, `1`, `false`, `0`, `[WIDTH]`, and `[WIDTH]x[HEIGHT]`. `[WIDTH]` and `[WIDTH]x[HEIGHT]` specifies the TTY dimensions. | `true` when terminal is in TTY mode, `false` otherwise.\n| `FORCE_COLOR` | | Whether to produce colored output. | `true` when terminal is in TTY mode, `false` otherwise.",
-          uk: "| Назва змінної середовища | Опція конфігурації репортера| Опис | Типово\n|---|---|---|---|\n| `PLAYWRIGHT_FORCE_TTY` | | Чи формувати вивід, придатний для інтерактивного термінала. Підтримує `true`, `1`, `false`, `0`, `[WIDTH]` та `[WIDTH]x[HEIGHT]`. `[WIDTH]` і `[WIDTH]x[HEIGHT]` задають розміри TTY. | `true`, якщо термінал у режимі TTY, інакше `false`.\n| `FORCE_COLOR` | | Чи формувати кольоровий вивід. | `true`, якщо термінал у режимі TTY, інакше `false`.",
-        },
-        {
-          en: "### Dot reporter",
-          uk: "### Репортер dot",
-        },
-        {
-          en: "Dot reporter is very concise - it only produces a single character per successful test run. It is the default on CI and useful where you don't want a lot of output.",
-          uk: "Репортер `dot` дуже стислий — по одному символу на успішний тест. Типовий для CI, коли не потрібен великий вивід.",
-        },
-        {
-          en: "Here is an example output in the middle of a test run. Failures will be listed at the end.",
-          uk: "Ось приклад виводу під час прогону. Збої будуть перелічені в кінці.",
-        },
-        {
-          en: "One character is displayed for each test that has run, indicating its status:",
-          uk: "Для кожного виконаного тесту показується один символ зі статусом:",
-        },
-        {
-          en: "| Character | Description\n|---|---|\n| `·` | Passed\n| `F` | Failed\n| `×` | Failed or timed out - and will be retried\n| `±` | Passed on retry (flaky)\n| `T` | Timed out\n| `°` | Skipped",
-          uk: "| Символ | Опис\n|---|---|\n| `·` | Пройдено\n| `F` | Помилка\n| `×` | Помилка або тайм-аут — буде повтор\n| `±` | Пройдено після повтору (flaky)\n| `T` | Тайм-аут\n| `°` | Пропущено",
-        },
-        {
-          en: "Dot report supports the following configuration options and environment variables:",
-          uk: "Звіт dot підтримує такі опції конфігурації та змінні середовища:",
-        },
-        {
-          en: "| Environment Variable Name | Reporter Config Option| Description | Default\n|---|---|---|---|\n| `PLAYWRIGHT_FORCE_TTY` | | Whether to produce output suitable for a live terminal. Supports `true`, `1`, `false`, `0`, `[WIDTH]`, and `[WIDTH]x[HEIGHT]`. `[WIDTH]` and `[WIDTH]x[HEIGHT]` specifies the TTY dimensions. | `true` when terminal is in TTY mode, `false` otherwise.\n| `FORCE_COLOR` | | Whether to produce colored output. | `true` when terminal is in TTY mode, `false` otherwise.",
-          uk: "| Назва змінної середовища | Опція конфігурації репортера| Опис | Типово\n|---|---|---|---|\n| `PLAYWRIGHT_FORCE_TTY` | | Чи формувати вивід, придатний для інтерактивного термінала. Підтримує `true`, `1`, `false`, `0`, `[WIDTH]` та `[WIDTH]x[HEIGHT]`. `[WIDTH]` і `[WIDTH]x[HEIGHT]` задають розміри TTY. | `true`, якщо термінал у режимі TTY, інакше `false`.\n| `FORCE_COLOR` | | Чи формувати кольоровий вивід. | `true`, якщо термінал у режимі TTY, інакше `false`.",
-        },
-        {
-          en: "### HTML reporter",
-          uk: "### HTML-репортер",
-        },
-        {
-          en: "HTML reporter produces a self-contained folder that contains report for the test run that can be served as a web page.",
-          uk: "HTML-репортер створює автономну теку зі звітом про прогін, який можна відкрити як вебсторінку.",
-        },
-        {
-          en: "By default, HTML report is opened automatically if some of the tests failed. You can control this behavior via the\n`open` property in the Playwright config or the `PLAYWRIGHT_HTML_OPEN` environmental variable. The possible values for that property are `always`, `never` and `on-failure`\n(default).",
-          uk: "За замовчуванням HTML-звіт відкривається автоматично, якщо є невдалі тести. Поведінку керують властивістю `open` у конфігурації Playwright або змінною середовища `PLAYWRIGHT_HTML_OPEN`. Можливі значення: `always`, `never` та `on-failure`\n(типово).",
-        },
-        {
-          en: "You can also configure `host` and `port` that are used to serve the HTML report.",
-          uk: "Також можна задати `host` і `port` для роздачі HTML-звіту.",
-        },
-        {
-          en: "By default, report is written into the `playwright-report` folder in the current working directory. One can override\nthat location using the `PLAYWRIGHT_HTML_OUTPUT_DIR` environment variable or a reporter configuration.",
-          uk: "За замовчуванням звіт записується в теку `playwright-report` у поточному робочому каталозі. Розташування можна перевизначити змінною середовища `PLAYWRIGHT_HTML_OUTPUT_DIR` або конфігурацією репортера.",
-        },
-        {
-          en: "In configuration file, pass options directly:",
-          uk: "У файлі конфігурації передайте опції безпосередньо:",
-        },
-        {
-          en: "If you are uploading attachments from a data folder to another location, you can use `attachmentsBaseURL` option to let html report know where to look for them.",
-          uk: "Якщо вкладення з теки `data` вивантажуються в інше місце, використовуйте опцію `attachmentsBaseURL`, щоб HTML-звіт знав, де їх шукати.",
-        },
-        {
-          en: "A quick way of opening the last test run report is:",
-          uk: "Швидко відкрити звіт останнього прогону:",
-        },
-        {
-          en: "Or if there is a custom folder name:",
-          uk: "Або якщо використовується власна назва теки:",
-        },
-        {
-          en: "You can also pass a `.zip` archive — for example one downloaded from a CI artifact. The archive must contain `index.html` at its top level. Playwright will extract it to a temporary directory and serve the report:",
-          uk: "Також можна передати архів `.zip` — наприклад завантажений з артефакту CI. На верхньому рівні архіву має бути `index.html`. Playwright розпакує його в тимчасову теку й покаже звіт:",
-        },
-        {
-          en: "HTML report supports the following configuration options and environment variables:",
-          uk: "HTML-звіт підтримує такі опції конфігурації та змінні середовища:",
-        },
-        {
-          en: "| Environment Variable Name | Reporter Config Option| Description | Default\n|---|---|---|---|\n| `PLAYWRIGHT_HTML_TITLE` | `title` | A title to display in the generated report. | No title is displayed by default\n| `PLAYWRIGHT_HTML_OUTPUT_DIR` | `outputFolder` | Directory to save the report to. | `playwright-report`\n| `PLAYWRIGHT_HTML_OPEN` | `open` | When to open the html report in the browser, one of `'always'`, `'never'` or `'on-failure'` | `'on-failure'`\n| `PLAYWRIGHT_HTML_HOST` | `host` | When report opens in the browser, it will be served bound to this hostname. | `localhost`\n| `PLAYWRIGHT_HTML_PORT` | `port` | When report opens in the browser, it will be served on this port. | `9323` or any available port when `9323` is not available.\n| `PLAYWRIGHT_HTML_ATTACHMENTS_BASE_URL` | `attachmentsBaseURL` | A separate location where attachments from the `data` subdirectory are uploaded. Only needed when you upload report and `data` separately to different locations. | `data/`\n| `PLAYWRIGHT_HTML_NO_COPY_PROMPT` | `noCopyPrompt` | If true, disable rendering of the Copy prompt for errors. Supports `true`, `1`, `false`, and `0`. | `false`\n| `PLAYWRIGHT_HTML_NO_SNIPPETS` | `noSnippets` | If true, disable rendering code snippets in the action log. If there is a top level error, that report section with code snippet will still render. Supports `true`, `1`, `false`, and `0`. | `false`\n| `PLAYWRIGHT_HTML_DO_NOT_INLINE_ASSETS` | `doNotInlineAssets` | If true, JavaScript, CSS and report data are written as separate files alongside `index.html` instead of being embedded inline. Use this when serving the report under a strict [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP) that disallows inline scripts and styles. Supports `true`, `1`, `false`, and `0`. | `false`",
-          uk: "| Назва змінної середовища | Опція конфігурації репортера| Опис | Типово\n|---|---|---|---|\n| `PLAYWRIGHT_HTML_TITLE` | `title` | Заголовок у згенерованому звіті. | За замовчуванням заголовок не показується\n| `PLAYWRIGHT_HTML_OUTPUT_DIR` | `outputFolder` | Тека для збереження звіту. | `playwright-report`\n| `PLAYWRIGHT_HTML_OPEN` | `open` | Коли відкривати HTML-звіт у браузері: `'always'`, `'never'` або `'on-failure'` | `'on-failure'`\n| `PLAYWRIGHT_HTML_HOST` | `host` | Ім’я хоста, до якого прив’язується сервер при відкритті звіту. | `localhost`\n| `PLAYWRIGHT_HTML_PORT` | `port` | Порт сервера при відкритті звіту в браузері. | `9323` або вільний порт, якщо `9323` зайнятий.\n| `PLAYWRIGHT_HTML_ATTACHMENTS_BASE_URL` | `attachmentsBaseURL` | Окрема адреса, куди вивантажено вкладення з підтеки `data`. Потрібно лише якщо звіт і `data` вивантажуються окремо в різні місця. | `data/`\n| `PLAYWRIGHT_HTML_NO_COPY_PROMPT` | `noCopyPrompt` | Якщо true, вимкнути підказку Copy для помилок. Підтримує `true`, `1`, `false` та `0`. | `false`\n| `PLAYWRIGHT_HTML_NO_SNIPPETS` | `noSnippets` | Якщо true, вимкнути фрагменти коду в журналі дій. Якщо є помилка верхнього рівня, відповідний блок зі зрізом коду лишається. Підтримує `true`, `1`, `false` та `0`. | `false`\n| `PLAYWRIGHT_HTML_DO_NOT_INLINE_ASSETS` | `doNotInlineAssets` | Якщо true, JavaScript, CSS і дані звіту пишуться окремими файлами поруч із `index.html` замість вбудовування. Використовуйте під суворою [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP), що забороняє інлайн-скрипти та стилі. Підтримує `true`, `1`, `false` та `0`. | `false`",
-        },
-        {
-          en: "### Blob reporter",
-          uk: "### Blob-репортер",
-        },
-        {
-          en: "Blob reports contain all the details about the test run and can be used later to produce any other report. Their primary function is to facilitate the merging of reports from [sharded tests](./test-sharding.md).",
-          uk: "Blob-звіти містять усі деталі прогону й згодом можуть бути перетворені на будь-який інший звіт. Головна роль — зручне [об’єднання звітів з шардів](./test-sharding.md).",
-        },
-        {
-          en: "By default, the report is written into the `blob-report` directory in the package.json directory or current working directory (if no package.json is found).",
-          uk: "За замовчуванням звіт записується в каталог `blob-report` поруч із `package.json` або в поточний робочий каталог, якщо `package.json` не знайдено.",
-        },
-        {
-          en: "The report file name looks like `report-.zip` or `report--.zip` when [sharding](./test-sharding.md) is used. The hash is an optional value computed from `--grep`, `--grepInverted`, `--project`, [`property: TestConfig.tag`] and file filters passed as command line arguments. The hash guarantees that running Playwright with different command line options will produce different but stable between runs report names. The output file name can be overridden in the configuration file or passed as `'PLAYWRIGHT_BLOB_OUTPUT_FILE'` environment variable.",
-          uk: "Ім’я файлу звіту виглядає як `report-.zip` або `report--.zip` при [шардингу](./test-sharding.md). Хеш (необов’язково) обчислюється з `--grep`, `--grepInverted`, `--project`, [`property: TestConfig.tag`] та фільтрів файлів з командного рядка. Хеш гарантує: різні опції командного рядка дають різні, але стабільні між прогонами імена файлів. Ім’я вихідного файлу можна перевизначити в конфігурації або змінною середовища `'PLAYWRIGHT_BLOB_OUTPUT_FILE'`.",
-        },
-        {
-          en: "Blob report supports following configuration options and environment variables:",
-          uk: "Blob-звіт підтримує такі опції конфігурації та змінні середовища:",
-        },
-        {
-          en: "| Environment Variable Name | Reporter Config Option| Description | Default\n|---|---|---|---|\n| `PLAYWRIGHT_BLOB_OUTPUT_DIR` | `outputDir` | Directory to save the output. Existing content is deleted before writing the new report. | `blob-report`\n| `PLAYWRIGHT_BLOB_OUTPUT_NAME` | `fileName` | Report file name. | `report---.zip`\n| `PLAYWRIGHT_BLOB_OUTPUT_FILE` | `outputFile` | Full path to the output file. If defined, `outputDir` and `fileName` will be ignored. | `undefined`",
-          uk: "| Назва змінної середовища | Опція конфігурації репортера| Опис | Типово\n|---|---|---|---|\n| `PLAYWRIGHT_BLOB_OUTPUT_DIR` | `outputDir` | Каталог для виводу. Перед записом наявний вміст видаляється. | `blob-report`\n| `PLAYWRIGHT_BLOB_OUTPUT_NAME` | `fileName` | Ім’я файлу звіту. | `report---.zip`\n| `PLAYWRIGHT_BLOB_OUTPUT_FILE` | `outputFile` | Повний шлях до вихідного файлу. Якщо задано, `outputDir` і `fileName` ігноруються. | `undefined`",
-        },
-        {
-          en: "### JSON reporter",
-          uk: "### JSON-репортер",
-        },
-        {
-          en: "JSON reporter produces an object with all information about the test run.",
-          uk: "JSON-репортер формує об’єкт з повною інформацією про прогін.",
-        },
-        {
-          en: "Most likely you want to write the JSON to a file. When running with `--reporter=json`, use `PLAYWRIGHT_JSON_OUTPUT_NAME` environment variable:",
-          uk: "Зазвичай JSON зберігають у файл. При `--reporter=json` використовуйте змінну середовища `PLAYWRIGHT_JSON_OUTPUT_NAME`:",
-        },
-        {
-          en: "In configuration file, pass options directly:",
-          uk: "У файлі конфігурації передайте опції безпосередньо:",
-        },
-        {
-          en: "JSON report supports following configuration options and environment variables:",
-          uk: "JSON-звіт підтримує такі опції конфігурації та змінні середовища:",
-        },
-        {
-          en: "| Environment Variable Name | Reporter Config Option| Description | Default\n|---|---|---|---|\n| `PLAYWRIGHT_JSON_OUTPUT_DIR` | | Directory to save the output file. Ignored if output file is specified. | `cwd` or config directory.\n| `PLAYWRIGHT_JSON_OUTPUT_NAME` | `outputFile` | Base file name for the output, relative to the output dir. | JSON report is printed to the stdout.\n| `PLAYWRIGHT_JSON_OUTPUT_FILE` | `outputFile` | Full path to the output file. If defined, `PLAYWRIGHT_JSON_OUTPUT_DIR` and `PLAYWRIGHT_JSON_OUTPUT_NAME` will be ignored. | JSON report is printed to the stdout.",
-          uk: "| Назва змінної середовища | Опція конфігурації репортера| Опис | Типово\n|---|---|---|---|\n| `PLAYWRIGHT_JSON_OUTPUT_DIR` | | Каталог для вихідного файлу. Ігнорується, якщо задано повний шлях виводу. | `cwd` або каталог конфігурації.\n| `PLAYWRIGHT_JSON_OUTPUT_NAME` | `outputFile` | Базове ім’я файлу відносно каталогу виводу. | JSON виводиться в stdout.\n| `PLAYWRIGHT_JSON_OUTPUT_FILE` | `outputFile` | Повний шлях до вихідного файлу. Якщо задано, `PLAYWRIGHT_JSON_OUTPUT_DIR` і `PLAYWRIGHT_JSON_OUTPUT_NAME` ігноруються. | JSON виводиться в stdout.",
-        },
-        {
-          en: "### JUnit reporter",
-          uk: "### JUnit-репортер",
-        },
-        {
-          en: "JUnit reporter produces a JUnit-style xml report.",
-          uk: "JUnit-репортер створює XML-звіт у стилі JUnit.",
-        },
-        {
-          en: "Most likely you want to write the report to an xml file. When running with `--reporter=junit`, use `PLAYWRIGHT_JUNIT_OUTPUT_NAME` environment variable:",
-          uk: "Зазвичай звіт зберігають у XML-файл. При `--reporter=junit` використовуйте `PLAYWRIGHT_JUNIT_OUTPUT_NAME`:",
-        },
-        {
-          en: "In configuration file, pass options directly:",
-          uk: "У файлі конфігурації передайте опції безпосередньо:",
-        },
-        {
-          en: "JUnit report supports following configuration options and environment variables:",
-          uk: "JUnit-звіт підтримує такі опції конфігурації та змінні середовища:",
-        },
-        {
-          en: "| Environment Variable Name | Reporter Config Option| Description | Default\n|---|---|---|---|\n| `PLAYWRIGHT_JUNIT_OUTPUT_DIR` | | Directory to save the output file. Ignored if output file is not specified. | `cwd` or config directory.\n| `PLAYWRIGHT_JUNIT_OUTPUT_NAME` | `outputFile` | Base file name for the output, relative to the output dir. | JUnit report is printed to the stdout.\n| `PLAYWRIGHT_JUNIT_OUTPUT_FILE` | `outputFile` | Full path to the output file. If defined, `PLAYWRIGHT_JUNIT_OUTPUT_DIR` and `PLAYWRIGHT_JUNIT_OUTPUT_NAME` will be ignored. | JUnit report is printed to the stdout.\n| `PLAYWRIGHT_JUNIT_STRIP_ANSI` | `stripANSIControlSequences` | Whether to remove ANSI control sequences from the text before writing it in the report. | By default output text is added as is.\n| `PLAYWRIGHT_JUNIT_INCLUDE_PROJECT_IN_TEST_NAME` | `includeProjectInTestName` | Whether to include Playwright project name in every test case as a name prefix. | By default not included.\n| `PLAYWRIGHT_JUNIT_SUITE_ID` |  | Value of the `id` attribute on the root `` report entry. | Empty string.\n| `PLAYWRIGHT_JUNIT_SUITE_NAME` |  | Value of the `name` attribute on the root `` report entry. | Empty string.",
-          uk: "| Назва змінної середовища | Опція конфігурації репортера| Опис | Типово\n|---|---|---|---|\n| `PLAYWRIGHT_JUNIT_OUTPUT_DIR` | | Каталог для вихідного файлу. Ігнорується, якщо вихідний файл не вказано. | `cwd` або каталог конфігурації.\n| `PLAYWRIGHT_JUNIT_OUTPUT_NAME` | `outputFile` | Базове ім’я файлу відносно каталогу виводу. | JUnit виводиться в stdout.\n| `PLAYWRIGHT_JUNIT_OUTPUT_FILE` | `outputFile` | Повний шлях до вихідного файлу. Якщо задано, `PLAYWRIGHT_JUNIT_OUTPUT_DIR` і `PLAYWRIGHT_JUNIT_OUTPUT_NAME` ігноруються. | JUnit виводиться в stdout.\n| `PLAYWRIGHT_JUNIT_STRIP_ANSI` | `stripANSIControlSequences` | Чи прибирати ANSI-керуючі послідовності з тексту перед записом у звіт. | За замовчуванням текст додається як є.\n| `PLAYWRIGHT_JUNIT_INCLUDE_PROJECT_IN_TEST_NAME` | `includeProjectInTestName` | Чи додавати ім’я проєкту Playwright як префікс назви кожного тест-кейсу. | За замовчуванням не додається.\n| `PLAYWRIGHT_JUNIT_SUITE_ID` |  | Значення атрибута `id` у кореневому записі звіту ``. | Порожній рядок.\n| `PLAYWRIGHT_JUNIT_SUITE_NAME` |  | Значення атрибута `name` у кореневому записі звіту ``. | Порожній рядок.",
-        },
-        {
-          en: "### GitHub Actions annotations",
-          uk: "### Анотації GitHub Actions",
-        },
-        {
-          en: "You can use the built in `github` reporter to get automatic failure annotations when running in GitHub actions.",
-          uk: "Вбудований репортер `github` додає автоматичні анотації про збої під час запуску в GitHub Actions.",
-        },
-        {
-          en: "Note that all other reporters work on GitHub Actions as well, but do not provide annotations. Also, it is not recommended to\nuse this annotation type if running your tests with a matrix strategy as the stack trace failures will multiply and obscure the\nGitHub file view.",
-          uk: "Інші репортери в GitHub Actions теж працюють, але без анотацій. Не варто використовувати цей тип анотацій з матричною стратегією: стеки помножаться й ускладнять перегляд файлів у GitHub.",
+          en: "`list` — one line per test, shows time. Good for local runs with <100 tests. `line` — one line for the last running test, updates in place. Good for large suites where you just want to see progress. `dot` — one character per test. `·` = pass, `F` = fail, `×` = fail+retry pending, `±` = flaky (passed after retry). I use dot on CI to keep logs readable.",
+          uk: "`list` — один рядок на тест, показує час. Добре для локальних запусків з <100 тестів. `line` — один рядок для останнього запущеного тесту, оновлюється на місці. Добре для великих наборів де хочеш тільки бачити прогрес. `dot` — один символ на тест. `·` = пройдено, `F` = впало, `×` = впало+очікує повтору, `±` = нестабільний (пройшов після повтору). Використовую dot на CI щоб логи залишалися читабельними.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-5",
+          id: "dot-output-example",
           language: "bash",
-          code: "npx playwright test --reporter=list",
-        },
-        {
-          id: "cb-6",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: 'list',\n});",
-        },
-        {
-          id: "cb-7",
-          language: "bash",
-          code: "npx playwright test --reporter=list\nRunning 124 tests using 6 workers\n\n 1  ✓ should access error in env (438ms)\n 2  ✓ handle long test names (515ms)\n 3  x 1) render expected (691ms)\n 4  ✓ should timeout (932ms)\n 5    should repeat each:\n 6  ✓ should respect enclosing .gitignore (569ms)\n 7    should teardown env after timeout:\n 8    should respect excluded tests:\n 9  ✓ should handle env beforeEach error (638ms)\n10    should respect enclosing .gitignore:",
-        },
-        {
-          id: "cb-8",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: [['list', { printSteps: true }]],\n});",
-        },
-        {
-          id: "cb-9",
-          language: "bash",
-          code: "npx playwright test --reporter=line",
-        },
-        {
-          id: "cb-10",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: 'line',\n});",
-        },
-        {
-          id: "cb-11",
-          language: "bash",
-          code: "npx playwright test --reporter=line\nRunning 124 tests using 6 workers\n  1) dot-reporter.spec.ts:20:1 › render expected ===================================================\n\n    Error: expect(received).toBe(expected) // Object.is equality\n\n    Expected: 1\n    Received: 0\n\n[23/124] gitignore.spec.ts - should respect nested .gitignore",
-        },
-        {
-          id: "cb-12",
-          language: "bash",
-          code: "npx playwright test --reporter=dot",
-        },
-        {
-          id: "cb-13",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: 'dot',\n});",
-        },
-        {
-          id: "cb-14",
-          language: "bash",
-          code: "npx playwright test --reporter=dot\nRunning 124 tests using 6 workers\n······F·············································",
-        },
-        {
-          id: "cb-15",
-          language: "bash",
-          code: "npx playwright test --reporter=html",
-        },
-        {
-          id: "cb-16",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: [['html', { open: 'never' }]],\n});",
-        },
-        {
-          id: "cb-17",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: [['html', { outputFolder: 'my-report' }]],\n});",
-        },
-        {
-          id: "cb-18",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: [['html', { attachmentsBaseURL: 'https://external-storage.com/' }]],\n});",
-        },
-        {
-          id: "cb-19",
-          language: "bash",
-          code: "npx playwright show-report",
-        },
-        {
-          id: "cb-20",
-          language: "bash",
-          code: "npx playwright show-report my-report",
-        },
-        {
-          id: "cb-21",
-          language: "bash",
-          code: "npx playwright show-report playwright-report.zip",
-        },
-        {
-          id: "cb-22",
-          language: "bash",
-          code: "npx playwright test --reporter=blob",
-        },
-        {
-          id: "cb-23",
-          language: "bash",
-          code: "PLAYWRIGHT_JSON_OUTPUT_NAME=results.json npx playwright test --reporter=json",
-        },
-        {
-          id: "cb-24",
-          language: "batch",
-          code: "set PLAYWRIGHT_JSON_OUTPUT_NAME=results.json\nnpx playwright test --reporter=json",
-        },
-        {
-          id: "cb-25",
-          language: "powershell",
-          code: '$env:PLAYWRIGHT_JSON_OUTPUT_NAME="results.json"\nnpx playwright test --reporter=json',
-        },
-        {
-          id: "cb-26",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: [['json', { outputFile: 'results.json' }]],\n});",
-        },
-        {
-          id: "cb-27",
-          language: "bash",
-          code: "PLAYWRIGHT_JUNIT_OUTPUT_NAME=results.xml npx playwright test --reporter=junit",
-        },
-        {
-          id: "cb-28",
-          language: "batch",
-          code: "set PLAYWRIGHT_JUNIT_OUTPUT_NAME=results.xml\nnpx playwright test --reporter=junit",
-        },
-        {
-          id: "cb-29",
-          language: "powershell",
-          code: '$env:PLAYWRIGHT_JUNIT_OUTPUT_NAME="results.xml"\nnpx playwright test --reporter=junit',
-        },
-        {
-          id: "cb-30",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: [['junit', { outputFile: 'results.xml' }]],\n});",
-        },
-        {
-          id: "cb-31",
-          language: "js",
-          code: "\nexport default defineConfig({\n  // 'github' for GitHub Actions CI to generate annotations, plus a concise 'dot'\n  // default 'list' when running locally\n  reporter: process.env.CI ? 'github' : 'list',\n});",
+          code: `npx playwright test --reporter=dot
+Running 124 tests using 6 workers
+······F·············±···T···········`,
         },
       ],
     },
     {
-      id: "custom-reporters",
+      id: "html-reporter",
+      title: {
+        en: "HTML reporter — the one I use for debugging",
+        uk: "HTML-репортер — той що я використовую для дебагу",
+      },
+      paragraphs: [
+        {
+          en: "The HTML report is a self-contained web page with all test results, traces, screenshots, and videos. By default it opens automatically when tests fail. I set `open: 'never'` on CI (no browser to open) and `open: 'on-failure'` locally.",
+          uk: "HTML-звіт — це самодостатня вебсторінка з усіма результатами тестів, трейсами, скриншотами і відео. За замовчуванням відкривається автоматично коли тести падають. Встановлюю `open: 'never'` на CI (немає браузера щоб відкрити) і `open: 'on-failure'` локально.",
+        },
+        {
+          en: "To view the last report: `npx playwright show-report`. To view a downloaded CI artifact zip: `npx playwright show-report playwright-report.zip`.",
+          uk: "Щоб переглянути останній звіт: `npx playwright show-report`. Щоб переглянути скачаний CI-артефакт zip: `npx playwright show-report playwright-report.zip`.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "html-config",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  reporter: [
+    ['html', {
+      open: process.env.CI ? 'never' : 'on-failure',
+      outputFolder: 'playwright-report',
+    }],
+  ],
+})`,
+        },
+        {
+          id: "show-report",
+          language: "bash",
+          code: `# Відкрити останній звіт
+npx playwright show-report
+
+# Відкрити конкретну теку
+npx playwright show-report my-report
+
+# Відкрити zip з CI артефакту
+npx playwright show-report playwright-report.zip`,
+        },
+      ],
+    },
+    {
+      id: "blob-reporter",
+      title: {
+        en: "Blob reporter — for sharded CI runs",
+        uk: "Blob-репортер — для шардованих CI-запусків",
+      },
+      paragraphs: [
+        {
+          en: "The blob reporter saves raw test data (results, traces, screenshots) to a zip file. Its entire purpose is sharding: each shard produces a blob, you download all blobs, then merge them into one HTML report. Without blob you'd have 4 separate HTML reports with no way to combine them.",
+          uk: "Blob-репортер зберігає сирі дані тестів (результати, трейси, скриншоти) у zip-файл. Весь його сенс — шардинг: кожен шард виробляє blob, ти скачуєш всі blob, потім зливаєш їх в один HTML-звіт. Без blob у тебе було б 4 окремих HTML-звіти без способу їх об'єднати.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "blob-config",
+          language: "ts",
+          code: `// playwright.config.ts — blob для CI (шардованих запусків)
+export default defineConfig({
+  reporter: process.env.CI ? 'blob' : 'html',
+})`,
+        },
+        {
+          id: "blob-merge",
+          language: "bash",
+          code: `# Після скачування всіх blob-артефактів в ./all-blob-reports
+npx playwright merge-reports --reporter html ./all-blob-reports`,
+        },
+      ],
+    },
+    {
+      id: "ci-integrations",
+      title: {
+        en: "CI integrations — GitHub annotations, JUnit for Azure",
+        uk: "CI-інтеграції — GitHub-анотації, JUnit для Azure",
+      },
+      paragraphs: [
+        {
+          en: "The `github` reporter adds failure annotations directly to the PR diff — clicking on a failure in the GitHub Actions summary takes you to the failing line of code. I combine it with `dot` so I get both annotation and terminal output.",
+          uk: "Репортер `github` додає анотації про падіння прямо до PR-дифу — клік на падіння в зведенні GitHub Actions переводить до рядка коду що впав. Комбінуї його з `dot` щоб отримати і анотацію і термінальний вивід.",
+        },
+        {
+          en: "JUnit reporter produces XML output that Azure DevOps, Jenkins, and similar tools can import into their test dashboards. I use it when the team wants to see trend data in their CI tool rather than opening the Playwright HTML report.",
+          uk: "JUnit-репортер виробляє XML-вивід який Azure DevOps, Jenkins та подібні інструменти можуть імпортувати у свої тест-дашборди. Використовую його коли команда хоче бачити дані тренду у своєму CI-інструменті а не відкривати HTML-звіт Playwright.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "github-reporter",
+          language: "ts",
+          code: `// playwright.config.ts — GitHub-анотації + термінальний вивід
+export default defineConfig({
+  reporter: process.env.CI
+    ? [['github'], ['dot']]
+    : 'list',
+})`,
+        },
+        {
+          id: "junit-reporter",
+          language: "ts",
+          code: `// playwright.config.ts — JUnit для Azure DevOps / Jenkins
+export default defineConfig({
+  reporter: [
+    ['junit', { outputFile: 'test-results/e2e-junit-results.xml' }],
+    ['dot'],
+  ],
+})`,
+        },
+      ],
+    },
+    {
+      id: "custom-reporter",
       title: {
         en: "Custom reporters",
-        uk: "Користувацькі репортери",
+        uk: "Власні репортери",
       },
       paragraphs: [
         {
-          en: "You can create a custom reporter by implementing a class with some of the reporter methods. Learn more about the [Reporter] API.",
-          uk: "Користувацький репортер можна створити, реалізувавши клас із частиною методів репортера. Докладніше — API [Reporter].",
-        },
-        {
-          en: "Now use this reporter with [`property: TestConfig.reporter`].",
-          uk: "Підключіть репортер через [`property: TestConfig.reporter`].",
-        },
-        {
-          en: "Or just pass the reporter file path as `--reporter` command line option:",
-          uk: "Або передайте шлях до файлу репортера як опцію `--reporter` у командному рядку:",
-        },
-        {
-          en: "Here's a short list of open source reporter implementations that you can take a look at when writing your own reporter:",
-          uk: "Короткий список відкритих реалізацій репортерів, на які варто зазирнути під час написання власного:",
-        },
-        {
-          en: "* [Allure Reporter](https://github.com/allure-framework/allure-js/tree/main/packages/allure-playwright)\n* [Github Actions Reporter](https://github.com/estruyf/playwright-github-actions-reporter)\n* [Mail Reporter](https://github.com/estruyf/playwright-mail-reporter)\n* [ReportPortal](https://github.com/reportportal/agent-js-playwright)\n* [Monocart](https://github.com/cenfun/monocart-reporter)",
-          uk: "* [Allure Reporter](https://github.com/allure-framework/allure-js/tree/main/packages/allure-playwright)\n* [Github Actions Reporter](https://github.com/estruyf/playwright-github-actions-reporter)\n* [Mail Reporter](https://github.com/estruyf/playwright-mail-reporter)\n* [ReportPortal](https://github.com/reportportal/agent-js-playwright)\n* [Monocart](https://github.com/cenfun/monocart-reporter)",
+          en: "When built-in reporters aren't enough — for example when I need to post test results to Slack or write to a custom database — I implement the `Reporter` interface. The key methods are `onTestEnd` (called after every test) and `onEnd` (called when the run finishes).",
+          uk: "Коли вбудованих репортерів недостатньо — наприклад коли потрібно відправити результати тестів у Slack або записати в кастомну базу даних — реалізую інтерфейс `Reporter`. Ключові методи: `onTestEnd` (викликається після кожного тесту) і `onEnd` (викликається коли запуск завершується).",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-32",
-          language: "js",
-          code: "\n  FullConfig, FullResult, Reporter, Suite, TestCase, TestResult\n} from '@playwright/test/reporter';\n\nclass MyReporter implements Reporter {\n  onBegin(config: FullConfig, suite: Suite) {\n    console.log(`Starting the run with ${suite.allTests().length} tests`);\n  }\n\n  onTestBegin(test: TestCase, result: TestResult) {\n    console.log(`Starting test ${test.title}`);\n  }\n\n  onTestEnd(test: TestCase, result: TestResult) {\n    console.log(`Finished test ${test.title}: ${result.status}`);\n  }\n\n  onEnd(result: FullResult) {\n    console.log(`Finished the run: ${result.status}`);\n  }\n}\n\nexport default MyReporter;",
+          id: "custom-reporter-impl",
+          language: "ts",
+          code: `// my-reporter.ts
+import type { Reporter, TestCase, TestResult, FullResult } from '@playwright/test/reporter'
+
+class MyReporter implements Reporter {
+  onTestEnd(test: TestCase, result: TestResult) {
+    if (result.status === 'failed') {
+      console.log(\`FAIL: \${test.title} — \${result.error?.message}\`)
+    }
+  }
+
+  onEnd(result: FullResult) {
+    console.log(\`Run finished: \${result.status}\`)
+  }
+}
+
+export default MyReporter`,
         },
         {
-          id: "cb-33",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: './my-awesome-reporter.ts',\n});",
-        },
-        {
-          id: "cb-34",
-          language: "bash",
-          code: 'npx playwright test --reporter="./myreporter/my-awesome-reporter.ts"',
+          id: "custom-reporter-config",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  reporter: ['./my-reporter.ts'],
+})`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "You're running tests with 4 shards on GitHub Actions. Each shard finishes and you want one combined HTML report. Which reporter setup achieves this?",
+        uk: "Ти запускаєш тести з 4 шардами на GitHub Actions. Кожен шард завершується і ти хочеш один об'єднаний HTML-звіт. Яке налаштування репортера досягає цього?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Use reporter: 'html' on all shards and merge the playwright-report folders manually",
+            uk: "Використовувати reporter: 'html' на всіх шардах і зливати теки playwright-report вручну",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Use reporter: 'blob' on CI, upload each shard's blob-report artifact, then run npx playwright merge-reports in a final job",
+            uk: "Використовувати reporter: 'blob' на CI, завантажувати артефакт blob-report кожного шарду, потім запускати npx playwright merge-reports у фінальному job",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Use reporter: 'json' and write a custom script to combine the JSON files",
+            uk: "Використовувати reporter: 'json' і написати кастомний скрипт для об'єднання JSON-файлів",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Use reporter: 'list' — it automatically aggregates shard results to stdout",
+            uk: "Використовувати reporter: 'list' — він автоматично агрегує результати шардів у stdout",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "HTML reports can't be merged — they're static sites that reference their own data directories. The blob reporter produces structured zip files that contain all test data including traces and attachments. The `merge-reports` command knows how to combine them into a single coherent HTML report. This is exactly what the blob reporter was designed for. Combining JSON manually works but loses traces and visual diff data.",
+        uk: "HTML-звіти не можна злити — це статичні сайти що посилаються на власні каталоги з даними. Blob-репортер виробляє структуровані zip-файли що містять всі дані тестів включаючи трейси і вкладення. Команда `merge-reports` знає як об'єднати їх в один цільний HTML-звіт. Саме для цього і призначений blob-репортер. Об'єднання JSON вручну працює але втрачає трейси і дані visual diff.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "In the dot reporter output `··F·±·×`, what does `±` mean?",
+        uk: "У виводі dot-репортера `··F·±·×`, що означає `±`?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Test was skipped due to a test.skip() annotation",
+            uk: "Тест пропущений через анотацію test.skip()",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Test is flaky — it failed at least once but passed on a retry",
+            uk: "Тест нестабільний (flaky) — він впав хоча б один раз але пройшов при повторі",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Test timed out and was marked as a partial pass",
+            uk: "Тест перевищив тайм-аут і позначений як частковий прохід",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Test passed with warnings about deprecated API usage",
+            uk: "Тест пройшов з попередженнями про використання застарілого API",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "In the dot reporter: `·` = passed on first attempt, `F` = failed (all retries exhausted), `×` = failed and a retry is still pending or in progress, `±` = flaky (failed initially but passed on a subsequent retry). Tracking flaky tests is important — `±` tells you which tests are passing inconsistently. A test that's `±` in CI may be hiding a real intermittent bug or a race condition worth fixing even though it's not blocking the build.",
+        uk: "У dot-репортері: `·` = пройшов з першої спроби, `F` = впав (всі повтори вичерпані), `×` = впав і повтор ще очікує або виконується, `±` = нестабільний (спочатку впав але пройшов при наступному повторі). Відстеження нестабільних тестів важливе — `±` показує які тести проходять непослідовно. Тест з `±` на CI може приховувати справжній переривчастий баг або race condition варто виправити навіть якщо він не блокує збірку.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "You configure `reporter: [['html', { open: 'on-failure' }]]` locally. On CI, the HTML report should generate but never auto-open a browser. What's the standard way to handle this?",
+        uk: "Ти налаштовуєш `reporter: [['html', { open: 'on-failure' }]]` локально. На CI HTML-звіт має генеруватися але ніколи не відкривати браузер автоматично. Який стандартний спосіб це вирішити?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Use DISPLAY=:0 on CI to suppress browser windows",
+            uk: "Використовуй DISPLAY=:0 на CI щоб приховати вікна браузера",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Set open: process.env.CI ? 'never' : 'on-failure' in the HTML reporter config",
+            uk: "Встановити open: process.env.CI ? 'never' : 'on-failure' у конфігурації HTML-репортера",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Use a separate playwright.ci.config.ts file that omits the HTML reporter",
+            uk: "Використовуй окремий файл playwright.ci.config.ts що не включає HTML-репортер",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "HTML reporter never opens a browser on CI automatically — no config needed",
+            uk: "HTML-репортер ніколи не відкриває браузер на CI автоматично — конфігурація не потрібна",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The `open` option controls when the HTML report auto-opens: `'always'`, `'on-failure'`, or `'never'`. `process.env.CI` is set to `'true'` by GitHub Actions, CircleCI, Jenkins, and most other CI platforms — so `process.env.CI ? 'never' : 'on-failure'` is the standard pattern. Without setting `'never'` on CI, Playwright tries to launch a browser to display the report, which fails on headless CI environments and blocks the job.",
+        uk: "Опція `open` контролює коли HTML-звіт відкривається автоматично: `'always'`, `'on-failure'` або `'never'`. `process.env.CI` встановлюється в `'true'` GitHub Actions, CircleCI, Jenkins та більшістю інших CI-платформ — тому `process.env.CI ? 'never' : 'on-failure'` є стандартним шаблоном. Без встановлення `'never'` на CI, Playwright намагається запустити браузер для відображення звіту що провалюється в headless CI-середовищах і блокує задачу.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "How do you configure two reporters to run simultaneously — list output in the terminal AND a JSON file?",
+        uk: "Як налаштувати два репортери щоб виконувалися одночасно — список у терміналі І JSON-файл?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Set reporter twice: reporter: 'list' and then reporter: 'json' — the second overrides the first",
+            uk: "Встановити reporter двічі: reporter: 'list' і потім reporter: 'json' — другий перевизначає перший",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Use an array: reporter: [['list'], ['json', { outputFile: 'results.json' }]]",
+            uk: "Використовуй масив: reporter: [['list'], ['json', { outputFile: 'results.json' }]]",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Use reporter: 'list,json' — comma-separated string",
+            uk: "Використовуй reporter: 'list,json' — рядок через кому",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Reporters can't run simultaneously — pick one per run",
+            uk: "Репортери не можуть виконуватися одночасно — вибирай один на запуск",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The `reporter` option accepts either a string shorthand (single reporter) or an array of tuples for multiple simultaneous reporters. Each tuple is `['reporter-name', { ...options }]`. This is how you get terminal output AND a file at the same time. Common CI setup: `[['dot'], ['blob']]` for quiet terminal output plus a shard-mergeable artifact, or `[['github'], ['dot']]` for PR annotations plus terminal.",
+        uk: "Опція `reporter` приймає або скорочений рядок (один репортер) або масив кортежів для кількох одночасних репортерів. Кожен кортеж — `['reporter-name', { ...options }]`. Ось як отримати термінальний вивід І файл одночасно. Поширене налаштування CI: `[['dot'], ['blob']]` для тихого термінального виводу плюс артефакт що зливається з шардів, або `[['github'], ['dot']]` для PR-анотацій плюс термінал.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "What does the 'github' reporter add on GitHub Actions?",
+        uk: "Що додає репортер 'github' на GitHub Actions?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Uploads test results to GitHub's testing API for the PR Checks status",
+            uk: "Завантажує результати тестів у тестовий API GitHub для статусу PR Checks",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Adds inline failure annotations directly to the PR diff — clicking a failure in the Actions summary shows the failing line of code",
+            uk: "Додає вбудовані анотації про падіння прямо до PR-дифу — клік на падіння в зведенні Actions показує рядок коду що впав",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Creates a GitHub issue for each test failure automatically",
+            uk: "Автоматично створює GitHub issue для кожного падіння тесту",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Posts a comment on the PR with the full test results table",
+            uk: "Публікує коментар до PR з повною таблицею результатів тестів",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The `github` reporter uses GitHub Actions' workflow commands to emit annotation messages. When a test fails, it outputs a `::error file=...,line=...,col=...::message` command that GitHub Actions renders as inline annotations in the PR diff. Team members reviewing the PR can see exactly which file and line caused the failure without opening a separate report. Combine it with `dot` to keep terminal output quiet: `reporter: [['github'], ['dot']]`.",
+        uk: "Репортер `github` використовує workflow-команди GitHub Actions для виведення повідомлень-анотацій. Коли тест падає — виводиться команда `::error file=...,line=...,col=...::message` яку GitHub Actions рендерить як вбудовані анотації в PR-дифі. Члени команди що переглядають PR можуть бачити точно який файл і рядок спричинив падіння без відкриття окремого звіту. Комбінуй з `dot` щоб термінальний вивід залишався тихим: `reporter: [['github'], ['dot']]`.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "Your CI platform is Azure DevOps and the team wants failures to appear in the Azure Test Plans dashboard. Which reporter produces the right format?",
+        uk: "Ваша CI-платформа — Azure DevOps і команда хоче щоб падіння відображалися в дашборді Azure Test Plans. Який репортер виробляє правильний формат?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "html — Azure DevOps can render Playwright HTML reports natively",
+            uk: "html — Azure DevOps може рендерити HTML-звіти Playwright нативно",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "junit — produces XML that Azure DevOps, Jenkins, and similar tools import into their test dashboards",
+            uk: "junit — виробляє XML який Azure DevOps, Jenkins та подібні інструменти імпортують у свої тест-дашборди",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "azure — the dedicated Playwright reporter for Azure DevOps integration",
+            uk: "azure — спеціальний Playwright-репортер для інтеграції з Azure DevOps",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "json — Azure DevOps has a built-in JSON test result parser",
+            uk: "json — Azure DevOps має вбудований парсер результатів тестів у JSON",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The JUnit reporter produces XML in the JUnit test result format — a de facto standard that Azure DevOps, Jenkins, CircleCI, TeamCity, and many other CI tools understand natively. Configure it with an `outputFile` path and point your CI tool at that file to get test trend data, failure history, and dashboard integration. There is no built-in `azure` reporter in Playwright — JUnit is the standard interface for CI platform dashboards.",
+        uk: "JUnit-репортер виробляє XML у форматі результатів тестів JUnit — де-факто стандарт який Azure DevOps, Jenkins, CircleCI, TeamCity та багато інших CI-інструментів розуміють нативно. Налаштуй його з шляхом `outputFile` і вкажи своєму CI-інструменту на цей файл щоб отримати дані тренду тестів, історію падінь і інтеграцію з дашбордом. У Playwright немає вбудованого репортера `azure` — JUnit є стандартним інтерфейсом для дашбордів CI-платформ.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "You need to post a Slack message with failure details after each test. Which Reporter interface method should you implement?",
+        uk: "Потрібно надсилати Slack-повідомлення з деталями падіння після кожного тесту. Який метод інтерфейсу Reporter слід реалізувати?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "onEnd(result) — called once after the entire run finishes",
+            uk: "onEnd(result) — викликається один раз після завершення всього запуску",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "onTestEnd(test, result) — called after every individual test with its result",
+            uk: "onTestEnd(test, result) — викликається після кожного окремого тесту з його результатом",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "onStepEnd(test, result, step) — called after each step within a test",
+            uk: "onStepEnd(test, result, step) — викликається після кожного кроку всередині тесту",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "onError(error) — called when any test throws an error",
+            uk: "onError(error) — викликається коли будь-який тест кидає помилку",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`onTestEnd(test: TestCase, result: TestResult)` is called after every individual test completes. The `result.status` tells you whether it passed, failed, timed out, or was skipped. `result.error` contains the failure message. This is the right hook for per-test notifications like Slack messages. `onEnd` is better for sending a summary after the entire run. `onStepEnd` is for detailed step-level tracking, not test outcomes.",
+        uk: "`onTestEnd(test: TestCase, result: TestResult)` викликається після завершення кожного окремого тесту. `result.status` повідомляє чи він пройшов, впав, перевищив тайм-аут або пропущений. `result.error` містить повідомлення про падіння. Це правильний хук для сповіщень для кожного тесту як Slack-повідомлення. `onEnd` краще для надсилання зведення після всього запуску. `onStepEnd` для детального відстеження на рівні кроків, не для результатів тестів.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "You downloaded a playwright-report.zip artifact from a failed CI run. How do you view it?",
+        uk: "Ти скачав артефакт playwright-report.zip з невдалого CI-запуску. Як переглянути його?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Unzip it and open index.html directly in a browser",
+            uk: "Розпакуй і відкрий index.html напряму в браузері",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Run npx playwright show-report playwright-report.zip — it serves the report on a local port",
+            uk: "Запусти npx playwright show-report playwright-report.zip — він роздає звіт на локальному порту",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Upload it to trace.playwright.dev for remote viewing",
+            uk: "Завантаж його на trace.playwright.dev для перегляду онлайн",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Run npx playwright extract-report playwright-report.zip first, then use show-report",
+            uk: "Спочатку запусти npx playwright extract-report playwright-report.zip, потім використовуй show-report",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`npx playwright show-report` accepts a path to either a directory or a `.zip` file. It starts a local web server and opens the report in your default browser. Opening `index.html` directly from an unzipped directory doesn't work because the HTML report uses relative paths that require a server to resolve correctly — many assets and trace data won't load when opened via `file://` protocol. `trace.playwright.dev` is for individual trace files, not full HTML reports.",
+        uk: "`npx playwright show-report` приймає шлях до теки або `.zip`-файлу. Він запускає локальний веб-сервер і відкриває звіт у твоєму браузері за замовчуванням. Відкриття `index.html` напряму з розпакованої теки не працює тому що HTML-звіт використовує відносні шляхи що вимагають сервер для правильного розрішення — багато ресурсів і даних трейсів не завантажаться при відкритті через протокол `file://`. `trace.playwright.dev` призначений для окремих файлів трейсів, не для повних HTML-звітів.",
+      },
+    },
+  ],
 }

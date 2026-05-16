@@ -13,272 +13,395 @@ export const testShardingTopic: PlaywrightTopic = {
     uk: "Шардинг",
   },
   summary: {
-    en: 'By default, Playwright runs test files in [parallel](./test-parallel.md) and strives for optimal utilization of CPU cores on your machine. In order to achieve even greater parallelisation, you can further scale Playwright test execution by running tests on multiple machines simultaneously. We call this mode of operation "sharding". Sharding in Playwright means splitting your tests into smaller parts called "shards…',
-    uk: "За замовчуванням Playwright запускає тестові файли [паралельно](./test-parallel.md) й намагається оптимально використовувати ядра CPU. Для ще більшого паралелізму можна масштабувати виконання тестів Playwright на кількох машинах одночасно. Цей режим називають «шардинг». У Playwright шардинг означає розбиття тестів на менші частини — «шарди…",
+    en: "When I hit 800+ e2e tests, parallel workers on one machine stopped being enough. Sharding splits your test suite across multiple CI machines so they run simultaneously. The setup is two lines of YAML — the reporting part takes a bit more work to wire up properly.",
+    uk: "Коли у мене стало 800+ e2e-тестів, паралельних воркерів на одній машині перестало вистачати. Шардинг розбиває набір тестів між кількома CI-машинами щоб вони виконувалися одночасно. Налаштування — два рядки YAML, а от з репортингом трохи більше роботи.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "the-flag",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "The --shard flag",
+        uk: "Прапорець --shard",
+      },
+      diagram: {
+        mermaid: `flowchart LR
+  TS["Test suite\n(400 tests)"] --> S1["Shard 1/4\nCI machine A"]
+  TS --> S2["Shard 2/4\nCI machine B"]
+  TS --> S3["Shard 3/4\nCI machine C"]
+  TS --> S4["Shard 4/4\nCI machine D"]
+  S1 & S2 & S3 & S4 --> BR["blob reports"]
+  BR -->|"merge-reports"| HR["HTML report"]`,
+        caption: {
+          en: "Sharding distributes tests across CI machines; blob reports are merged into one HTML report after all shards finish",
+          uk: "Шардинг розподіляє тести між CI-машинами; blob-звіти об'єднуються в один HTML-звіт після завершення всіх шардів",
+        },
       },
       paragraphs: [
         {
-          en: 'By default, Playwright runs test files in [parallel](./test-parallel.md) and strives for optimal utilization of CPU cores on your machine. In order to achieve even greater parallelisation, you can further scale Playwright test execution by running tests on multiple machines simultaneously. We call this mode of operation "sharding". Sharding in Playwright means splitting your tests into smaller parts called "shards". Each shard is like a separate job that can run independently. The whole purpose is to divide your tests to speed up test runtime.',
-          uk: "За замовчуванням Playwright запускає тестові файли [паралельно](./test-parallel.md) й намагається оптимально використовувати ядра CPU на вашій машині. Для ще більшого паралелізму можна масштабувати виконання тестів Playwright на кількох машинах одночасно. Цей режим називають «шардинг». У Playwright шардинг означає розбиття тестів на менші частини — «шарди». Кожен шард подібний до окремого завдання, яке може виконуватися незалежно. Мета — розподілити тести, щоб прискорити прогін.",
+          en: "One flag, and each CI job runs its own slice. If I have 4 machines, I run these four commands in parallel — each machine picks up its quarter of the test suite and ignores the rest.",
+          uk: "Один прапорець — і кожен CI-job виконує свою частину. Якщо у мене 4 машини, запускаю ці чотири команди паралельно: кожна машина бере свою чверть набору і ігнорує решту.",
         },
         {
-          en: "When you shard your tests, each shard can run on its own, utilizing the available CPU cores. This helps speed up the testing process by doing tasks simultaneously.",
-          uk: "Після шардингу кожен шард може працювати окремо, використовуючи доступні ядра CPU. Це пришвидшує тестування завдяки одночасному виконанню завдань.",
-        },
-        {
-          en: "In a CI pipeline, each shard can run as a separate job, making use of the hardware resources available in your CI pipeline, like CPU cores, to run tests faster.",
-          uk: "У CI-пайплайні кожен шард може бути окремим job, використовуючи апаратні ресурси пайплайну (зокрема ядра CPU) для швидшого прогону тестів.",
-        },
-      ],
-    },
-    {
-      id: "sharding-tests-between-multiple-machines",
-      title: {
-        en: "Sharding tests between multiple machines",
-        uk: "Шардинг тестів між кількома машинами",
-      },
-      paragraphs: [
-        {
-          en: "To shard the test suite, pass `--shard=x/y` to the command line. For example, to split the suite into four shards, each running one fourth of the tests:",
-          uk: "Щоб розбити збірку на шарди, передайте в командному рядку `--shard=x/y`. Наприклад, розділити на чотири шарди, кожен з яких виконує чвертину тестів:",
-        },
-        {
-          en: "Now, if you run these shards in parallel on different jobs, your test suite completes four times faster.",
-          uk: "Якщо запускати ці шарди паралельно в різних job, збірка завершиться приблизно вчетверо швидше.",
-        },
-        {
-          en: "Note that Playwright can only shard tests that can be run in parallel. By default, this means Playwright will shard test files. Learn about other options in the [parallelism guide](./test-parallel.md).",
-          uk: "Playwright може шардити лише тести, які можна запускати паралельно. За замовчуванням це означає шардинг на рівні тестових файлів. Інші варіанти — у [посібнику з паралелізму](./test-parallel.md).",
+          en: "Playwright distributes by test file by default. So if shard 1/4 gets 10 files and shard 2/4 gets 2 files, the timing will be uneven. That's where `fullyParallel` helps.",
+          uk: "За замовчуванням Playwright розподіляє по файлах тестів. Тому якщо шард 1/4 отримає 10 файлів а шард 2/4 отримає 2 файли — час виконання буде нерівномірним. Тут допомагає `fullyParallel`.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
+          id: "shard-commands",
           language: "bash",
-          code: "npx playwright test --shard=1/4\nnpx playwright test --shard=2/4\nnpx playwright test --shard=3/4\nnpx playwright test --shard=4/4",
+          code: `npx playwright test --shard=1/4
+npx playwright test --shard=2/4
+npx playwright test --shard=3/4
+npx playwright test --shard=4/4`,
         },
       ],
     },
     {
-      id: "balancing-shards",
+      id: "balancing",
       title: {
-        en: "Balancing Shards",
-        uk: "Балансування шардів",
+        en: "Getting even distribution — fullyParallel",
+        uk: "Рівномірний розподіл — fullyParallel",
       },
       paragraphs: [
         {
-          en: "Sharding can be done at two levels of granularity depending on whether you use the [`property: TestProject.fullyParallel`] option or not. This affects how the tests are balanced across the shards.",
-          uk: "Шардинг можна робити на двох рівнях деталізації залежно від того, чи використовується [`property: TestProject.fullyParallel`]. Це впливає на балансування тестів між шардами.",
+          en: "Without `fullyParallel`, Playwright splits at the file level. A file with 50 tests counts the same as a file with 2 tests. One shard ends up doing most of the work while others finish early and sit idle.",
+          uk: "Без `fullyParallel` Playwright ділить на рівні файлів. Файл із 50 тестами рахується так само як файл із 2 тестами. Один шард робить більшість роботи поки інші вже закінчили і простоюють.",
         },
         {
-          en: "**Sharding with fullyParallel**",
-          uk: "**Шардинг з fullyParallel**",
-        },
-        {
-          en: "When `fullyParallel: true` is enabled, Playwright Test runs individual tests in parallel across multiple shards, ensuring each shard receives an even distribution of tests. This allows for test-level granularity, meaning each shard will attempt to balance the number of individual tests it runs. This is the preferred mode for ensuring even load distribution when sharding, as Playwright can optimize shard execution based on the total number of tests.",
-          uk: "Якщо ввімкнено `fullyParallel: true`, Playwright Test запускає окремі тести паралельно на кількох шардах, рівномірно розподіляючи їх між шардами. Це дає деталізацію на рівні тесту: кожен шард намагається збалансувати кількість окремих тестів. Це бажаний режим для рівномірного навантаження при шардингу, оскільки Playwright може оптимізувати виконання за загальною кількістю тестів.",
-        },
-        {
-          en: "**Sharding without fullyParallel**",
-          uk: "**Шардинг без fullyParallel**",
-        },
-        {
-          en: "Without the fullyParallel setting, Playwright Test defaults to file-level granularity, meaning entire test files are assigned to shards (note that the same file may be assigned to different shards across different projects). In this case, the number of tests per file can greatly influence shard distribution. If your test files are not evenly sized (i.e., some files contain many more tests than others), certain shards may end up running significantly more tests, while others may run fewer or even none.",
-          uk: "Без `fullyParallel` Playwright Test за замовчуванням працює на рівні файлів: цілі тестові файли призначаються шардам (той самий файл може потрапляти в різні шарди в різних проєктах). Тоді кількість тестів у файлі сильно впливає на розподіл. Якщо файли нерівномірні (деякі містять набагато більше тестів), одні шарди можуть виконати значно більше тестів, а інші — менше або взагалі жодного.",
-        },
-        {
-          en: "**Key Takeaways:**",
-          uk: "**Головне:**",
-        },
-        {
-          en: "- **With** `fullyParallel: true`: Tests are split at the individual test level, leading to more balanced shard execution.\n- **Without** `fullyParallel`: Tests are split at the file level, so to balance the shards, it's important to keep your test files small and evenly sized.\n- To ensure the most effective use of sharding, especially in CI environments, it is recommended to use `fullyParallel: true` when aiming for balanced distribution across shards. Otherwise, you may need to manually organize your test files to avoid imbalances.",
-          uk: "- **З** `fullyParallel: true`: розбиття на рівні окремих тестів — рівніше навантаження на шарди.\n- **Без** `fullyParallel`: розбиття на рівні файлів — для балансу важливо тримати файли невеликими й рівномірними.\n- Для ефективного шардингу, зокрема в CI, рекомендовано `fullyParallel: true`, якщо потрібен рівномірний розподіл. Інакше доведеться вручну організовувати файли, щоб уникнути перекосів.",
-        },
-      ],
-    },
-    {
-      id: "merging-reports-from-multiple-shards",
-      title: {
-        en: "Merging reports from multiple shards",
-        uk: "Об’єднання звітів з кількох шардів",
-      },
-      paragraphs: [
-        {
-          en: "In the previous example, each test shard has its own test report. If you want to have a combined report showing all the test results from all the shards, you can merge them.",
-          uk: "У попередньому прикладі кожен шард має власний звіт. Щоб отримати спільний звіт з усіма результатами, їх можна об’єднати.",
-        },
-        {
-          en: "Start with adding `blob` reporter to the config when running on CI:",
-          uk: "Спочатку додайте репортер `blob` у конфігурацію для запуску в CI:",
-        },
-        {
-          en: "Blob report contains information about all the tests that were run and their results as well as all test attachments such as traces and screenshot diffs. Blob reports can be merged and converted to any other Playwright report. By default, blob report will be generated into `blob-report` directory. You can learn about [blob report options here](./test-reporters.md#blob-reporter).",
-          uk: "Blob-звіт містить інформацію про всі виконані тести й результати, а також усі вкладення (трейси, diff скриншотів тощо). Blob-звіти можна злити й перетворити на будь-який інший звіт Playwright. За замовчуванням він генерується в каталог `blob-report`. [Опції blob-репортера](./test-reporters.md#blob-reporter).",
-        },
-        {
-          en: "To merge reports from multiple shards, put the blob report files into a single directory, for example `all-blob-reports`. Blob report names contain shard number, so they will not clash.",
-          uk: "Щоб об’єднати звіти з кількох шардів, покладіть файли blob-звітів в один каталог, наприклад `all-blob-reports`. У іменах є номер шарду, тож конфліктів не буде.",
-        },
-        {
-          en: "Afterwards, run `npx playwright merge-reports` command:",
-          uk: "Потім виконайте команду `npx playwright merge-reports`:",
-        },
-        {
-          en: "This will produce a standard HTML report into `playwright-report` directory.",
-          uk: "Буде згенеровано стандартний HTML-звіт у каталозі `playwright-report`.",
+          en: "With `fullyParallel: true`, Playwright splits at the individual test level. 400 tests across 4 shards = ~100 tests per shard, regardless of how they're distributed across files. I always use this when sharding.",
+          uk: "З `fullyParallel: true` Playwright ділить на рівні окремих тестів. 400 тестів на 4 шарди = ~100 тестів на шард, незалежно від того як вони розподілені по файлах. Я завжди використовую це при шардингу.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-2",
-          language: "js",
-          code: "export default defineConfig({\n  testDir: './tests',\n  reporter: process.env.CI ? 'blob' : 'html',\n});",
+          id: "fully-parallel-config",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  fullyParallel: true,  // ← тест-рівневий розподіл, а не файл-рівневий
+  reporter: process.env.CI ? 'blob' : 'html',
+})`,
+        },
+      ],
+    },
+    {
+      id: "blob-reporter",
+      title: {
+        en: "Blob reporter — collecting results from all shards",
+        uk: "Blob-репортер — збирати результати з усіх шардів",
+      },
+      paragraphs: [
+        {
+          en: "Each shard produces its own test report. To get one combined report after all shards finish, I use the blob reporter on CI. It saves raw test data (including traces, screenshots, all attachments) to a zip file that can be merged later.",
+          uk: "Кожен шард створює свій звіт. Щоб отримати один об'єднаний звіт після завершення всіх шардів — використовую blob-репортер на CI. Він зберігає сирі дані тестів (включаючи трейси, скриншоти, всі вкладення) у zip-файл який можна злити пізніше.",
         },
         {
-          id: "cb-3",
+          en: "After downloading all blob reports from CI artifacts into one directory, I merge them into a single HTML report. The blob file names include the shard number so they never conflict.",
+          uk: "Після скачування всіх blob-звітів з CI-артефактів в один каталог — зливаю їх в один HTML-звіт. В іменах blob-файлів є номер шарду тому конфліктів не буде.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "merge-command",
           language: "bash",
-          code: "npx playwright merge-reports --reporter html ./all-blob-reports",
+          code: `# Злити blob-звіти з усіх шардів в один HTML-звіт
+npx playwright merge-reports --reporter html ./all-blob-reports`,
         },
       ],
     },
     {
-      id: "github-actions-example",
+      id: "github-actions",
       title: {
-        en: "GitHub Actions example",
-        uk: "Приклад для GitHub Actions",
+        en: "GitHub Actions setup — matrix strategy",
+        uk: "Налаштування GitHub Actions — matrix-стратегія",
       },
       paragraphs: [
         {
-          en: "GitHub Actions supports [sharding tests between multiple jobs](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs) using the [`jobs..strategy.matrix`](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix) option. The `matrix` option will run a separate job for every possible combination of the provided options.",
-          uk: "GitHub Actions підтримує [шардинг тестів між кількома job](https://docs.github.com/en/actions/using-jobs/using-a-matrix-for-your-jobs) через опцію [`jobs..strategy.matrix`](https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idstrategymatrix). `matrix` запускає окремий job для кожної комбінації заданих опцій.",
+          en: "GitHub Actions matrix lets each shard run as an independent job. I define `shardIndex` as an array and `shardTotal` as a fixed number — GitHub spawns one job per index value, each referencing both variables.",
+          uk: "Matrix в GitHub Actions дозволяє кожному шарду виконуватися як незалежний job. Я визначаю `shardIndex` як масив і `shardTotal` як фіксоване число — GitHub створює один job на кожне значення індексу, кожен посилається на обидві змінні.",
         },
         {
-          en: "The following example shows you how to configure a job to run your tests on four machines in parallel and then merge the reports into a single report. Don't forget to add `reporter: process.env.CI ? 'blob' : 'html',` to your `playwright.config.ts` file as in the example above.",
-          uk: "Нижче — як налаштувати job для паралельного прогону на чотирьох машинах і злиття звітів в один. Не забудьте додати `reporter: process.env.CI ? 'blob' : 'html',` у `playwright.config.ts`, як у прикладі вище.",
+          en: "The artifact upload step has `if: ${{ !cancelled() }}` — without this, if a test fails (the job fails), the artifact upload is skipped and you have no report to look at. This condition runs the upload even when the job failed.",
+          uk: "Крок завантаження артефакту має `if: ${{ !cancelled() }}` — без цього якщо тест впав (job провалився) — завантаження артефакту пропускається і немає звіту щоб подивитися. Ця умова запускає завантаження навіть коли job впав.",
         },
         {
-          en: "1. First we add a `matrix` option to our job configuration with the `shardTotal: [4]` option containing the total number of shards we want to create and `shardIndex: [1, 2, 3, 4]` with an array of the shard numbers.",
-          uk: "1. Додаємо до job опцію `matrix`: `shardTotal: [4]` — загальна кількість шардів і `shardIndex: [1, 2, 3, 4]` — масив номерів шардів.",
-        },
-        {
-          en: "1. Then we run our Playwright tests with the `--shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}` option. This will run our test command for each shard.",
-          uk: "1. Запускаємо тести Playwright з `--shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}` — команда виконається для кожного шарду.",
-        },
-        {
-          en: "1. Finally we upload our blob report to the GitHub Actions Artifacts. This will make the blob report available to other jobs in the workflow.",
-          uk: "1. Завантажуємо blob-звіт у GitHub Actions Artifacts, щоб інші job у workflow могли його використати.",
-        },
-        {
-          en: "1. After all shards have completed, you can run a separate job that will merge the reports and produce a combined [HTML report](./test-reporters.md#html-reporter). To ensure the execution order, we make the `merge-reports` job [depend](https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow#defining-prerequisite-jobs) on our sharded `playwright-tests` job by adding `needs: [playwright-tests]`.",
-          uk: "1. Після завершення всіх шардів можна запустити окремий job, який злиє звіти в один [HTML-звіт](./test-reporters.md#html-reporter). Для порядку виконання job `merge-reports` [залежить](https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow#defining-prerequisite-jobs) від шардованого `playwright-tests` через `needs: [playwright-tests]`.",
-        },
-        {
-          en: "You can now see the reports have been merged and a combined HTML report is available in the GitHub Actions Artifacts tab.",
-          uk: "У вкладці Artifacts GitHub Actions з’явиться об’єднаний HTML-звіт.",
+          en: "Then a separate `merge-reports` job waits for all shards via `needs: [playwright-tests]`, downloads all blob artifacts, and merges them into one HTML report.",
+          uk: "Потім окремий job `merge-reports` чекає на всі шарди через `needs: [playwright-tests]`, скачує всі blob-артефакти і зливає їх в один HTML-звіт.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-4",
+          id: "github-actions-shards",
           language: "yaml",
-          code: "name: Playwright Tests\non:\n  push:\n    branches: [ main, master ]\n  pull_request:\n    branches: [ main, master ]\njobs:\n  playwright-tests:\n    timeout-minutes: 60\n    runs-on: ubuntu-latest\n    strategy:\n      fail-fast: false\n      matrix:\n        shardIndex: [1, 2, 3, 4]\n        shardTotal: [4]\n    steps:\n    - uses: actions/checkout@v5\n    - uses: actions/setup-node@v5\n      with:\n        node-version: lts/*\n    - name: Install dependencies\n      run: npm ci\n    - name: Install Playwright browsers\n      run: npx playwright install --with-deps\n\n    - name: Run Playwright tests\n      run: npx playwright test --shard=${{ matrix.shardIndex }}/${{ matrix.shardTotal }}\n\n    - name: Upload blob report to GitHub Actions Artifacts\n      if: ${{ !cancelled() }}\n      uses: actions/upload-artifact@v4\n      with:\n        name: blob-report-${{ matrix.shardIndex }}\n        path: blob-report\n        retention-days: 1",
+          code: `name: Playwright Tests
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  playwright-tests:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        shardIndex: [1, 2, 3, 4]
+        shardTotal: [4]
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/setup-node@v5
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Install Playwright browsers
+      run: npx playwright install --with-deps
+    - name: Run Playwright tests
+      run: npx playwright test --shard=\${{ matrix.shardIndex }}/\${{ matrix.shardTotal }}
+    - name: Upload blob report
+      if: \${{ !cancelled() }}
+      uses: actions/upload-artifact@v4
+      with:
+        name: blob-report-\${{ matrix.shardIndex }}
+        path: blob-report
+        retention-days: 1`,
         },
         {
-          id: "cb-5",
+          id: "github-actions-merge",
           language: "yaml",
-          code: "jobs:\n...\n  merge-reports:\n    # Merge reports after playwright-tests, even if some shards have failed\n    if: ${{ !cancelled() }}\n    needs: [playwright-tests]\n\n    runs-on: ubuntu-latest\n    steps:\n    - uses: actions/checkout@v5\n    - uses: actions/setup-node@v5\n      with:\n        node-version: lts/*\n    - name: Install dependencies\n      run: npm ci\n\n    - name: Download blob reports from GitHub Actions Artifacts\n      uses: actions/download-artifact@v5\n      with:\n        path: all-blob-reports\n        pattern: blob-report-*\n        merge-multiple: true\n\n    - name: Merge into HTML Report\n      run: npx playwright merge-reports --reporter html ./all-blob-reports\n\n    - name: Upload HTML report\n      uses: actions/upload-artifact@v4\n      with:\n        name: html-report--attempt-${{ github.run_attempt }}\n        path: playwright-report\n        retention-days: 14",
+          code: `  merge-reports:
+    if: \${{ !cancelled() }}
+    needs: [playwright-tests]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v5
+    - uses: actions/setup-node@v5
+      with:
+        node-version: lts/*
+    - name: Install dependencies
+      run: npm ci
+    - name: Download blob reports
+      uses: actions/download-artifact@v5
+      with:
+        path: all-blob-reports
+        pattern: blob-report-*
+        merge-multiple: true
+    - name: Merge into HTML Report
+      run: npx playwright merge-reports --reporter html ./all-blob-reports
+    - name: Upload HTML report
+      uses: actions/upload-artifact@v4
+      with:
+        name: html-report--attempt-\${{ github.run_attempt }}
+        path: playwright-report
+        retention-days: 14`,
         },
       ],
     },
     {
-      id: "merging-reports-from-multiple-environments",
+      id: "multiple-environments",
       title: {
-        en: "Merging reports from multiple environments",
-        uk: "Об’єднання звітів з кількох середовищ",
+        en: "Merging reports from different environments",
+        uk: "Злиття звітів з різних середовищ",
       },
       paragraphs: [
         {
-          en: "If you want to run the same tests in multiple environments, as opposed to shard your tests onto multiple machines, you need to differentiate these environments.",
-          uk: "Якщо потрібно запускати ті самі тести в кількох середовищах (а не шардити на кілька машин), ці середовища слід розрізняти.",
-        },
-        {
-          en: "In this case, it is useful to specify the [`property: TestConfig.tag`] property, to tag all tests with the environment name. This tag will be automatically picked up by the blob report and later on by the merge tool.",
-          uk: "Корисно задати [`property: TestConfig.tag`], щоб позначити всі тести назвою середовища. Тег автоматично потрапить у blob-звіт і згодом у інструмент злиття.",
+          en: "If I run the same tests against staging and production simultaneously, I tag each run with the environment name via `TestConfig.tag`. The blob report picks up this tag automatically, so the merged report shows which results came from which environment.",
+          uk: "Якщо запускаю ті самі тести проти staging і production одночасно — позначаю кожен запуск назвою середовища через `TestConfig.tag`. Blob-звіт підхоплює цей тег автоматично, тому в об'єднаному звіті видно з якого середовища прийшли які результати.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-6",
-          language: "js",
-          code: "\nexport default defineConfig({\n  reporter: process.env.CI ? 'blob' : 'html',\n  tag: process.env.CI_ENVIRONMENT_NAME,  // for example \"@APIv2\"\n});",
-        },
-      ],
-    },
-    {
-      id: "merge-reports-cli",
-      title: {
-        en: "Merge-reports CLI",
-        uk: "CLI merge-reports",
-      },
-      paragraphs: [
-        {
-          en: "`npx playwright merge-reports path/to/blob-reports-dir` reads all blob reports from the passed directory and merges them into a single report.",
-          uk: "`npx playwright merge-reports path/to/blob-reports-dir` читає всі blob-звіти з переданого каталогу й об’єднує їх в один звіт.",
-        },
-        {
-          en: "When merging reports from different OS'es you'll have to provide an explicit merge config to disambiguate which directory should be used as tests root.",
-          uk: "При злитті звітів з різних ОС потрібна явна конфігурація merge, щоб однозначно вказати кореневий каталог тестів.",
-        },
-        {
-          en: "Supported options:\n- `--reporter reporter-to-use`",
-          uk: "Підтримувані опції:\n- `--reporter reporter-to-use`",
-        },
-        {
-          en: "Which report to produce. Can be multiple reporters separated by comma.",
-          uk: "Який звіт згенерувати. Можна кілька репортерів через кому.",
-        },
-        {
-          en: "Example:",
-          uk: "Приклад:",
-        },
-        {
-          en: "- `--config path/to/config/file`",
-          uk: "- `--config path/to/config/file`",
-        },
-        {
-          en: "Specifies the Playwright configuration file with output reporters. Use this option to pass\n  additional configuration to the output reporter. This configuration file can differ from\n  the one used during the creation of blob reports.",
-          uk: "Вказує файл конфігурації Playwright з вихідними репортерами. Через цю опцію передають\n  додаткову конфігурацію вихідному репортеру. Файл може відрізнятися від того,\n  що використовувався під час створення blob-звітів.",
-        },
-        {
-          en: "Example:",
-          uk: "Приклад:",
-        },
-      ],
-      codeBlocks: [
-        {
-          id: "cb-7",
-          language: "bash",
-          code: "  npx playwright merge-reports --reporter=html,github ./blob-reports",
-        },
-        {
-          id: "cb-8",
-          language: "bash",
-          code: "  npx playwright merge-reports --config=merge.config.ts ./blob-reports",
-        },
-        {
-          id: "cb-9",
-          language: "js",
-          code: "  export default {\n    testDir: 'e2e',\n    reporter: [['html', { open: 'never' }]],\n  };",
+          id: "environment-tag",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  reporter: process.env.CI ? 'blob' : 'html',
+  tag: process.env.CI_ENVIRONMENT_NAME,  // наприклад "@staging" або "@production"
+})`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "You set up 4 shards in CI. Three shards finish in 3 minutes, one takes 12 minutes. The total CI time is 12 minutes instead of the expected ~3. What's most likely causing the imbalance?",
+        uk: "Налаштував 4 шарди в CI. Три шарди завершуються за 3 хвилини, один займає 12 хвилин. Загальний час CI — 12 хвилин замість очікуваних ~3. Що найімовірніше спричиняє дисбаланс?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "One machine has slower hardware than the others",
+            uk: "Одна машина має повільніше залізо ніж інші",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "fullyParallel is not enabled — Playwright splits by file, so one large file lands on one shard and dominates its runtime",
+            uk: "fullyParallel не увімкнений — Playwright ділить по файлах, тому один великий файл потрапляє на один шард і домінує у часі виконання",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The blob reporter is causing overhead on that shard",
+            uk: "Blob-репортер спричиняє накладні витрати на тому шарді",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Without `fullyParallel: true`, Playwright assigns whole test files to shards. If one file has 200 tests and others have 10, that file's shard runs much longer. `fullyParallel: true` splits at the individual test level — 800 tests across 4 shards is ~200 per shard regardless of file structure. Hardware differences are rarely this dramatic; the blob reporter adds milliseconds, not minutes.",
+        uk: "Без `fullyParallel: true` Playwright призначає цілі файли тестів шардам. Якщо один файл має 200 тестів а інші по 10 — шард цього файлу виконується набагато довше. `fullyParallel: true` ділить на рівні окремих тестів: 800 тестів на 4 шарди = ~200 на шард незалежно від структури файлів. Різниця в залізі рідко буває такою драматичною; blob-репортер додає мілісекунди, не хвилини.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "After all 4 shards finish, you want to see a single HTML report with all results combined. What do you need to configure and run?",
+        uk: "Після завершення всіх 4 шардів хочеш побачити один HTML-звіт з усіма об'єднаними результатами. Що потрібно налаштувати і запустити?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Use reporter: 'html' on all shards — HTML reports automatically merge when uploaded to the same artifact",
+            uk: "Використовувати reporter: 'html' на всіх шардах — HTML-звіти автоматично зливаються при завантаженні в один артефакт",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Use reporter: 'blob' on CI, upload each shard's blob-report as an artifact, then run npx playwright merge-reports in a separate job after all shards complete",
+            uk: "Використовувати reporter: 'blob' на CI, завантажити blob-report кожного шарду як артефакт, потім запустити npx playwright merge-reports в окремому job після завершення всіх шардів",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Run npx playwright test --merge on the last shard — it automatically collects results from previous shards",
+            uk: "Запустити npx playwright test --merge на останньому шарді — він автоматично збирає результати з попередніх шардів",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "HTML reports can't be merged — they're static files that don't know about each other. The blob reporter produces a structured zip that contains all test data. Each shard uploads its blob to CI artifacts. A final merge job downloads all blobs into one directory and runs `npx playwright merge-reports --reporter html ./all-blob-reports` to produce the combined HTML report. There's no --merge flag on the test command.",
+        uk: "HTML-звіти не можна злити — це статичні файли що не знають одне про одного. Blob-репортер створює структурований zip що містить всі дані тестів. Кожен шард завантажує свій blob в CI-артефакти. Фінальний merge-job скачує всі blob в один каталог і запускає `npx playwright merge-reports --reporter html ./all-blob-reports` щоб отримати об'єднаний HTML-звіт. Прапорця --merge у команді тестів немає.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "What is the correct syntax to run the second shard out of four total shards?",
+        uk: "Яка правильна синтаксична форма для запуску другого шарду з чотирьох загальних?",
+      },
+      options: [
+        { id: "a", label: { en: "npx playwright test --shard=2-4", uk: "npx playwright test --shard=2-4" } },
+        { id: "b", label: { en: "npx playwright test --shard=2 --total=4", uk: "npx playwright test --shard=2 --total=4" } },
+        { id: "c", label: { en: "npx playwright test --shard=2/4", uk: "npx playwright test --shard=2/4" } },
+        { id: "d", label: { en: "npx playwright test --shard-index=2 --shard-count=4", uk: "npx playwright test --shard-index=2 --shard-count=4" } },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "The `--shard` flag uses the format `{currentIndex}/{totalShards}`. So for shard 2 of 4, the syntax is `--shard=2/4`. This tells Playwright: 'I have 4 total machines; this one should run the 2nd slice of tests.' Each machine runs the command with its own index number (1/4, 2/4, 3/4, 4/4) in parallel.",
+        uk: "Прапорець `--shard` використовує формат `{поточнийІндекс}/{всьогоШардів}`. Для шарду 2 з 4 синтаксис — `--shard=2/4`. Це каже Playwright: 'У мене 4 машини загалом; ця має виконати 2-ий зріз тестів.' Кожна машина запускає команду зі своїм індексом (1/4, 2/4, 3/4, 4/4) паралельно.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "How does Playwright distribute tests across shards by default (without fullyParallel)?",
+        uk: "Як Playwright розподіляє тести між шардами за замовчуванням (без fullyParallel)?",
+      },
+      options: [
+        { id: "a", label: { en: "By test count — it counts all tests and divides them evenly", uk: "За кількістю тестів — рахує всі тести і ділить рівномірно" } },
+        { id: "b", label: { en: "By file — whole test files are assigned to shards, so a file with 50 tests counts the same as a file with 2 tests", uk: "За файлами — цілі файли тестів призначаються шардам тому файл з 50 тестами рахується так само як файл з 2 тестами" } },
+        { id: "c", label: { en: "By test duration from the previous run", uk: "За тривалістю тестів з попереднього запуску" } },
+        { id: "d", label: { en: "Alphabetically by test name", uk: "За алфавітом за назвою тесту" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Without `fullyParallel: true`, Playwright assigns test files to shards. Each file is treated as an atomic unit — a file with 50 tests and a file with 2 tests both count as 'one file' for distribution purposes. This causes uneven shard runtimes when test files vary greatly in size. With `fullyParallel: true`, Playwright splits at the individual test level, giving roughly equal counts per shard.",
+        uk: "Без `fullyParallel: true` Playwright призначає файли тестів шардам. Кожен файл розглядається як атомарна одиниця — файл з 50 тестами і файл з 2 тестами обидва рахуються як 'один файл' для цілей розподілу. Це спричиняє нерівномірний час виконання шардів коли файли тестів сильно різняться за розміром. З `fullyParallel: true` Playwright ділить на рівні окремих тестів надаючи приблизно рівну кількість на шард.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "In a GitHub Actions matrix strategy for sharding, what does fail-fast: false do and why is it important?",
+        uk: "У матричній стратегії GitHub Actions для шардингу — що робить fail-fast: false і чому це важливо?",
+      },
+      options: [
+        { id: "a", label: { en: "It makes failing tests retry automatically without stopping", uk: "Воно змушує тести що падають автоматично повторюватися без зупинки" } },
+        { id: "b", label: { en: "It allows all shard jobs to complete even if one shard fails, so you collect blob reports from all shards for a complete picture", uk: "Воно дозволяє всім job шардів завершитися навіть якщо один шард впав щоб отримати blob-звіти з усіх шардів для повної картини" } },
+        { id: "c", label: { en: "It disables the timeout on slow shards", uk: "Воно вимикає timeout для повільних шардів" } },
+        { id: "d", label: { en: "It makes the matrix ignore errors and always report success", uk: "Воно змушує матрицю ігнорувати помилки і завжди звітувати про успіх" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "By default, GitHub Actions matrix uses `fail-fast: true`, meaning if any matrix job fails, all other running jobs are cancelled immediately. For Playwright sharding, this would prevent the merge job from receiving blob reports from the shards that hadn't finished yet. Setting `fail-fast: false` lets all shard jobs run to completion regardless of failures, ensuring you get a full picture in the merged report.",
+        uk: "За замовчуванням матриця GitHub Actions використовує `fail-fast: true` — тобто якщо будь-який матричний job падає всі інші запущені job негайно скасовуються. Для шардингу Playwright це б перешкодило merge-job отримати blob-звіти від шардів що ще не завершилися. Встановлення `fail-fast: false` дозволяє всім job шардів виконатися до кінця незалежно від падінь забезпечуючи повну картину в об'єднаному звіті.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "A test retries once and passes on the retry. Which shard runs the retry — the same shard that had the original failure, or potentially a different one?",
+        uk: "Тест повторюється один раз і проходить при повторі. Який шард виконує повтор — той самий що мав початкове падіння чи потенційно інший?",
+      },
+      options: [
+        { id: "a", label: { en: "A different shard is selected based on the retry number", uk: "Інший шард вибирається на основі номера повтору" } },
+        { id: "b", label: { en: "The same shard — retries happen within the same CI job that originally ran the test", uk: "Той самий шард — повтори відбуваються в тому самому CI-job що спочатку запустив тест" } },
+        { id: "c", label: { en: "A new CI machine is spawned specifically for the retry", uk: "Для повтору запускається нова CI-машина" } },
+        { id: "d", label: { en: "Retries are disabled when sharding is enabled", uk: "Повтори вимикаються коли увімкнений шардинг" } },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "Retries happen within the same shard job. When a test fails, the Playwright runner on that specific machine retries the test according to the `retries` config. The retry is not distributed to another shard — shards are independent jobs that each run their assigned slice of tests, including any retries for tests within that slice.",
+        uk: "Повтори відбуваються в тому самому job шарду. Коли тест падає Playwright runner на цій конкретній машині повторює тест відповідно до конфігу `retries`. Повтор не розподіляється на інший шард — шарди незалежні job кожен з яких виконує свій призначений зріз тестів включаючи будь-які повтори для тестів у цьому зрізі.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "You have 400 tests and use 4 shards, each with workers: 2. How many tests can run simultaneously at peak?",
+        uk: "У тебе 400 тестів і 4 шарди кожен з workers: 2. Скільки тестів може виконуватися одночасно на піку?",
+      },
+      options: [
+        { id: "a", label: { en: "4 — one per shard", uk: "4 — один на шард" } },
+        { id: "b", label: { en: "2 — the worker count only", uk: "2 — тільки кількість воркерів" } },
+        { id: "c", label: { en: "8 — 4 shards × 2 workers each", uk: "8 — 4 шарди × 2 воркери кожен" } },
+        { id: "d", label: { en: "400 — all tests run at once", uk: "400 — всі тести виконуються одразу" } },
+      ],
+      correctOptionId: "c",
+      rationale: {
+        en: "Shards and workers operate at different levels. Each shard is an independent CI machine (process/job). Workers are parallel test runners within one shard. With 4 shards and 2 workers per shard, you have 4 × 2 = 8 tests running simultaneously across the cluster. Sharding multiplies the concurrency — it's additive: total parallelism = shards × workers per shard.",
+        uk: "Шарди і воркери діють на різних рівнях. Кожен шард — це незалежна CI-машина (процес/job). Воркери — паралельні виконавці тестів всередині одного шарду. З 4 шардами і 2 воркерами на шард маємо 4 × 2 = 8 тестів виконуваних одночасно по всьому кластеру. Шардинг множить конкурентність — вона адитивна: загальна паралельність = шарди × воркери на шард.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "After all shards finish and upload their blob reports, what command merges them into a single HTML report?",
+        uk: "Після завершення всіх шардів і завантаження їхніх blob-звітів — яка команда зливає їх в один HTML-звіт?",
+      },
+      options: [
+        { id: "a", label: { en: "npx playwright merge-reports --reporter html ./all-blob-reports", uk: "npx playwright merge-reports --reporter html ./all-blob-reports" } },
+        { id: "b", label: { en: "npx playwright show-report --merge ./all-blob-reports", uk: "npx playwright show-report --merge ./all-blob-reports" } },
+        { id: "c", label: { en: "npx playwright test --merge-from ./all-blob-reports", uk: "npx playwright test --merge-from ./all-blob-reports" } },
+        { id: "d", label: { en: "npx playwright report --combine ./all-blob-reports --output html", uk: "npx playwright report --combine ./all-blob-reports --output html" } },
+      ],
+      correctOptionId: "a",
+      rationale: {
+        en: "`npx playwright merge-reports` is the dedicated command for combining blob reports. The `--reporter html` flag specifies the output format. The directory argument (`./all-blob-reports`) is where all the downloaded blob zip files are stored. The command reads all zips in that directory, combines the test data, and generates a single HTML report in the `playwright-report` folder.",
+        uk: "`npx playwright merge-reports` — спеціальна команда для об'єднання blob-звітів. Прапорець `--reporter html` задає формат виводу. Аргумент директорії (`./all-blob-reports`) — де зберігаються всі скачані blob-zip файли. Команда читає всі zip у цій директорії об'єднує дані тестів і генерує один HTML-звіт у папці `playwright-report`.",
+      },
+    },
+  ],
 }

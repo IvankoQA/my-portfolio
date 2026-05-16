@@ -13,220 +13,552 @@ export const testUseOptionsTopic: PlaywrightTopic = {
     uk: "Конфігурація (use)",
   },
   summary: {
-    en: "In addition to configuring the test runner you can also configure [Emulation](#emulation-options), [Network](#network-options) and [Recording](#recording-options) for the [Browser] or [BrowserContext]. These options are passed to the `use: {}` object in the Playwright config.",
-    uk: "Окрім налаштування раннера тестів можна також налаштувати [Емуляцію](#emulation-options), [Мережу](#network-options) та [Запис](#recording-options) для [Browser] або [BrowserContext]. Ці опції передаються в об’єкт `use: {}` у конфігурації Playwright.",
+    en: "The use: {} block in playwright.config.ts is where I set defaults for every test: baseURL so I write page.goto('/orders') instead of the full URL, storageState for auth, trace and screenshot modes for CI. I can override any of these per-project, per-file, or inside a describe block.",
+    uk: "Блок use: {} у playwright.config.ts — місце де я задаю дефолти для кожного тесту: baseURL щоб писати page.goto('/orders') замість повного URL, storageState для авторизації, режими trace і screenshot для CI. Будь-що з цього можна перевизначити на рівні проєкту, файлу або describe-блоку.",
   },
   sections: [
     {
-      id: "introduction",
+      id: "basic-options",
       title: {
-        en: "Introduction",
-        uk: "Вступ",
+        en: "The two options I always set",
+        uk: "Два параметри які я завжди встановлюю",
       },
       paragraphs: [
         {
-          en: "In addition to configuring the test runner you can also configure [Emulation](#emulation-options), [Network](#network-options) and [Recording](#recording-options) for the [Browser] or [BrowserContext]. These options are passed to the `use: {}` object in the Playwright config.",
-          uk: "Окрім налаштування раннера тестів можна також налаштувати [Емуляцію](#emulation-options), [Мережу](#network-options) та [Запис](#recording-options) для [Browser] або [BrowserContext]. Ці опції передаються в об’єкт `use: {}` у конфігурації Playwright.",
-        },
-        {
-          en: "### Basic Options",
-          uk: "### Основні опції",
-        },
-        {
-          en: "Set the base URL and storage state for all tests:",
-          uk: "Задайте базову URL-адресу та стан сховища для всіх тестів:",
-        },
-        {
-          en: "| Option | Description |\n| :- | :- |\n| [`property: TestOptions.baseURL`] | Base URL used for all pages in the context. Allows navigating by using just the path, for example `page.goto('/settings')`. |\n| [`property: TestOptions.storageState`] | Populates context with given storage state. Useful for easy authentication, [learn more](./auth.md). |",
-          uk: "| Option | Description |\n| :- | :- |\n| [`property: TestOptions.baseURL`] | Базова URL-адреса для всіх сторінок у контексті. Дозволяє переходити лише за шляхом, наприклад `page.goto('/settings')`. |\n| [`property: TestOptions.storageState`] | Заповнює контекст заданим станом сховища. Корисно для простої автентифікації; [докладніше](./auth.md). |",
-        },
-        {
-          en: "### Emulation Options",
-          uk: "### Опції емуляції",
-        },
-        {
-          en: 'With Playwright you can emulate a real device such as a mobile phone or tablet. See our [guide on projects](./test-projects.md) for more info on emulating devices. You can also emulate the `"geolocation"`, `"locale"` and `"timezone"` for all tests or for a specific test as well as set the `"permissions"` to show notifications or change the `"colorScheme"`. See our [Emulation](./emulation.md) guide to learn more.',
-          uk: 'За допомогою Playwright можна емулювати реальний пристрій, наприклад телефон чи планшет. Див. наш [посібник з проєктів](./test-projects.md) щодо емуляції пристроїв. Також можна емулювати `"geolocation"`, `"locale"` та `"timezone"` для всіх тестів або для окремого тесту, а також задати `"permissions"` для сповіщень або змінити `"colorScheme"`. Більше — у [посібнику з емуляції](./emulation.md).',
-        },
-        {
-          en: "| Option | Description |\n| :- | :- |\n| [`property: TestOptions.colorScheme`] | [Emulates](./emulation.md#color-scheme-and-media) `'prefers-colors-scheme'` media feature, supported values are `'light'` and `'dark'` |\n| [`property: TestOptions.geolocation`] | Context [geolocation](./emulation.md#geolocation). |\n| [`property: TestOptions.locale`] | [Emulates](./emulation.md#locale--timezone) the user locale, for example `en-GB`, `de-DE`, etc. |\n| [`property: TestOptions.permissions`] | A list of [permissions](./emulation.md#permissions) to grant to all pages in the context. |\n| [`property: TestOptions.timezoneId`] | Changes the [timezone](./emulation.md#locale--timezone) of the context. |\n| [`property: TestOptions.viewport`] | [Viewport](./emulation.md#viewport) used for all pages in the context. |",
-          uk: "| Option | Description |\n| :- | :- |\n| [`property: TestOptions.colorScheme`] | [Емулює](./emulation.md#color-scheme-and-media) медіавластивість `'prefers-colors-scheme'`; підтримувані значення — `'light'` і `'dark'` |\n| [`property: TestOptions.geolocation`] | [Геолокація](./emulation.md#geolocation) контексту. |\n| [`property: TestOptions.locale`] | [Емулює](./emulation.md#locale--timezone) локаль користувача, наприклад `en-GB`, `de-DE` тощо. |\n| [`property: TestOptions.permissions`] | Список [дозволів](./emulation.md#permissions), які надаються всім сторінкам у контексті. |\n| [`property: TestOptions.timezoneId`] | Змінює [часовий пояс](./emulation.md#locale--timezone) контексту. |\n| [`property: TestOptions.viewport`] | [В’юпорт](./emulation.md#viewport) для всіх сторінок у контексті. |",
-        },
-        {
-          en: "### Network Options",
-          uk: "### Мережеві опції",
-        },
-        {
-          en: "Available options to configure networking:",
-          uk: "Доступні опції для налаштування мережі:",
-        },
-        {
-          en: "| Option | Description |\n| :- | :- |\n| [`property: TestOptions.acceptDownloads`] | Whether to automatically download all the attachments, defaults to `true`. [Learn more](./downloads.md) about working with downloads. |\n| [`property: TestOptions.extraHTTPHeaders`] | An object containing additional HTTP headers to be sent with every request. All header values must be strings. |\n| [`property: TestOptions.httpCredentials`] | Credentials for [HTTP authentication](./network.md#http-authentication). |\n| [`property: TestOptions.ignoreHTTPSErrors`] | Whether to ignore HTTPS errors during navigation. |\n| [`property: TestOptions.offline`] | Whether to emulate network being offline. |\n| [`property: TestOptions.proxy`] | [Proxy settings](./network.md#http-proxy) used for all pages in the test. |",
-          uk: "| Option | Description |\n| :- | :- |\n| [`property: TestOptions.acceptDownloads`] | Чи автоматично завантажувати всі вкладення; за замовчуванням `true`. [Докладніше](./downloads.md) про роботу зі завантаженнями. |\n| [`property: TestOptions.extraHTTPHeaders`] | Об’єкт із додатковими HTTP-заголовками для кожного запиту. Усі значення заголовків мають бути рядками. |\n| [`property: TestOptions.httpCredentials`] | Облікові дані для [HTTP-автентифікації](./network.md#http-authentication). |\n| [`property: TestOptions.ignoreHTTPSErrors`] | Чи ігнорувати помилки HTTPS під час навігації. |\n| [`property: TestOptions.offline`] | Чи емулювати відсутність мережі. |\n| [`property: TestOptions.proxy`] | [Налаштування проксі](./network.md#http-proxy) для всіх сторінок у тесті. |",
-        },
-        {
-          en: "### Recording Options",
-          uk: "### Опції запису",
-        },
-        {
-          en: "With Playwright you can capture screenshots, record videos as well as traces of your test. By default these are turned off but you can enable them by setting the `screenshot`, `video` and `trace` options in your `playwright.config.js` file.",
-          uk: "Playwright може робити знімки екрана, записувати відео й трейси тесту. За замовчуванням це вимкнено; увімкніть опціями `screenshot`, `video` та `trace` у файлі `playwright.config.js`.",
-        },
-        {
-          en: "Trace files, screenshots and videos will appear in the test output directory, typically `test-results`.",
-          uk: "Файли трейсів, знімки та відео з’являться в каталозі виводу тестів, зазвичай `test-results`.",
-        },
-        {
-          en: "| Option | Description |\n| :- | :- |\n| [`property: TestOptions.screenshot`] | Capture [screenshots](./screenshots.md) of your test. Options include `'off'`, `'on'` and `'only-on-failure'` |\n| [`property: TestOptions.trace`] | Playwright can produce test traces while running the tests. Later on, you can view the trace and get detailed information about Playwright execution by opening [Trace Viewer](./trace-viewer.md). Options include: `'off'`, `'on'`, `'retain-on-failure'` and `'on-first-retry'`  |\n| [`property: TestOptions.video`] | Playwright can record [videos](./videos.md) for your tests. Options include: `'off'`, `'on'`, `'retain-on-failure'` and `'on-first-retry'` |",
-          uk: "| Option | Description |\n| :- | :- |\n| [`property: TestOptions.screenshot`] | Робити [знімки екрана](./screenshots.md) під час тесту. Значення: `'off'`, `'on'` і `'only-on-failure'` |\n| [`property: TestOptions.trace`] | Playwright може збирати трейси під час запуску тестів. Пізніше їх можна переглянути в [Trace Viewer](./trace-viewer.md) з деталями виконання. Значення: `'off'`, `'on'`, `'retain-on-failure'` і `'on-first-retry'`  |\n| [`property: TestOptions.video`] | Playwright може записувати [відео](./videos.md) для тестів. Значення: `'off'`, `'on'`, `'retain-on-failure'` і `'on-first-retry'` |",
-        },
-        {
-          en: "### Other Options",
-          uk: "### Інші опції",
-        },
-        {
-          en: "| Option | Description |\n| :- | :- |\n| [`property: TestOptions.actionTimeout`] | Timeout for each Playwright action in milliseconds. Defaults to `0` (no timeout). Learn more about [timeouts](./test-timeouts.md) and how to set them for a single test. |\n| [`property: TestOptions.browserName`] | Name of the browser that runs tests. Defaults to 'chromium'. Options include `chromium`, `firefox`, or `webkit`. |\n| [`property: TestOptions.bypassCSP`] |Toggles bypassing Content-Security-Policy. Useful when CSP includes the production origin. Defaults to `false`. |\n| [`property: TestOptions.channel`] | Browser channel to use. [Learn more](./browsers.md) about different browsers and channels. |\n| [`property: TestOptions.headless`] | Whether to run the browser in headless mode meaning no browser is shown when running tests. Defaults to `true`. |\n| [`property: TestOptions.testIdAttribute`] | Changes the default [`data-testid` attribute](./locators.md#locate-by-test-id) used by Playwright locators. |",
-          uk: "| Option | Description |\n| :- | :- |\n| [`property: TestOptions.actionTimeout`] | Тайм-аут кожної дії Playwright у мілісекундах. За замовчуванням `0` (без тайм-ауту). Докладніше про [тайм-аути](./test-timeouts.md) й налаштування для одного тесту. |\n| [`property: TestOptions.browserName`] | Назва браузера для запуску тестів. За замовчуванням `'chromium'`. Можливі значення: `chromium`, `firefox` або `webkit`. |\n| [`property: TestOptions.bypassCSP`] |Увімкнути обхід Content-Security-Policy. Корисно, коли CSP містить продакшн-домен. За замовчуванням `false`. |\n| [`property: TestOptions.channel`] | Канал браузера. [Докладніше](./browsers.md) про різні браузери та канали. |\n| [`property: TestOptions.headless`] | Чи запускати браузер у headless-режимі (без видимого вікна). За замовчуванням `true`. |\n| [`property: TestOptions.testIdAttribute`] | Змінює типовий [`data-testid` attribute](./locators.md#locate-by-test-id), який використовують локатори Playwright. |",
-        },
-        {
-          en: "### More browser and context options",
-          uk: "### Додаткові опції браузера й контексту",
-        },
-        {
-          en: "Any options accepted by [`method: BrowserType.launch`], [`method: Browser.newContext`] or [`method: BrowserType.connect`] can be put into `launchOptions`, `contextOptions` or `connectOptions` respectively in the `use` section.",
-          uk: "Будь-які опції, які приймають [`method: BrowserType.launch`], [`method: Browser.newContext`] або [`method: BrowserType.connect`], можна вказати відповідно в `launchOptions`, `contextOptions` або `connectOptions` у секції `use`.",
-        },
-        {
-          en: "However, most common ones like `headless` or `viewport` are available directly in the `use` section - see [basic options](#basic-options), [emulation](#emulation-options) or [network](#network-options).",
-          uk: "Найпоширеніші, як-от `headless` чи `viewport`, доступні безпосередньо в `use` — див. [основні опції](#basic-options), [емуляцію](#emulation-options) або [мережу](#network-options).",
-        },
-        {
-          en: "### Explicit Context Creation and Option Inheritance",
-          uk: "### Явне створення контексту й успадкування опцій",
-        },
-        {
-          en: "If using the built-in `browser` fixture, calling [`method: Browser.newContext`] will create a context with options inherited from the config:",
-          uk: "Якщо використовується вбудована фікстура `browser`, виклик [`method: Browser.newContext`] створює контекст з опціями, успадкованими з конфігурації:",
-        },
-        {
-          en: "An example test illustrating the initial context options are set:",
-          uk: "Приклад тесту, де задані початкові опції контексту:",
-        },
-        {
-          en: "### Configuration Scopes",
-          uk: "### Області конфігурації",
-        },
-        {
-          en: "You can configure Playwright globally, per project, or per test. For example, you can set the locale to be used globally by adding `locale` to the `use` option of the Playwright config, and then override it for a specific project using the `project` option in the config. You can also override it for a specific test by adding `test.use({})` in the test file and passing in the options.",
-          uk: "Playwright можна налаштовувати глобально, на рівні проєкту або окремого тесту. Наприклад, додайте `locale` до `use` у конфігурації для глобальної локалі, потім перевизначте її для конкретного проєкту через `project`. Також можна перевизначити для одного тесту, додавши `test.use({})` у файлі тесту й передавши опції.",
-        },
-        {
-          en: "You can override options for a specific project using the `project` option in the Playwright config.",
-          uk: "Опції для конкретного проєкту можна перевизначити через `project` у конфігурації Playwright.",
-        },
-        {
-          en: "You can override options for a specific test file by using the `test.use()` method and passing in the options. For example to run tests with the French locale for a specific test:",
-          uk: "Опції для конкретного тестового файлу перевизначаються методом `test.use()` з передачею опцій. Наприклад, щоб запустити тести з французькою локаллю:",
-        },
-        {
-          en: "The same works inside a describe block. For example to run tests in a describe block with the French locale:",
-          uk: "Те саме працює всередині блоку `describe`. Наприклад, щоб усі тести в блоці йшли з французькою локаллю:",
-        },
-        {
-          en: "### Reset an option",
-          uk: "### Скинути опцію",
-        },
-        {
-          en: "You can reset an option to the value defined in the config file. Consider the following config that sets a `baseURL`:",
-          uk: "Опцію можна скинути до значення з конфігураційного файлу. Наприклад, конфігурація з `baseURL`:",
-        },
-        {
-          en: "You can now configure `baseURL` for a file, and also opt-out for a single test.",
-          uk: "Тепер можна задати `baseURL` для файлу й окремо вимкнути його для одного тесту.",
-        },
-        {
-          en: "If you would like to completely reset the value to `undefined`, use a long-form fixture notation.",
-          uk: "Щоб повністю скинути значення до `undefined`, використовуйте довгу форму запису фікстури.",
+          en: "`baseURL` is the one I miss most when it's not set. Without it every `page.goto()` needs the full `http://localhost:3000` prefix. With it, I write `/orders`, `/dashboard`, `/login` and Playwright prepends the base. `storageState` points to a saved auth file — so every test starts already logged in without repeating the login flow.",
+          uk: "`baseURL` — те чого найбільше не вистачає коли його немає. Без нього кожен `page.goto()` потребує повного префіксу `http://localhost:3000`. З ним пишу `/orders`, `/dashboard`, `/login` і Playwright сам додає базу. `storageState` вказує на збережений файл авторизації — кожен тест починається вже залогіненим без повторення flow входу.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    // Base URL to use in actions like `await page.goto('/')`.\n    baseURL: 'http://localhost:3000',\n\n    // Populates context with given storage state.\n    storageState: 'state.json',\n  },\n});",
+          id: "basic-use",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    baseURL: 'http://localhost:3000',
+    storageState: 'playwright/.auth/user.json',
+  },
+})`,
+        },
+      ],
+    },
+    {
+      id: "recording-options",
+      title: {
+        en: "Recording options — screenshots, traces, video",
+        uk: "Опції запису — скриншоти, трейси, відео",
+      },
+      paragraphs: [
+        {
+          en: "My standard CI setup: `trace: 'on-first-retry'` records a trace only when a test retries (meaning it failed). `screenshot: 'only-on-failure'` grabs a screenshot when the test fails. Both go to `test-results/` and get uploaded as artifacts. I never use `'on'` for either in CI — storage costs add up fast.",
+          uk: "Мій стандартний CI-набір: `trace: 'on-first-retry'` записує трейс тільки коли тест повторюється (тобто впав). `screenshot: 'only-on-failure'` робить скриншот при падінні тесту. Обидва йдуть у `test-results/` і завантажуються як артефакти. Ніколи не використовую `'on'` для жодного з них на CI — витрати на зберігання швидко накопичуються.",
         },
         {
-          id: "cb-2",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    // Emulates `'prefers-colors-scheme'` media feature.\n    colorScheme: 'dark',\n\n    // Context geolocation.\n    geolocation: { longitude: 12.492507, latitude: 41.889938 },\n\n    // Emulates the user locale.\n    locale: 'en-GB',\n\n    // Grants specified permissions to the browser context.\n    permissions: ['geolocation'],\n\n    // Emulates the user timezone.\n    timezoneId: 'Europe/Paris',\n\n    // Viewport used for all pages in the context.\n    viewport: { width: 1280, height: 720 },\n  },\n});",
+          en: "Video is expensive (CPU and storage). I use `'retain-on-failure'` rather than `'on-first-retry'` for video because video is useful even on the first failure, not just retries.",
+          uk: "Відео дороге (CPU і зберігання). Використовую `'retain-on-failure'` а не `'on-first-retry'` для відео бо відео корисне навіть при першому падінні, не тільки при повторі.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "recording-config",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    screenshot: 'only-on-failure',
+    trace: 'on-first-retry',
+    video: 'retain-on-failure',
+  },
+})`,
+        },
+      ],
+    },
+    {
+      id: "emulation-options",
+      title: {
+        en: "Emulation — locale, timezone, viewport, color scheme",
+        uk: "Емуляція — локаль, часовий пояс, viewport, кольорова схема",
+      },
+      paragraphs: [
+        {
+          en: "I reach for these when testing locale-specific behavior (date formats, currency display) or when I need to verify dark mode. Setting `locale` here means every test sees the same locale without any per-test setup.",
+          uk: "Беруся за ці параметри коли тестую локале-специфічну поведінку (формати дат, відображення валюти) або коли треба перевірити темний режим. Встановлення `locale` тут означає кожен тест бачить одну локаль без будь-якого налаштування на рівні тесту.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "emulation-config",
+          language: "ts",
+          code: `// playwright.config.ts — емуляція для тестування локалізації
+export default defineConfig({
+  use: {
+    locale: 'uk-UA',
+    timezoneId: 'Europe/Kyiv',
+    colorScheme: 'dark',
+    viewport: { width: 1280, height: 720 },
+    geolocation: { longitude: 30.523, latitude: 50.452 },
+    permissions: ['geolocation'],
+  },
+})`,
+        },
+      ],
+    },
+    {
+      id: "network-options",
+      title: {
+        en: "Network options",
+        uk: "Мережеві опції",
+      },
+      paragraphs: [
+        {
+          en: "`extraHTTPHeaders` is useful when the app expects an internal auth header (`X-Internal-Token`) that the browser doesn't add automatically. `ignoreHTTPSErrors` I turn on for staging environments where the SSL cert isn't always valid. `offline: true` is for testing the 'no connection' UI path.",
+          uk: "`extraHTTPHeaders` корисний коли застосунок очікує внутрішній auth-заголовок (`X-Internal-Token`) який браузер не додає автоматично. `ignoreHTTPSErrors` вмикаю для staging-середовищ де SSL-сертифікат не завжди дійсний. `offline: true` — для тестування UI-шляху 'немає з'єднання'.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "network-config",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    extraHTTPHeaders: {
+      'X-Internal-Token': process.env.INTERNAL_TOKEN ?? '',
+    },
+    ignoreHTTPSErrors: true,  // для staging з самопідписаним cert
+  },
+})`,
+        },
+      ],
+    },
+    {
+      id: "configuration-scopes",
+      title: {
+        en: "Overriding use options — global, project, file, describe",
+        uk: "Перевизначення use-опцій — глобально, проєкт, файл, describe",
+      },
+      paragraphs: [
+        {
+          en: "The cascade: global `use` → project-level `use` → `test.use()` in a file. Each level overrides the previous. In practice I use this for locale testing — global config sets `en-US`, a specific test file overrides to `fr-FR` for French locale tests.",
+          uk: "Каскад: глобальний `use` → `use` на рівні проєкту → `test.use()` у файлі. Кожен рівень перевизначає попередній. На практиці використовую для тестування локалі: глобальний конфіг встановлює `en-US`, конкретний файл тестів перевизначає на `fr-FR` для французьких тестів.",
         },
         {
-          id: "cb-3",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    // Whether to automatically download all the attachments.\n    acceptDownloads: false,\n\n    // An object containing additional HTTP headers to be sent with every request.\n    extraHTTPHeaders: {\n      'X-My-Header': 'value',\n    },\n\n    // Credentials for HTTP authentication.\n    httpCredentials: {\n      username: 'user',\n      password: 'pass',\n    },\n\n    // Whether to ignore HTTPS errors during navigation.\n    ignoreHTTPSErrors: true,\n\n    // Whether to emulate network being offline.\n    offline: true,\n\n    // Proxy settings used for all pages in the test.\n    proxy: {\n      server: 'http://myproxy.com:3128',\n      bypass: 'localhost',\n    },\n  },\n});",
+          en: "To reset an option back to the config-level value, set it to `undefined`. To completely unset it (so not even the config default applies), use the long-form fixture notation.",
+          uk: "Щоб скинути опцію до значення рівня конфігу — встанови `undefined`. Щоб повністю скасувати її (щоб навіть дефолт конфігу не застосовувався) — використовуй довгу форму запису фікстури.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "project-override",
+          language: "ts",
+          code: `// playwright.config.ts — глобальна локаль + перевизначення на рівні проєкту
+export default defineConfig({
+  use: { locale: 'en-US' },
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], locale: 'de-DE' },
+    },
+  ],
+})`,
         },
         {
-          id: "cb-4",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    // Capture screenshot after each test failure.\n    screenshot: 'only-on-failure',\n\n    // Record trace only when retrying a test for the first time.\n    trace: 'on-first-retry',\n\n    // Record video only when retrying a test for the first time.\n    video: 'on-first-retry'\n  },\n});",
+          id: "file-override",
+          language: "ts",
+          code: `// french-locale.spec.ts — перевизначення у файлі
+test.use({ locale: 'fr-FR' })
+
+test('date format shows DD/MM/YYYY', async ({ page }) => {
+  await page.goto('/orders')
+  // тест бачить fr-FR локаль
+})`,
         },
         {
-          id: "cb-5",
-          language: "js",
-          code: '\nexport default defineConfig({\n  use: {\n    // Maximum time each action such as `click()` can take. Defaults to 0 (no limit).\n    actionTimeout: 0,\n\n    // Name of the browser that runs tests. For example `chromium`, `firefox`, `webkit`.\n    browserName: \'chromium\',\n\n    // Toggles bypassing Content-Security-Policy.\n    bypassCSP: true,\n\n    // Channel to use, for example "chrome", "chrome-beta", "msedge", "msedge-beta".\n    channel: \'chrome\',\n\n    // Run browser in headless mode.\n    headless: false,\n\n    // Change the default data-testid attribute.\n    testIdAttribute: \'pw-test-id\',\n  },\n});',
+          id: "describe-override",
+          language: "ts",
+          code: `// Перевизначення всередині describe-блоку
+test.describe('french locale', () => {
+  test.use({ locale: 'fr-FR' })
+
+  test('currency shows €', async ({ page }) => {
+    await page.goto('/dashboard')
+  })
+})`,
         },
         {
-          id: "cb-6",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    launchOptions: {\n      slowMo: 50,\n    },\n  },\n});",
+          id: "reset-option",
+          language: "ts",
+          code: `// Скинути baseURL до значення конфігу для одного тесту
+test.use({ baseURL: 'https://staging.example.com' })
+
+test.describe(() => {
+  test.use({ baseURL: undefined })  // повертає до конфігу
+
+  test('uses config baseURL', async ({ page }) => {
+    await page.goto('/orders')
+  })
+})`,
         },
+      ],
+    },
+    {
+      id: "other-options",
+      title: {
+        en: "Other options worth knowing",
+        uk: "Інші опції які варто знати",
+      },
+      paragraphs: [
         {
-          id: "cb-7",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    userAgent: 'some custom ua',\n    viewport: { width: 100, height: 100 },\n  },\n});",
+          en: "`actionTimeout: 0` means no timeout per action — the default. I override this to `5000` when the app is slow to respond to clicks. `testIdAttribute` I change when the team uses `data-cy` instead of `data-testid` — then `getByTestId()` works with their attribute. `headless: false` for local debugging runs.",
+          uk: "`actionTimeout: 0` означає немає тайм-ауту на дію — дефолт. Перевизначаю на `5000` коли застосунок повільно відповідає на кліки. `testIdAttribute` змінюю коли команда використовує `data-cy` замість `data-testid` — тоді `getByTestId()` працює з їхнім атрибутом. `headless: false` для локальних дебаг-запусків.",
         },
+      ],
+      codeBlocks: [
         {
-          id: "cb-8",
-          language: "js",
-          code: "test('should inherit use options on context when using built-in browser fixture', async ({\n  browser,\n}) => {\n  const context = await browser.newContext();\n  const page = await context.newPage();\n  expect(await page.evaluate(() => navigator.userAgent)).toBe('some custom ua');\n  expect(await page.evaluate(() => window.innerWidth)).toBe(100);\n  await context.close();\n});",
-        },
-        {
-          id: "cb-9",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    locale: 'en-GB'\n  },\n});",
-        },
-        {
-          id: "cb-10",
-          language: "js",
-          code: "\nexport default defineConfig({\n  projects: [\n    {\n      name: 'chromium',\n      use: {\n        ...devices['Desktop Chrome'],\n        locale: 'de-DE',\n      },\n    },\n  ],\n});",
-        },
-        {
-          id: "cb-11",
-          language: "js",
-          code: "\ntest.use({ locale: 'fr-FR' });\n\ntest('example', async ({ page }) => {\n  // ...\n});",
-        },
-        {
-          id: "cb-12",
-          language: "js",
-          code: "\ntest.describe('french language block', () => {\n\n  test.use({ locale: 'fr-FR' });\n\n  test('example', async ({ page }) => {\n    // ...\n  });\n});",
-        },
-        {
-          id: "cb-13",
-          language: "js",
-          code: "\nexport default defineConfig({\n  use: {\n    baseURL: 'https://playwright.dev',\n  },\n});",
-        },
-        {
-          id: "cb-14",
-          language: "js",
-          code: "\n// Configure baseURL for this file.\ntest.use({ baseURL: 'https://playwright.dev/docs/intro' });\n\ntest('check intro contents', async ({ page }) => {\n  // This test will use \"https://playwright.dev/docs/intro\" base url as defined above.\n});\n\ntest.describe(() => {\n  // Reset the value to a config-defined one.\n  test.use({ baseURL: undefined });\n\n  test('can navigate to intro from the home page', async ({ page }) => {\n    // This test will use \"https://playwright.dev\" base url as defined in the config.\n  });\n});",
-        },
-        {
-          id: "cb-15",
-          language: "js",
-          code: "\n// Completely unset baseURL for this file.\ntest.use({\n  baseURL: [async ({}, use) => use(undefined), { scope: 'test' }],\n});\n\ntest('no base url', async ({ page }) => {\n  // This test will not have a base url.\n});",
+          id: "other-config",
+          language: "ts",
+          code: `// playwright.config.ts
+export default defineConfig({
+  use: {
+    actionTimeout: 5000,
+    testIdAttribute: 'data-cy',  // якщо команда використовує Cypress-атрибути
+    headless: !process.env.PWDEBUG,  // headed коли PWDEBUG задано
+  },
+})`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "You have baseURL: 'http://localhost:3000' in the global use config. One test file needs to test against 'http://localhost:4000' (a different microservice). How do you override it just for that file without affecting other tests?",
+        uk: "У тебе baseURL: 'http://localhost:3000' в глобальному use-конфігу. Один файл тестів потребує тестувати проти 'http://localhost:4000' (інший мікросервіс). Як перевизначити це лише для того файлу не впливаючи на інші тести?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Change the global baseURL in playwright.config.ts and use environment variables to switch",
+            uk: "Змінити глобальний baseURL в playwright.config.ts і використовувати змінні середовища для перемикання",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Add test.use({ baseURL: 'http://localhost:4000' }) at the top of the test file — it overrides only for tests in that file",
+            uk: "Додати test.use({ baseURL: 'http://localhost:4000' }) на початку файлу тестів — перевизначає лише для тестів у тому файлі",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Pass the URL directly to every page.goto() call in that file instead of using baseURL",
+            uk: "Передавати URL напряму кожному виклику page.goto() у тому файлі замість використання baseURL",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`test.use()` at the file level overrides the config for all tests in that file only. It's the cleanest way — other test files are unaffected, no environment variables needed, and you still write `page.goto('/endpoint')` with the new base. Changing the global config breaks all other tests. Passing full URLs to every goto() is tedious and makes tests fragile if the port ever changes.",
+        uk: "`test.use()` на рівні файлу перевизначає конфіг для всіх тестів лише у тому файлі. Це найчистіший спосіб — інші файли тестів не зачіпаються, не потрібні змінні середовища, і ти все одно пишеш `page.goto('/endpoint')` з новою базою. Зміна глобального конфігу ламає всі інші тести. Передача повних URL кожному goto() — клопітка і робить тести крихкими якщо порт коли-небудь зміниться.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "What does `storageState` in the `use` block do?",
+        uk: "Що робить `storageState` у блоці `use`?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "It defines where Playwright saves screenshots and trace files",
+            uk: "Визначає куди Playwright зберігає скриншоти і файли трейсів",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "It loads a previously saved authentication state (cookies, localStorage) into every new browser context so tests start already logged in",
+            uk: "Завантажує раніше збережений стан авторизації (cookies, localStorage) у кожен новий browser context щоб тести починалися вже залогіненими",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "It sets the directory where Playwright stores browser data between test runs",
+            uk: "Встановлює директорію де Playwright зберігає дані браузера між запусками тестів",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "It enables localStorage persistence across tests in the same file",
+            uk: "Вмикає збереження localStorage між тестами в одному файлі",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`storageState` points to a JSON file that contains saved cookies and localStorage. When set in `use`, every new browser context is initialised with that saved auth state — tests start as if the user is already logged in. The file is typically created in a setup step using `context.storageState({ path: 'playwright/.auth/user.json' })`. This avoids repeating the login flow in every test.",
+        uk: "`storageState` вказує на JSON-файл що містить збережені cookies і localStorage. При встановленні у `use` кожен новий browser context ініціалізується з тим збереженим auth-станом — тести починаються як ніби користувач вже залогінений. Файл зазвичай створюється на кроці setup через `context.storageState({ path: 'playwright/.auth/user.json' })`. Це уникає повторення flow входу в кожному тесті.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "You need all tests to simulate a device in dark mode with a Ukrainian locale. Where do you put these settings?",
+        uk: "Потрібно щоб всі тести симулювали пристрій у темному режимі з українською локаллю. Де розмістити ці налаштування?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "In a beforeEach hook in every test file",
+            uk: "У хуку beforeEach у кожному файлі тестів",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "In the use: {} block of playwright.config.ts — colorScheme: 'dark' and locale: 'uk-UA'",
+            uk: "У блоці use: {} playwright.config.ts — colorScheme: 'dark' і locale: 'uk-UA'",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "In package.json under a playwright key",
+            uk: "У package.json під ключем playwright",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "In an environment variable PLAYWRIGHT_LOCALE and PLAYWRIGHT_COLOR_SCHEME",
+            uk: "У змінних середовища PLAYWRIGHT_LOCALE і PLAYWRIGHT_COLOR_SCHEME",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`colorScheme`, `locale`, `timezoneId`, `viewport`, and `permissions` are all emulation options that belong in the `use` block of `playwright.config.ts`. Setting them there applies them to every test automatically. Individual test files can override them with `test.use({ colorScheme: 'light' })` when needed.",
+        uk: "`colorScheme`, `locale`, `timezoneId`, `viewport` і `permissions` — всі це опції емуляції що належать блоку `use` у `playwright.config.ts`. Встановлення там автоматично застосовує їх до кожного тесту. Окремі файли тестів можуть перевизначити їх через `test.use({ colorScheme: 'light' })` коли потрібно.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "What does `viewport: { width: 1280, height: 720 }` in the `use` block do?",
+        uk: "Що робить `viewport: { width: 1280, height: 720 }` у блоці `use`?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "It sets the resolution of screenshots captured during the test",
+            uk: "Встановлює роздільну здатність скриншотів зроблених під час тесту",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "It sets the browser window size for every test, affecting layout and responsive design behaviour",
+            uk: "Встановлює розмір вікна браузера для кожного тесту, впливаючи на компонування і поведінку адаптивного дизайну",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "It sets the minimum screen resolution required to run the tests",
+            uk: "Встановлює мінімальну роздільну здатність екрану необхідну для запуску тестів",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "It only affects video recordings — not the actual browser window",
+            uk: "Впливає лише на відеозаписи — не на реальне вікно браузера",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`viewport` sets the size of the browser viewport for every test. This affects responsive CSS breakpoints, element visibility, and any layout that changes based on screen size. If your app has a mobile hamburger menu at 768px, setting `viewport: { width: 375, height: 667 }` lets you test that behaviour. Each Playwright `devices` preset includes a matching viewport.",
+        uk: "`viewport` встановлює розмір вьюпорту браузера для кожного тесту. Це впливає на CSS-брейкпоінти адаптивного дизайну, видимість елементів і будь-яке компонування що змінюється залежно від розміру екрану. Якщо застосунок має мобільне гамбургер-меню при 768px — встановлення `viewport: { width: 375, height: 667 }` дозволяє тестувати цю поведінку. Кожен пресет Playwright `devices` включає відповідний viewport.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "What is the cascade order when `test.use()` is called both at the file level and inside a `test.describe()` block?",
+        uk: "Який порядок каскаду коли `test.use()` викликається і на рівні файлу і всередині блоку `test.describe()`?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The file-level use always wins over describe-level use",
+            uk: "test.use() на рівні файлу завжди перемагає над рівнем describe",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "The describe-level use overrides the file-level use for tests inside that describe block",
+            uk: "test.use() на рівні describe перевизначає рівень файлу для тестів всередині того describe-блоку",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Both are applied and merged — the last one wins for conflicting keys",
+            uk: "Обидва застосовуються і об'єднуються — останній виграє для конфліктуючих ключів",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Only one test.use() can be active at a time — the second call throws an error",
+            uk: "Одночасно може бути активний лише один test.use() — другий виклик кидає помилку",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The cascade is: global config `use` → project-level `use` → file-level `test.use()` → describe-level `test.use()`. Each inner level overrides the outer level for tests in that scope. Tests outside the describe block still see the file-level value. This allows fine-grained control: set English globally, override to French in a specific describe block.",
+        uk: "Каскад: глобальний `use` конфігу → `use` на рівні проєкту → `test.use()` на рівні файлу → `test.use()` на рівні describe. Кожен внутрішній рівень перевизначає зовнішній для тестів у тому скоупі. Тести поза describe-блоком все одно бачать значення рівня файлу. Це дозволяє точне управління: встановити англійську глобально, перевизначити на французьку в конкретному describe-блоці.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "You want to test that your app correctly requests the user's location. Which `use` options do you set?",
+        uk: "Хочеш перевірити що застосунок коректно запитує геолокацію користувача. Які опції `use` встановити?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "Set geoLocation to the coordinates and allowGeo: true",
+            uk: "Встановити geoLocation на координати і allowGeo: true",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "Set geolocation to the coordinates and include 'geolocation' in the permissions array",
+            uk: "Встановити geolocation на координати і включити 'geolocation' у масив permissions",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "Use page.setGeolocation() inside each test — there is no use option for this",
+            uk: "Використовувати page.setGeolocation() всередині кожного тесту — немає use-опції для цього",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Set locationServices: { latitude: 50, longitude: 30 } in the use block",
+            uk: "Встановити locationServices: { latitude: 50, longitude: 30 } у блоці use",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "To emulate geolocation you need two things: `geolocation: { latitude: 50.45, longitude: 30.52 }` to set the coordinates, and `permissions: ['geolocation']` to grant the permission automatically (otherwise the browser shows a permission prompt that blocks the test). Both go in the `use` block. You can also call `context.grantPermissions(['geolocation'])` per test.",
+        uk: "Для емуляції геолокації потрібні дві речі: `geolocation: { latitude: 50.45, longitude: 30.52 }` щоб встановити координати, і `permissions: ['geolocation']` щоб автоматично надати дозвіл (інакше браузер показує запит дозволу що блокує тест). Обидва йдуть у блок `use`. Також можна викликати `context.grantPermissions(['geolocation'])` на рівні тесту.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "What does `timezoneId` in the `use` block affect in tests?",
+        uk: "На що впливає `timezoneId` у блоці `use` у тестах?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "The timezone of the CI server running the tests",
+            uk: "Часовий пояс CI-сервера що запускає тести",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "The timezone seen by the browser's JavaScript — new Date() and Intl APIs return times in that timezone",
+            uk: "Часовий пояс який бачить JavaScript браузера — new Date() і Intl API повертають час у тому часовому поясі",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The timezone used by Playwright for logging test start and end times",
+            uk: "Часовий пояс що використовує Playwright для логування часу початку і завершення тестів",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "The system timezone of the machine running the tests",
+            uk: "Системний часовий пояс машини що запускає тести",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`timezoneId` emulates a timezone inside the browser context. JavaScript's `new Date()`, `Date.toLocaleString()`, and `Intl.DateTimeFormat` all use this timezone instead of the host machine's timezone. This is critical for testing date-related features — without it, tests that check date formatting will behave differently on CI (likely UTC) vs locally (your local timezone).",
+        uk: "`timezoneId` емулює часовий пояс всередині browser context. JavaScript-`new Date()`, `Date.toLocaleString()` і `Intl.DateTimeFormat` використовують цей часовий пояс замість часового поясу хост-машини. Це критично для тестування функцій пов'язаних з датами — без цього тести що перевіряють форматування дат поводитимуться по-різному на CI (скоріш за все UTC) і локально (твій локальний часовий пояс).",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "What does `ignoreHTTPSErrors: true` in the `use` block do?",
+        uk: "Що робить `ignoreHTTPSErrors: true` у блоці `use`?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "It allows the app to make HTTP requests instead of HTTPS",
+            uk: "Дозволяє застосунку робити HTTP-запити замість HTTPS",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "It suppresses TLS/SSL certificate errors so tests can run against environments with self-signed or invalid certificates",
+            uk: "Пригнічує помилки TLS/SSL-сертифіката щоб тести могли виконуватися проти середовищ з самопідписаними або недійсними сертифікатами",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "It disables HTTPS for all requests and forces them to use HTTP",
+            uk: "Вимикає HTTPS для всіх запитів і змушує їх використовувати HTTP",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "It hides network errors from the test reporter",
+            uk: "Приховує мережеві помилки від репортера тестів",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`ignoreHTTPSErrors: true` tells Playwright to proceed even when the server presents an invalid, expired, or self-signed TLS certificate. This is commonly needed for staging or dev environments where a proper certificate isn't set up. In production testing you should not use this — certificate errors should fail the test so you catch misconfigured environments.",
+        uk: "`ignoreHTTPSErrors: true` вказує Playwright продовжувати навіть коли сервер представляє недійсний, прострочений або самопідписаний TLS-сертифікат. Це зазвичай потрібно для staging або dev-середовищ де належний сертифікат не налаштований. При тестуванні production не варто використовувати це — помилки сертифіката повинні зупиняти тест щоб ти виявляв неправильно налаштовані середовища.",
+      },
+    },
+  ],
 }

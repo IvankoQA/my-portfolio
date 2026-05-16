@@ -5,7 +5,7 @@ export const runningTestsTopic: PlaywrightTopic = {
   groupId: "running-tests",
   order: 30,
   level: "beginner",
-  trackOrder: 11,
+  trackOrder: 4,
   sourceDoc: "running-tests-js.md",
   officialDocsUrl: "https://playwright.dev/docs/running-tests",
   title: {
@@ -240,6 +240,174 @@ npx playwright test auth.spec.ts --debug --grep "login"`,
       rationale: {
         en: "Projects are configured in playwright.config.ts and selected with --project=<name>. There is no --browser flag in the test runner.",
         uk: "Проєкти задаються в playwright.config.ts і обираються через --project=<name>. Прапора --browser у раннері немає.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "How do you run only the tests in a single spec file, e.g. `tests/auth.spec.ts`?",
+        uk: "Як запустити лише тести з одного spec файлу, наприклад `tests/auth.spec.ts`?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "npx playwright test --file=tests/auth.spec.ts",
+            uk: "npx playwright test --file=tests/auth.spec.ts",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "npx playwright test tests/auth.spec.ts",
+            uk: "npx playwright test tests/auth.spec.ts",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "npx playwright test --spec auth",
+            uk: "npx playwright test --spec auth",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "npx playwright run tests/auth.spec.ts",
+            uk: "npx playwright run tests/auth.spec.ts",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "You pass the file path (or a pattern) directly as a positional argument after `playwright test`. Playwright matches spec files whose path includes the given string. There is no `--file` or `--spec` flag, and `playwright run` is not a valid subcommand.",
+        uk: "Шлях до файлу (або патерн) передається безпосередньо як позиційний аргумент після `playwright test`. Playwright знаходить spec файли шлях яких містить вказаний рядок. Прапорів `--file` або `--spec` немає, і `playwright run` не є валідною підкомандою.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "You want to run tests with only 1 worker to watch them run sequentially in the browser window. Which command is correct?",
+        uk: "Хочеш запустити тести з лише 1 воркером щоб побачити їх послідовне виконання у вікні браузера. Яка команда правильна?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "npx playwright test --headed --workers=1",
+            uk: "npx playwright test --headed --workers=1",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "npx playwright test --serial --headed",
+            uk: "npx playwright test --serial --headed",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "npx playwright test --headed --no-parallel",
+            uk: "npx playwright test --headed --no-parallel",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "npx playwright test --visible --sequential",
+            uk: "npx playwright test --visible --sequential",
+          },
+        },
+      ],
+      correctOptionId: "a",
+      rationale: {
+        en: "`--headed` makes the browser window visible and `--workers=1` limits the run to a single worker process, so tests execute one at a time and you can watch them in order. `--serial`, `--no-parallel`, `--visible` and `--sequential` are not valid CLI flags.",
+        uk: "`--headed` робить вікно браузера видимим, а `--workers=1` обмежує запуск одним процесом-воркером, тому тести виконуються по черзі і можна спостерігати їх послідовно. `--serial`, `--no-parallel`, `--visible` і `--sequential` не є валідними CLI прапорцями.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "What is the key difference between UI mode (`--ui`) and headed mode (`--headed`)?",
+        uk: "У чому ключова відмінність між UI mode (`--ui`) і headed-режимом (`--headed`)?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "They are identical — `--ui` is just a shorthand for `--headed`.",
+            uk: "Вони однакові — `--ui` це просто скорочення для `--headed`.",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "UI mode opens a dedicated test runner GUI with watch mode, trace inspection and locator picker; headed mode simply shows the browser window during a normal run.",
+            uk: "UI mode відкриває спеціальний GUI test runner з watch-режимом, переглядом трейсу і вибором локаторів; headed-режим просто показує вікно браузера під час звичайного запуску.",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "UI mode runs tests in the cloud; headed mode runs them locally.",
+            uk: "UI mode запускає тести в хмарі; headed-режим — локально.",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "Headed mode includes the Playwright Inspector; UI mode does not.",
+            uk: "Headed-режим включає Playwright Inspector; UI mode — ні.",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "UI mode (`--ui`) opens a separate application that lets you filter and run tests, watch them re-run on file save, inspect locators with a pick tool, and time-travel through traces — all without restarting the CLI. Headed mode (`--headed`) just makes the browser window visible during an ordinary `playwright test` run. They serve different workflows: UI mode for authoring and debugging, headed for quick visual confirmation.",
+        uk: "UI mode (`--ui`) відкриває окремий застосунок що дозволяє фільтрувати і запускати тести, дивитися як вони перезапускаються при збереженні файлу, вибирати локатори інструментом pick і переміщатися в часі по трейсах — без перезапуску CLI. Headed-режим (`--headed`) просто робить вікно браузера видимим під час звичайного запуску `playwright test`. Вони служать різним робочим процесам: UI mode для написання і дебагу, headed для швидкого візуального підтвердження.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "You want to run only tests whose title contains the word 'login' AND run them in the chromium project only. Which command achieves this?",
+        uk: "Хочеш запустити лише тести назва яких містить слово 'login' І запустити їх лише у проєкті chromium. Яка команда це робить?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "npx playwright test --filter=login --browser=chromium",
+            uk: "npx playwright test --filter=login --browser=chromium",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "npx playwright test --grep login --project=chromium",
+            uk: "npx playwright test --grep login --project=chromium",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "npx playwright test --name=login --engine=chromium",
+            uk: "npx playwright test --name=login --engine=chromium",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "npx playwright test login --chromium",
+            uk: "npx playwright test login --chromium",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "CLI flags can be combined freely. `--grep login` filters by test title regex, and `--project=chromium` selects only the chromium project from the config. Both flags work together in the same command. `--filter`, `--name`, `--engine`, and `--browser` are not valid Playwright CLI flags.",
+        uk: "CLI прапорці можна вільно комбінувати. `--grep login` фільтрує за regex назви тесту, а `--project=chromium` вибирає лише проєкт chromium з конфігу. Обидва прапорці працюють разом в одній команді. `--filter`, `--name`, `--engine` і `--browser` не є валідними CLI прапорцями Playwright.",
       },
     },
   ],

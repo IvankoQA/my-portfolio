@@ -13,333 +13,553 @@ export const testCliTopic: PlaywrightTopic = {
     uk: "Командний рядок",
   },
   summary: {
-    en: "Playwright provides a powerful command line interface for running tests, generating code, debugging, and more. The most up to date list of commands and arguments available on the CLI can always be retrieved via `npx playwright --help`.",
-    uk: "Playwright надає потужний інтерфейс командного рядка для запуску тестів, генерації коду, налагодження тощо. Актуальний список команд і аргументів CLI завжди можна отримати через `npx playwright --help`.",
+    en: "The flags I use every day: --grep to run a specific test by name, --last-failed to re-run only what broke, --project=firefox to test one browser, --debug to open Inspector and step through. On CI I always add --forbid-only so test.only() left in by accident fails the build.",
+    uk: "Прапорці які я використовую щодня: --grep щоб запустити конкретний тест за назвою, --last-failed щоб повторно запустити лише те що зламалося, --project=firefox щоб тестувати один браузер, --debug щоб відкрити Inspector і проходити крок за кроком. На CI завжди додаю --forbid-only щоб test.only() залишений випадково провалював збірку.",
   },
   sections: [
     {
-      id: "overview",
+      id: "run-tests",
       title: {
-        en: "Overview",
-        uk: "Огляд",
+        en: "Running tests — the commands I use most",
+        uk: "Запуск тестів — команди які я використовую найчастіше",
       },
       paragraphs: [
         {
-          en: "Playwright provides a powerful command line interface for running tests, generating code, debugging, and more. The most up to date list of commands and arguments available on the CLI can always be retrieved via `npx playwright --help`.",
-          uk: "Playwright надає потужний інтерфейс командного рядка для запуску тестів, генерації коду, налагодження тощо. Актуальний список команд і аргументів CLI завжди можна отримати через `npx playwright --help`.",
-        },
-      ],
-    },
-    {
-      id: "essential-commands",
-      title: {
-        en: "Essential Commands",
-        uk: "Основні команди",
-      },
-      paragraphs: [
-        {
-          en: "### Run Tests",
-          uk: "### Запуск тестів",
-        },
-        {
-          en: "Run your Playwright tests. [Read more about running tests](./running-tests.md).",
-          uk: "Запустіть тести Playwright. [Докладніше про запуск тестів](./running-tests.md).",
-        },
-        {
-          en: "#### Syntax",
-          uk: "#### Синтаксис",
-        },
-        {
-          en: "#### Examples",
-          uk: "#### Приклади",
-        },
-        {
-          en: "**Disable [parallelization](./test-parallel.md)**",
-          uk: "**Вимкнути [паралелізацію](./test-parallel.md)**",
-        },
-        {
-          en: "**Run in debug mode with [Playwright Inspector](./debug.md)**",
-          uk: "**Запуск у режимі налагодження з [Playwright Inspector](./debug.md)**",
-        },
-        {
-          en: "**Run tests in interactive [UI mode](./test-ui-mode.md)**",
-          uk: "**Запуск тестів в інтерактивному [UI mode](./test-ui-mode.md)**",
-        },
-        {
-          en: "#### Common Options",
-          uk: "#### Поширені опції",
-        },
-        {
-          en: "| Option | Description |\n| :--- | :--- |\n| `--debug` | Run tests with Playwright Inspector. Shortcut for `PWDEBUG=1` environment variable and `--timeout=0 --max-failures=1 --headed --workers=1` options. |\n| `--headed` | Run tests in headed browsers (default: headless). |\n| `-g ` or `--grep ` | Only run tests matching this regular expression (default: \".*\"). |\n| `--project ` | Only run tests from the specified list of projects, supports '*' wildcard (default: run all projects). |\n| `--ui` | Run tests in interactive UI mode. |\n| `-j ` or `--workers ` | Number of concurrent workers or percentage of logical CPU cores, use 1 to run in a single worker (default: 50%). |",
-          uk: "| Опція | Опис |\n| :--- | :--- |\n| `--debug` | Запускає тести з Playwright Inspector. Скорочення для змінної середовища `PWDEBUG=1` і опцій `--timeout=0 --max-failures=1 --headed --workers=1`. |\n| `--headed` | Запускає тести в браузерах з інтерфейсом (за замовчуванням: headless). |\n| `-g ` or `--grep ` | Запускає лише тести, що відповідають цьому регулярному виразу (за замовчуванням: \".*\"). |\n| `--project ` | Запускає лише тести з вказаного списку проєктів; підтримує шаблон '*' (за замовчуванням: усі проєкти). |\n| `--ui` | Запускає тести в інтерактивному UI-режимі. |\n| `-j ` or `--workers ` | Кількість паралельних воркерів або відсоток логічних ядер CPU; 1 — один воркер (за замовчуванням: 50%). |",
-        },
-        {
-          en: "#### All Options",
-          uk: "#### Усі опції",
-        },
-        {
-          en: '| Option | Description |\n| :--- | :--- |\n| Non-option arguments | Each argument is treated as a regular expression matched against the full test file path. Only tests from files matching the pattern will be executed. Special symbols like `$` or `*` should be escaped with `\\`. In many shells/terminals you may need to quote the arguments. |\n| `-c ` or `--config ` | Configuration file, or a test directory with optional "playwright.config.&#123;m,c&#125;?&#123;js,ts&#125;". Defaults to `playwright.config.ts` or `playwright.config.js` in the current directory. |\n| `--debug` | Run tests with Playwright Inspector. Shortcut for `PWDEBUG=1` environment variable and `--timeout=0 --max-failures=1 --headed --workers=1` options. |\n| `--fail-on-flaky-tests` | Fail if any test is flagged as flaky (default: false). |\n| `--forbid-only` | Fail if `test.only` is called (default: false). Useful on CI. |\n| `--fully-parallel` | Run all tests in parallel (default: false). |\n| `--global-timeout ` | Maximum time this test suite can run in milliseconds (default: unlimited). |\n| `-g ` or `--grep ` | Only run tests matching this regular expression (default: ".*"). |\n| `--grep-invert ` | Only run tests that do not match this regular expression. |\n| `--headed` | Run tests in headed browsers (default: headless). |\n| `--ignore-snapshots` | Ignore screenshot and snapshot expectations. |\n| `-j ` or `--workers ` | Number of concurrent workers or percentage of logical CPU cores, use 1 to run in a single worker (default: 50%). |\n| `--last-failed` | Only re-run the failures. |\n| `--list` | Collect all the tests and report them, but do not run. |\n| `--max-failures ` or `-x` | Stop after the first `N` failures. Passing `-x` stops after the first failure. |\n| `--no-deps` | Do not run project dependencies. |\n| `--output ` | Folder for output artifacts (default: "test-results"). |\n| `--only-changed [ref]` | Only run test files that have been changed between \'HEAD\' and \'ref\'. Defaults to running all uncommitted changes. Only supports Git. |\n| `--pass-with-no-tests` | Makes test run succeed even if no tests were found. |\n| `--project ` | Only run tests from the specified list of projects, supports \'*\' wildcard (default: run all projects). |\n| `--quiet` | Suppress stdio. |\n| `--repeat-each ` | Run each test `N` times (default: 1). |\n| `--reporter ` | Reporter to use, comma-separated, can be "dot", "line", "list", or others (default: "list"). You can also pass a path to a custom reporter file. |\n| `--retries ` | Maximum retry count for flaky tests, zero for no retries (default: no retries). |\n| `--shard ` | Shard tests and execute only the selected shard, specified in the form "current/all", 1-based, e.g., "3/5". |\n| `--test-list ` | Path to a file containing a list of tests to run. See [test list](#test-list) for details. |\n| `--test-list-invert ` | Path to a file containing a list of tests to skip. See [test list](#test-list) for details.  |\n| `--timeout ` | Specify test timeout threshold in milliseconds, zero for unlimited (default: 30 seconds). |\n| `--trace ` | Force tracing mode, can be `on`, `off`, `on-first-retry`, `on-all-retries`, `retain-on-failure`, `retain-on-first-failure`, `retain-on-failure-and-retries`. |\n| `--tsconfig ` | Path to a single tsconfig applicable to all imported files (default: look up tsconfig for each imported file separately). |\n| `--ui` | Run tests in interactive UI mode. |\n| `--ui-host ` | Host to serve UI on; specifying this option opens UI in a browser tab. |\n| `--ui-port ` | Port to serve UI on, 0 for any free port; specifying this option opens UI in a browser tab. |\n| `-u` or `--update-snapshots [mode]` | Update snapshots with actual results. Possible values are "all", "changed", "missing", and "none". Running tests without the flag defaults to "missing"; running tests with the flag but without a value defaults to "changed". |\n| `--update-source-method [mode]` | Update snapshots with actual results. Possible values are "patch" (default), "3way" and "overwrite". "Patch" creates a unified diff file that can be used to update the source code later. "3way" generates merge conflict markers in source code. "Overwrite" overwrites the source code with the new snapshot values.|\n| `-x` | Stop after the first failure. |',
-          uk: '| Опція | Опис |\n| :--- | :--- |\n| Non-option arguments | Кожен аргумент трактується як регулярний вираз, який зіставляється з повним шляхом до тестового файлу. Виконуватимуться лише тести з файлів, що відповідають шаблону. Спеціальні символи на кшталт `$` або `*` слід екранувати за допомогою `\\`. У багатьох оболонках/терміналах аргументи варто брати в лапки. |\n| `-c ` or `--config ` | Файл конфігурації або каталог із тестами з опційним шляхом "playwright.config.&#123;m,c&#125;?&#123;js,ts&#125;". За замовчуванням — `playwright.config.ts` або `playwright.config.js` у поточному каталозі. |\n| `--debug` | Запускає тести з Playwright Inspector. Скорочення для змінної середовища `PWDEBUG=1` і опцій `--timeout=0 --max-failures=1 --headed --workers=1`. |\n| `--fail-on-flaky-tests` | Завершує з помилкою, якщо будь-який тест позначено як flaky (за замовчуванням: false). |\n| `--forbid-only` | Завершує з помилкою, якщо викликано `test.only` (за замовчуванням: false). Корисно на CI. |\n| `--fully-parallel` | Запускає всі тести паралельно (за замовчуванням: false). |\n| `--global-timeout ` | Максимальний час виконання набору тестів у мілісекундах (за замовчуванням: без обмеження). |\n| `-g ` or `--grep ` | Запускає лише тести, що відповідають цьому регулярному виразу (за замовчуванням: ".*"). |\n| `--grep-invert ` | Запускає лише тести, що не відповідають цьому регулярному виразу. |\n| `--headed` | Запускає тести в браузерах з інтерфейсом (за замовчуванням: headless). |\n| `--ignore-snapshots` | Ігнорує очікування скриншотів і snapshot. |\n| `-j ` or `--workers ` | Кількість паралельних воркерів або відсоток логічних ядер CPU; 1 — один воркер (за замовчуванням: 50%). |\n| `--last-failed` | Повторно запускає лише невдалі тести. |\n| `--list` | Збирає всі тести й виводить звіт без запуску. |\n| `--max-failures ` or `-x` | Зупиняється після перших `N` невдач. Передача `-x` зупиняє після першої невдачі. |\n| `--no-deps` | Не запускає залежності проєкту. |\n| `--output ` | Каталог для артефактів (за замовчуванням: "test-results"). |\n| `--only-changed [ref]` | Запускає лише тестові файли, змінені між \'HEAD\' і \'ref\'. За замовчуванням — усі незакомічені зміни. Підтримується лише Git. |\n| `--pass-with-no-tests` | Робить запуск успішним, навіть якщо тестів не знайдено. |\n| `--project ` | Запускає лише тести з вказаного списку проєктів; підтримує шаблон \'*\' (за замовчуванням: усі проєкти). |\n| `--quiet` | Приховує stdio. |\n| `--repeat-each ` | Запускає кожен тест `N` разів (за замовчуванням: 1). |\n| `--reporter ` | Репортер: через кому, можливі значення "dot", "line", "list" тощо (за замовчуванням: "list"). Можна передати шлях до власного файлу репортера. |\n| `--retries ` | Максимальна кількість повторів для flaky-тестів; 0 — без повторів (за замовчуванням: без повторів). |\n| `--shard ` | Розбиває тести на шарди й виконує лише вибраний шард у формі "current/all", відлік з 1, наприклад "3/5". |\n| `--test-list ` | Шлях до файлу зі списком тестів для запуску. Докладніше — [test list](#test-list). |\n| `--test-list-invert ` | Шлях до файлу зі списком тестів для пропуску. Докладніше — [test list](#test-list). |\n| `--timeout ` | Поріг таймауту тесту в мілісекундах; 0 — без обмеження (за замовчуванням: 30 секунд). |\n| `--trace ` | Примусовий режим трасування: `on`, `off`, `on-first-retry`, `on-all-retries`, `retain-on-failure`, `retain-on-first-failure`, `retain-on-failure-and-retries`. |\n| `--tsconfig ` | Шлях до одного tsconfig для всіх імпортованих файлів (за замовчуванням: окремий пошук tsconfig для кожного файлу). |\n| `--ui` | Запускає тести в інтерактивному UI-режимі. |\n| `--ui-host ` | Хост для UI; якщо вказано, UI відкриється у вкладці браузера. |\n| `--ui-port ` | Порт для UI; 0 — будь-який вільний порт; якщо вказано, UI відкриється у вкладці браузера. |\n| `-u` or `--update-snapshots [mode]` | Оновлює snapshot фактичними результатами. Можливі значення: "all", "changed", "missing", "none". Без прапорця за замовчуванням — "missing"; з прапорцем без значення — "changed". |\n| `--update-source-method [mode]` | Оновлює snapshot фактичними результатами. Можливі значення: "patch" (за замовчуванням), "3way" і "overwrite". "Patch" створює unified diff для подальшого оновлення коду. "3way" додає маркери конфлікту злиття. "Overwrite" перезаписує код новими значеннями snapshot. |\n| `-x` | Зупиняється після першої невдачі. |',
-        },
-        {
-          en: "#### Test list",
-          uk: "#### Список тестів",
-        },
-        {
-          en: "Options `--test-list` and `--test-list-invert` accept a path to a test list file. This file should list tests in the format similar to the output produced in `--list` mode.",
-          uk: "Опції `--test-list` і `--test-list-invert` приймають шлях до файлу зі списком тестів. Файл має містити тести у форматі, подібному до виводу режиму `--list`.",
-        },
-        {
-          en: "### Show Report",
-          uk: "### Показати звіт",
-        },
-        {
-          en: "Display HTML report from previous test run. [Read more about the HTML reporter](./test-reporters#html-reporter).",
-          uk: "Показує HTML-звіт з попереднього запуску тестів. [Докладніше про HTML reporter](./test-reporters#html-reporter).",
-        },
-        {
-          en: "#### Syntax",
-          uk: "#### Синтаксис",
-        },
-        {
-          en: "#### Examples",
-          uk: "#### Приклади",
-        },
-        {
-          en: "#### Options",
-          uk: "#### Опції",
-        },
-        {
-          en: "| Option | Description |\n| :--- | :--- |\n| `--host ` | Host to serve report on (default: localhost) |\n| `--port ` | Port to serve report on (default: 9323) |",
-          uk: "| Опція | Опис |\n| :--- | :--- |\n| `--host ` | Хост для звіту (за замовчуванням: localhost) |\n| `--port ` | Порт для звіту (за замовчуванням: 9323) |",
-        },
-        {
-          en: "### Install Browsers",
-          uk: "### Встановлення браузерів",
-        },
-        {
-          en: "Install browsers required by Playwright. [Read more about Playwright's browser support](./browsers.md).",
-          uk: "Встановлює браузери, потрібні Playwright. [Докладніше про підтримку браузерів](./browsers.md).",
-        },
-        {
-          en: "#### Syntax",
-          uk: "#### Синтаксис",
-        },
-        {
-          en: "#### Examples",
-          uk: "#### Приклади",
-        },
-        {
-          en: "#### Install Options",
-          uk: "#### Опції встановлення",
-        },
-        {
-          en: "| Option | Description |\n| :--- | :--- |\n| `--force` | Force reinstall of stable browser channels |\n| `--with-deps` | Install browser system dependencies |\n| `--dry-run` | Don't perform installation, just print information |\n| `--only-shell` | Only install chromium-headless-shell instead of full Chromium |\n| `--no-shell` | Don't install chromium-headless-shell |",
-          uk: "| Опція | Опис |\n| :--- | :--- |\n| `--force` | Примусово перевстановити стабільні канали браузерів |\n| `--with-deps` | Встановити системні залежності браузера |\n| `--dry-run` | Не встановлювати, лише вивести інформацію |\n| `--only-shell` | Встановити лише chromium-headless-shell замість повного Chromium |\n| `--no-shell` | Не встановлювати chromium-headless-shell |",
-        },
-        {
-          en: "#### Install Deps Options",
-          uk: "#### Опції встановлення залежностей",
-        },
-        {
-          en: "| Option | Description |\n| :--- | :--- |\n| `--dry-run` | Don't modify the system. On Linux, simulates the install via apt-get and exits with a non-zero code if any required packages are missing — useful for non-interactive verification scripts. On Windows, prints the install command. |",
-          uk: "| Опція | Опис |\n| :--- | :--- |\n| `--dry-run` | Не змінює систему. На Linux імітує встановлення через apt-get і завершує з ненульовим кодом, якщо бракує пакетів — корисно для неінтерактивних скриптів перевірки. На Windows виводить команду встановлення. |",
+          en: "The most common thing: run a specific file, filter by test title, or target one browser. I almost never run all tests locally — too slow. I run the specific test or file I'm working on.",
+          uk: "Найбільш поширене: запуск конкретного файлу, фільтрація за назвою тесту або цільовий один браузер. Я майже ніколи не запускаю всі тести локально — надто повільно. Запускаю конкретний тест або файл над яким працюю.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-1",
+          id: "common-commands",
           language: "bash",
-          code: "npx playwright test [options] [test-filter...]",
-        },
-        {
-          id: "cb-2",
-          language: "bash",
-          code: '# Run all tests\nnpx playwright test\n\n# Run a single test file\nnpx playwright test tests/todo-page.spec.ts\n\n# Run a set of test files\nnpx playwright test tests/todo-page/ tests/landing-page/\n\n# Run tests at a specific line\nnpx playwright test my-spec.ts:42\n\n# Run tests by title\nnpx playwright test -g "add a todo item"\n\n# Run tests in headed browsers\nnpx playwright test --headed\n\n# Run tests for a specific project\nnpx playwright test --project=chromium\n\n# Get help\nnpx playwright test --help',
-        },
-        {
-          id: "cb-3",
-          language: "bash",
-          code: "npx playwright test --workers=1",
-        },
-        {
-          id: "cb-4",
-          language: "bash",
-          code: "npx playwright test --debug",
-        },
-        {
-          id: "cb-5",
-          language: "bash",
-          code: "npx playwright test --ui",
-        },
-        {
-          id: "cb-6",
-          language: "txt",
-          code: '# This is a test list file.\n# It can include comments and empty lines.\n\n# Run ALL tests in a file:\npath/to/example.spec.ts\n\n# Run all tests in a file for a specific project:\n[chromium] › path/to/example.spec.ts\n\n# Run all tests in a specific group/suite:\npath/to/example.spec.ts › suite name\n\n# Run all tests in a nested group:\npath/to/example.spec.ts › outer suite › inner suite\n\n# Fully qualified test with a project:\n[chromium] › path/to/example.spec.ts:3:9 › suite › nested suite › example test\n\n# This test is included for all projects:\npath/to/example.spec.ts:3:9 › example test\n\n# Use "›" or ">" as a separator:\n[firefox] > example.spec.ts > suite > nested suite > example test\n\n# Line/column numbers are completely ignored, you can omit them.\n# Three entries below refer to the same test:\nexample.spec.ts › example test\nexample.spec.ts:15 › example test\nexample.spec.ts:42:42 › example test',
-        },
-        {
-          id: "cb-7",
-          language: "bash",
-          code: "npx playwright show-report [report] [options]",
-        },
-        {
-          id: "cb-8",
-          language: "bash",
-          code: "# Show latest test report\nnpx playwright show-report\n\n# Show a specific report\nnpx playwright show-report playwright-report/\n\n# Show report on custom port\nnpx playwright show-report --port 8080",
-        },
-        {
-          id: "cb-9",
-          language: "bash",
-          code: "npx playwright install [options] [browser...]\nnpx playwright install-deps [options] [browser...]\nnpx playwright uninstall",
-        },
-        {
-          id: "cb-10",
-          language: "bash",
-          code: "# Install all browsers\nnpx playwright install\n\n# Install only Chromium\nnpx playwright install chromium\n\n# Install specific browsers\nnpx playwright install chromium webkit\n\n# Install browsers with dependencies\nnpx playwright install --with-deps",
+          code: `# Запустити всі тести
+npx playwright test
+
+# Конкретний файл
+npx playwright test tests/orders.spec.ts
+
+# За назвою тесту (regex)
+npx playwright test -g "create order"
+
+# Конкретний рядок у файлі
+npx playwright test orders.spec.ts:42
+
+# Конкретний проєкт (браузер)
+npx playwright test --project=firefox
+
+# Тільки те що впало востаннє
+npx playwright test --last-failed
+
+# Дебаг режим (відкрити Inspector)
+npx playwright test --debug
+
+# Інтерактивний UI mode
+npx playwright test --ui`,
         },
       ],
     },
     {
-      id: "generation-debugging-tools",
+      id: "ci-flags",
       title: {
-        en: "Generation & Debugging Tools",
-        uk: "Генерація та інструменти налагодження",
+        en: "CI-specific flags",
+        uk: "Прапорці специфічні для CI",
       },
       paragraphs: [
         {
-          en: "### Code Generation",
-          uk: "### Генерація коду",
+          en: "`--forbid-only` is the one I add on CI to prevent `test.only()` from accidentally running only one test — if someone commits a file with `test.only`, CI fails loudly instead of silently running only that test and passing everything green.",
+          uk: "`--forbid-only` — той що я додаю на CI щоб запобігти `test.only()` від випадкового запуску лише одного тесту: якщо хтось закомітив файл з `test.only` — CI голосно провалюється замість тихого запуску тільки того тесту і позеленіння всього.",
         },
         {
-          en: "Record actions and generate tests for multiple languages. [Read more about Codegen](./codegen-intro.md).",
-          uk: "Записує дії та генерує тести для кількох мов. [Докладніше про Codegen](./codegen-intro.md).",
-        },
-        {
-          en: "#### Syntax",
-          uk: "#### Синтаксис",
-        },
-        {
-          en: "#### Examples",
-          uk: "#### Приклади",
-        },
-        {
-          en: "#### Options",
-          uk: "#### Опції",
-        },
-        {
-          en: "| Option | Description |\n| :--- | :--- |\n| `-b, --browser ` | Browser to use: chromium, firefox, or webkit (default: chromium) |\n| `-o, --output ` | Output file for the generated script |\n| `--target ` | Language to use: javascript, playwright-test, python, etc. |\n| `--test-id-attribute ` | Attribute to use for test IDs |",
-          uk: "| Опція | Опис |\n| :--- | :--- |\n| `-b, --browser ` | Браузер: chromium, firefox або webkit (за замовчуванням: chromium) |\n| `-o, --output ` | Файл для згенерованого скрипта |\n| `--target ` | Мова: javascript, playwright-test, python тощо |\n| `--test-id-attribute ` | Атрибут для test ID |",
-        },
-        {
-          en: "### Trace Viewer",
-          uk: "### Trace Viewer",
-        },
-        {
-          en: "Analyze and view test traces for debugging. [Read more about Trace Viewer](./trace-viewer.md).",
-          uk: "Аналізує та показує трейси тестів для налагодження. [Докладніше про Trace Viewer](./trace-viewer.md).",
-        },
-        {
-          en: "#### Syntax",
-          uk: "#### Синтаксис",
-        },
-        {
-          en: "#### Examples",
-          uk: "#### Приклади",
-        },
-        {
-          en: "#### Options",
-          uk: "#### Опції",
-        },
-        {
-          en: "| Option | Description |\n| :--- | :--- |\n| `-b, --browser ` | Browser to use: chromium, firefox, or webkit (default: chromium) |\n| `-h, --host ` | Host to serve trace on |\n| `-p, --port ` | Port to serve trace on |",
-          uk: "| Опція | Опис |\n| :--- | :--- |\n| `-b, --browser ` | Браузер: chromium, firefox або webkit (за замовчуванням: chromium) |\n| `-h, --host ` | Хост для трейсу |\n| `-p, --port ` | Порт для трейсу |",
+          en: "`--only-changed` runs only the test files affected by the current branch changes. Playwright analyzes import graphs — if I change `orders.service.ts`, it runs `orders.spec.ts` but not `dashboard.spec.ts`. Useful for fast PR feedback.",
+          uk: "`--only-changed` запускає лише файли тестів яких торкнулися зміни поточної гілки. Playwright аналізує графи імпортів — якщо я змінюю `orders.service.ts`, він запускає `orders.spec.ts` але не `dashboard.spec.ts`. Корисно для швидкого зворотного зв'язку на PR.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-11",
+          id: "ci-commands",
           language: "bash",
-          code: "npx playwright codegen [options] [url]",
-        },
-        {
-          id: "cb-12",
-          language: "bash",
-          code: "# Start recording with interactive UI\nnpx playwright codegen\n\n# Record on specific site\nnpx playwright codegen https://playwright.dev\n\n# Generate Python code\nnpx playwright codegen --target=python",
-        },
-        {
-          id: "cb-13",
-          language: "bash",
-          code: "npx playwright show-trace [options] [trace]",
-        },
-        {
-          id: "cb-14",
-          language: "bash",
-          code: "# Open trace viewer without a specific trace (can load traces via UI)\nnpx playwright show-trace\n\n# View a trace file\nnpx playwright show-trace trace.zip\n\n# View trace from directory\nnpx playwright show-trace trace/",
+          code: `# Провалити збірку якщо хтось залишив test.only()
+npx playwright test --forbid-only
+
+# Один воркер на CI (стабільніше на shared runners)
+npx playwright test --workers=1
+
+# Тільки тести змінені у поточному PR
+npx playwright test --only-changed=origin/main
+
+# Шардинг: цей job запускає 1/4 тестів
+npx playwright test --shard=1/4`,
         },
       ],
     },
     {
-      id: "specialized-commands",
+      id: "output-and-debugging",
       title: {
-        en: "Specialized Commands",
-        uk: "Спеціалізовані команди",
+        en: "Output and debugging flags",
+        uk: "Прапорці виводу і дебагу",
       },
       paragraphs: [
         {
-          en: "### Merge Reports",
-          uk: "### Об'єднання звітів",
-        },
-        {
-          en: "Read [blob](./test-reporters#blob-reporter) reports and combine them. [Read more about merge-reports](./test-sharding.md).",
-          uk: "Читає [blob](./test-reporters#blob-reporter)-звіти та об'єднує їх. [Докладніше про merge-reports](./test-sharding.md).",
-        },
-        {
-          en: "#### Syntax",
-          uk: "#### Синтаксис",
-        },
-        {
-          en: "#### Examples",
-          uk: "#### Приклади",
-        },
-        {
-          en: "#### Options",
-          uk: "#### Опції",
-        },
-        {
-          en: '| Option | Description |\n| :--- | :--- |\n| `-c, --config ` | Configuration file. Can be used to specify additional configuration for the output report |\n| `--reporter ` | Reporter to use, comma-separated, can be "list", "line", "dot", "json", "junit", "null", "github", "html", "blob" (default: "list") |',
-          uk: '| Опція | Опис |\n| :--- | :--- |\n| `-c, --config ` | Файл конфігурації. Можна використати для додаткових налаштувань вихідного звіту |\n| `--reporter ` | Репортер через кому: "list", "line", "dot", "json", "junit", "null", "github", "html", "blob" (за замовчуванням: "list") |',
-        },
-        {
-          en: "### Clear Cache",
-          uk: "### Очищення кешу",
-        },
-        {
-          en: "Clear all Playwright caches.",
-          uk: "Очищає всі кеші Playwright.",
-        },
-        {
-          en: "#### Syntax",
-          uk: "#### Синтаксис",
+          en: "`--trace on` forces trace recording for every test — useful when I want a trace for a specific passing test to understand what it's doing. On CI I use `on-first-retry` in the config instead.",
+          uk: "`--trace on` примусово записує трейс для кожного тесту — корисно коли хочу трейс для конкретного тесту що проходить щоб зрозуміти що він робить. На CI замість цього використовую `on-first-retry` у конфігурації.",
         },
       ],
       codeBlocks: [
         {
-          id: "cb-15",
+          id: "debug-commands",
           language: "bash",
-          code: "npx playwright merge-reports [options]",
+          code: `# Headed режим (бачити браузер)
+npx playwright test --headed
+
+# Записати трейс для всіх тестів
+npx playwright test --trace on
+
+# Запустити кожен тест 5 разів (перевірка на flakiness)
+npx playwright test --repeat-each=5
+
+# Зупинитись після першої невдачі
+npx playwright test -x
+
+# Зупинитись після 3 невдач
+npx playwright test --max-failures=3
+
+# Показати тести без запуску
+npx playwright test --list`,
         },
+      ],
+    },
+    {
+      id: "show-report",
+      title: {
+        en: "Show report and trace viewer",
+        uk: "Показати звіт і переглядач трейсів",
+      },
+      paragraphs: [
         {
-          id: "cb-16",
-          language: "bash",
-          code: "# Combine test reports\nnpx playwright merge-reports ./reports",
+          en: "After tests finish, `npx playwright show-report` opens the HTML report in a browser. From there I can click on a failing test to see its trace, screenshots, and error details. I can also open a specific trace file or a downloaded CI artifact zip.",
+          uk: "Після завершення тестів `npx playwright show-report` відкриває HTML-звіт у браузері. Звідти можна клікнути на тест що впав щоб побачити його трейс, скриншоти і деталі помилки. Також можна відкрити конкретний файл трейсу або скачаний CI-артефакт zip.",
         },
+      ],
+      codeBlocks: [
         {
-          id: "cb-17",
+          id: "report-commands",
           language: "bash",
-          code: "npx playwright clear-cache",
+          code: `# Відкрити останній звіт
+npx playwright show-report
+
+# Відкрити конкретну теку звіту
+npx playwright show-report my-report/
+
+# Відкрити zip з CI артефакту
+npx playwright show-report playwright-report.zip
+
+# Відкрити конкретний трейс
+npx playwright show-trace test-results/my-test/trace.zip`,
+        },
+      ],
+    },
+    {
+      id: "codegen",
+      title: {
+        en: "Code generation and other tools",
+        uk: "Генерація коду та інші інструменти",
+      },
+      paragraphs: [
+        {
+          en: "`codegen` opens a browser where every click and fill automatically generates test code. I use it to quickly get the locators for new UI elements — faster than writing `getByRole()` calls manually when I don't know the element structure.",
+          uk: "`codegen` відкриває браузер де кожен клік і заповнення автоматично генерує код тесту. Використовую щоб швидко отримати локатори для нових UI-елементів — швидше ніж вручну писати виклики `getByRole()` коли не знаю структуру елемента.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "codegen-commands",
+          language: "bash",
+          code: `# Відкрити codegen (записує в буфер обміну)
+npx playwright codegen
+
+# Codegen з конкретного URL
+npx playwright codegen http://localhost:3000/orders
+
+# Генерувати Python-код
+npx playwright codegen --target=python
+
+# Встановити/оновити браузери
+npx playwright install --with-deps
+
+# Злити blob-звіти з шардів
+npx playwright merge-reports --reporter html ./all-blob-reports`,
+        },
+      ],
+    },
+    {
+      id: "all-options",
+      title: {
+        en: "Full options reference",
+        uk: "Повна довідка опцій",
+      },
+      paragraphs: [
+        {
+          en: "The complete list of CLI options for `npx playwright test`. I don't use most of these daily but they're useful to know.",
+          uk: "Повний список CLI-опцій для `npx playwright test`. Більшість з них я не використовую щодня але корисно знати.",
+        },
+      ],
+      codeBlocks: [
+        {
+          id: "all-options-table",
+          language: "bash",
+          code: `npx playwright test --help
+
+# Найбільш корисні:
+# --debug               Відкрити Playwright Inspector
+# --headed              Запустити з видимим браузером
+# -g, --grep            Фільтр за regex назви тесту
+# --project             Запустити конкретний проєкт
+# --ui                  Інтерактивний UI mode
+# -j, --workers         Кількість паралельних воркерів
+# --last-failed         Запустити тільки тести що впали
+# --only-changed        Запустити тільки змінені тести
+# --shard               Шард у форматі 1/4
+# --repeat-each         Запустити кожен тест N разів
+# --forbid-only         Провалити якщо є test.only()
+# --trace               Режим запису трейсу
+# --timeout             Тайм-аут тесту в мс
+# --retries             Кількість повторів для flaky тестів
+# -x                    Зупинитись після першої невдачі
+# --update-snapshots    Оновити snapshot-очікування`,
         },
       ],
     },
   ],
-  quiz: [],
+  quiz: [
+    {
+      id: "q1",
+      prompt: {
+        en: "A developer commits a test file with test.only() left in by accident. All tests run on CI pass green. Why is this a problem and how do you prevent it?",
+        uk: "Розробник закомітив файл тестів з випадково залишеним test.only(). Всі тести на CI проходять зеленим. Чому це проблема і як це запобігти?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "It's not a problem — test.only() still runs all tests, just marks one as focused",
+            uk: "Це не проблема — test.only() все одно запускає всі тести, просто позначає один як сфокусований",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "test.only() makes CI run only that one test — all others are silently skipped, giving false confidence. Add --forbid-only to CI to make test.only() fail the build",
+            uk: "test.only() змушує CI запускати тільки той один тест — всі інші мовчки пропускаються, даючи хибну впевненість. Додай --forbid-only до CI щоб test.only() провалював збірку",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "The fix is to use test.skip() instead — it marks the test as skipped and is safe to commit",
+            uk: "Виправлення — використати test.skip() замість цього — він позначає тест як пропущений і безпечний для комміту",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "`test.only()` causes Playwright to skip all other tests in the file (or across files if multiple .only() calls exist). The CI run shows 'all tests passed' but you've only actually run one. This is dangerous — a regression could ship undetected. `--forbid-only` tells Playwright to exit with an error code if any test.only() is found, which fails the CI job. This is a standard CI guard I always add.",
+        uk: "`test.only()` змушує Playwright пропускати всі інші тести у файлі (або між файлами якщо є кілька .only() викликів). CI-запуск показує 'всі тести пройшли' але фактично запущено лише один. Це небезпечно — регресія може потрапити непоміченою. `--forbid-only` каже Playwright виходити з кодом помилки якщо знайдено будь-який test.only(), що провалює CI-job. Це стандартний CI-захист який я завжди додаю.",
+      },
+    },
+    {
+      id: "q2",
+      prompt: {
+        en: "You want to send test results to a JUnit XML file for your CI system. Which CLI flag do you use?",
+        uk: "Хочеш надсилати результати тестів у JUnit XML файл для своєї CI-системи. Який CLI-прапорець використати?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "--output=junit",
+            uk: "--output=junit",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "--reporter=junit",
+            uk: "--reporter=junit",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "--format=xml",
+            uk: "--format=xml",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "--export=junit",
+            uk: "--export=junit",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "The --reporter flag controls how test results are formatted and where they go. Built-in reporters include 'junit', 'html', 'dot', 'line', 'list', and 'json'. You can also combine reporters: '--reporter=html,junit'. The --output flag controls where test artifacts (traces, screenshots) are stored, not the report format.",
+        uk: "Прапорець --reporter контролює як форматуються результати тестів і куди вони надсилаються. Вбудовані репортери включають 'junit', 'html', 'dot', 'line', 'list' і 'json'. Також можна комбінувати репортери: '--reporter=html,junit'. Прапорець --output контролює де зберігаються артефакти тестів (трейси, скриншоти) а не формат звіту.",
+      },
+    },
+    {
+      id: "q3",
+      prompt: {
+        en: "Your CI has 4 parallel jobs and you want to split the test suite evenly across them. Which command runs the second job's share?",
+        uk: "Твій CI має 4 паралельних jobs і хочеш рівномірно розподілити набір тестів між ними. Яка команда запускає частку другого job?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "npx playwright test --split=2/4",
+            uk: "npx playwright test --split=2/4",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "npx playwright test --shard=2/4",
+            uk: "npx playwright test --shard=2/4",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "npx playwright test --parallel-index=2 --parallel-total=4",
+            uk: "npx playwright test --parallel-index=2 --parallel-total=4",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "npx playwright test --chunk=2 --chunks=4",
+            uk: "npx playwright test --chunk=2 --chunks=4",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "--shard=<index>/<total> is the correct syntax. Each CI job gets a different shard index (1/4, 2/4, 3/4, 4/4). Playwright distributes the tests evenly so no job overlaps with another. After all shards finish, you can merge the results with 'npx playwright merge-reports'. The --split and --chunk flags do not exist in Playwright.",
+        uk: "--shard=<index>/<total> — правильний синтаксис. Кожен CI job отримує інший індекс шарду (1/4, 2/4, 3/4, 4/4). Playwright рівномірно розподіляє тести щоб жоден job не перекривався з іншим. Після завершення всіх шардів можна об'єднати результати через 'npx playwright merge-reports'. Прапорці --split і --chunk не існують у Playwright.",
+      },
+    },
+    {
+      id: "q4",
+      prompt: {
+        en: "You are running a flaky test suite and want CI to stop as soon as 3 tests fail. Which flag achieves this?",
+        uk: "Ти запускаєш нестабільний набір тестів і хочеш щоб CI зупинявся як тільки впадуть 3 тести. Який прапорець це забезпечує?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "--stop-after=3",
+            uk: "--stop-after=3",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "--max-failures=3",
+            uk: "--max-failures=3",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "--fail-fast=3",
+            uk: "--fail-fast=3",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "--abort-on-failure=3",
+            uk: "--abort-on-failure=3",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "--max-failures=N stops the test run after N tests have failed. This is useful on CI to avoid waiting for the full suite when a large number of tests are already failing. The shorthand -x (equivalent to --max-failures=1) stops on the first failure. --fail-fast, --stop-after, and --abort-on-failure are not valid Playwright CLI flags.",
+        uk: "--max-failures=N зупиняє запуск тестів після N провалених тестів. Це корисно на CI щоб не чекати завершення всього набору коли вже провалилося багато тестів. Скорочення -x (еквівалент --max-failures=1) зупиняється на першій невдачі. --fail-fast, --stop-after і --abort-on-failure не є дійсними прапорцями Playwright CLI.",
+      },
+    },
+    {
+      id: "q5",
+      prompt: {
+        en: "A directory has no test files matching the pattern you specified. By default Playwright exits with an error. How do you make it exit successfully in this case?",
+        uk: "Директорія не має файлів тестів що відповідають вказаному шаблону. За замовчуванням Playwright виходить з помилкою. Як змусити його виходити успішно в цьому випадку?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "--ignore-empty",
+            uk: "--ignore-empty",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "--pass-with-no-tests",
+            uk: "--pass-with-no-tests",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "--allow-empty",
+            uk: "--allow-empty",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "--no-fail-on-empty",
+            uk: "--no-fail-on-empty",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "--pass-with-no-tests exits with code 0 (success) even when no test files are found. This is useful in monorepos or feature-flag setups where some CI runs might legitimately have no tests to run for a given package or path. Without this flag, Playwright treats 'no tests found' as an error.",
+        uk: "--pass-with-no-tests виходить з кодом 0 (успіх) навіть коли файли тестів не знайдені. Це корисно в монорепозиторіях або налаштуваннях з feature-флагами де деякі CI-запуски можуть законно не мати тестів для запуску для конкретного пакету або шляху. Без цього прапорця Playwright вважає 'тести не знайдені' помилкою.",
+      },
+    },
+    {
+      id: "q6",
+      prompt: {
+        en: "You want to see all tests that will run (with their full names and file paths) without actually executing them. Which flag does this?",
+        uk: "Хочеш побачити всі тести що будуть запущені (з повними назвами і шляхами файлів) без фактичного їх виконання. Який прапорець це робить?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "--dry-run",
+            uk: "--dry-run",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "--list",
+            uk: "--list",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "--preview",
+            uk: "--preview",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "--show-tests",
+            uk: "--show-tests",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "--list prints all test names, their file locations, and which projects they belong to — without running any of them. This is useful for verifying that your --grep filter matches the right tests, or auditing which tests exist before running a large suite. --dry-run, --preview, and --show-tests are not Playwright CLI flags.",
+        uk: "--list виводить всі назви тестів, їхні розташування файлів і до яких проєктів вони належать — без запуску будь-якого з них. Це корисно для перевірки що фільтр --grep відповідає правильним тестам або аудиту існуючих тестів перед запуском великого набору. --dry-run, --preview і --show-tests не є прапорцями Playwright CLI.",
+      },
+    },
+    {
+      id: "q7",
+      prompt: {
+        en: "A test is consistently timing out after 30 seconds. You want to increase the per-test timeout to 60 seconds for a single run without changing the config file. Which flag do you use?",
+        uk: "Тест постійно вичерпує timeout після 30 секунд. Хочеш збільшити timeout на тест до 60 секунд для одного запуску без зміни файлу конфігурації. Який прапорець використати?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "--wait=60000",
+            uk: "--wait=60000",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "--timeout=60000",
+            uk: "--timeout=60000",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "--max-time=60",
+            uk: "--max-time=60",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "--test-timeout=60s",
+            uk: "--test-timeout=60s",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "--timeout sets the per-test timeout in milliseconds, overriding whatever is in playwright.config.ts for that run. So --timeout=60000 gives each test 60 seconds. Note this is different from the global test suite timeout. The value is always in milliseconds — --max-time=60 and --test-timeout=60s are not valid Playwright flags.",
+        uk: "--timeout встановлює timeout на тест у мілісекундах, перевизначаючи те що в playwright.config.ts для того запуску. Тобто --timeout=60000 дає кожному тесту 60 секунд. Зверни увагу що це відрізняється від глобального timeout всього набору тестів. Значення завжди в мілісекундах — --max-time=60 і --test-timeout=60s не є дійсними прапорцями Playwright.",
+      },
+    },
+    {
+      id: "q8",
+      prompt: {
+        en: "You want to speed up a test run on your local machine. Which flag controls how many tests run in parallel?",
+        uk: "Хочеш прискорити запуск тестів на локальній машині. Який прапорець контролює скільки тестів виконується паралельно?",
+      },
+      options: [
+        {
+          id: "a",
+          label: {
+            en: "--concurrency=4",
+            uk: "--concurrency=4",
+          },
+        },
+        {
+          id: "b",
+          label: {
+            en: "--workers=4 (or -j 4)",
+            uk: "--workers=4 (або -j 4)",
+          },
+        },
+        {
+          id: "c",
+          label: {
+            en: "--parallel=4",
+            uk: "--parallel=4",
+          },
+        },
+        {
+          id: "d",
+          label: {
+            en: "--threads=4",
+            uk: "--threads=4",
+          },
+        },
+      ],
+      correctOptionId: "b",
+      rationale: {
+        en: "--workers=N (shorthand: -j N) sets the number of parallel worker processes. By default Playwright uses half the available CPU cores. On CI with shared runners you might set --workers=1 for stability. Locally with a fast machine you can set it higher to speed up the suite. --concurrency, --parallel, and --threads are not valid Playwright flags.",
+        uk: "--workers=N (скорочення: -j N) встановлює кількість паралельних worker-процесів. За замовчуванням Playwright використовує половину доступних ядер CPU. На CI з shared runners можна встановити --workers=1 для стабільності. Локально на швидкій машині можна встановити вище щоб прискорити набір. --concurrency, --parallel і --threads не є дійсними прапорцями Playwright.",
+      },
+    },
+  ],
 }
