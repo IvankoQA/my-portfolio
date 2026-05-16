@@ -13,11 +13,31 @@
     ],
     "PostToolUse": [
       {
-        "matcher": "",
+        "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
             "command": ".claude/hooks/PostToolUse.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Shell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/PostToolUse.sh"
+          }
+        ]
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/PermissionRequest.sh"
           }
         ]
       }
