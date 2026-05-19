@@ -25,16 +25,13 @@ export const testTimeoutsTopic: PlaywrightTopic = {
       },
       diagram: {
         mermaid: `flowchart TB
-  subgraph GT["Global timeout (whole suite, optional)"]
-    subgraph TT["Test timeout — 30 s default\n(beforeEach + test body + fixture setup)"]
-      subgraph ET["Expect timeout — 5 s default\nexpect(locator).toBeVisible() retries here"]
-        EX["assertion auto-retries"]
-      end
-      subgraph AT["Action timeout — inherits test timeout\nclick() / fill() / goto()"]
-        ACT["single action wait"]
-      end
-    end
-  end`,
+  GT["Global timeout — whole suite, optional"]
+  TT["Test timeout — 30 s default\\n(beforeEach + test body + fixture setup)"]
+  ET["Expect timeout — 5 s default\\nexpect(locator).toBeVisible() — assertion auto-retries"]
+  AT["Action timeout — inherits test timeout\\nclick() / fill() / goto() — single action wait"]
+  GT --> TT
+  TT --> ET
+  TT --> AT`,
         caption: {
           en: "The three timeout layers are independent — raising one does not affect the others",
           uk: "Три шари тайм-аутів незалежні — збільшення одного не впливає на інші",

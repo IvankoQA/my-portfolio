@@ -8,6 +8,7 @@ import {
   getNextLevelFirstSlug,
   getTopicBySlug,
   getTopicsByLevel,
+  getTrackPosition,
 } from "@/lib/playwright-learn/catalog"
 
 type PageParams = { slug: string }
@@ -40,16 +41,16 @@ export default async function LearnPlaywrightTopicUkPage({
   if (!topic) notFound()
   const adjacent = getAdjacentTopics(slug)
   const trackTopics = getTopicsByLevel(topic.level)
-  const trackTotal = trackTopics.length
   const trackSlugs = trackTopics.map((t) => t.slug)
   const trackAdjacent = getAdjacentTopicsInTrack(slug)
+  const trackPosition = getTrackPosition(slug)
   const nextLevelFirstSlug = getNextLevelFirstSlug(topic.level)
   return (
     <TopicView
       topic={topic}
       adjacent={adjacent}
       locale="uk"
-      trackTotal={trackTotal}
+      trackPosition={trackPosition}
       trackAdjacent={trackAdjacent}
       trackSlugs={trackSlugs}
       nextLevelFirstSlug={nextLevelFirstSlug}

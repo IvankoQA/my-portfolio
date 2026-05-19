@@ -30,7 +30,7 @@ type Props = {
   topic: PlaywrightTopic
   adjacent: AdjacentTopics
   locale: AppLocale
-  trackTotal?: number
+  trackPosition?: { position: number; total: number }
   trackAdjacent?: AdjacentTopics
   trackSlugs?: string[]
   nextLevelFirstSlug?: string
@@ -69,13 +69,17 @@ function TopicAdjacentNav({
   adjacent,
   locale,
   testIdSuffix,
+  crossTrackNext,
 }: {
   adjacent: AdjacentTopics
   locale: AppLocale
   testIdSuffix: "" | "-top"
+  crossTrackNext?: { slug: string; title: string }
 }) {
   const t = STRINGS[locale]
   const { prev, next } = adjacent
+  const nextSlug = next?.slug ?? crossTrackNext?.slug
+  const nextTitle = next ? next.title[locale] : crossTrackNext?.title
   const navStyle = {
     marginTop: 16,
     display: "flex",
@@ -101,7 +105,7 @@ function TopicAdjacentNav({
     boxSizing: "border-box" as const,
   }
 
-  if (!prev && !next) {
+  if (!prev && !nextSlug) {
     return null
   }
 
@@ -141,11 +145,11 @@ function TopicAdjacentNav({
           </span>
         </Link>
       ) : null}
-      {next ? (
+      {nextSlug && nextTitle ? (
         <Link
-          href={learnTopicHref(locale, next.slug)}
+          href={learnTopicHref(locale, nextSlug)}
           data-testid={`learn-next-topic${testIdSuffix}`}
-          data-topic-slug={next.slug}
+          data-topic-slug={nextSlug}
           style={{
             ...linkBase,
             justifyContent: "flex-end",
@@ -160,7 +164,7 @@ function TopicAdjacentNav({
               textAlign: "right",
             }}
           >
-            {next.title[locale]}
+            {nextTitle}
           </span>
           <span
             style={{
@@ -458,7 +462,7 @@ export function TopicView({
   topic,
   adjacent,
   locale,
-  trackTotal,
+  trackPosition,
   trackAdjacent,
   trackSlugs,
   nextLevelFirstSlug,
@@ -467,7 +471,15 @@ export function TopicView({
   const quizHref = learnTopicQuizHref(locale, topic.slug)
   const hasQuiz = topic.quiz.length > 0
   const nav = trackAdjacent ?? adjacent
-  const showTopNav = Boolean(nav.prev || nav.next)
+  const nextLevel = TRACK_NEXT_LEVEL[topic.level]
+  const crossTrackNext =
+    !nav.next && nextLevelFirstSlug && nextLevel
+      ? {
+          slug: nextLevelFirstSlug,
+          title: TRACK_LEVEL_LABELS[nextLevel][locale],
+        }
+      : undefined
+  const showTopNav = Boolean(nav.prev || nav.next || crossTrackNext)
   const hasToc = topic.sections.length > 1
   const showTopBand = showTopNav || hasToc
 
@@ -502,7 +514,7 @@ export function TopicView({
         >
           <ArrowLeftIcon size={12} /> {t.backToIndex}
         </Link>
-        {trackTotal != null && (
+        {trackPosition != null && (
           <span
             style={{
               fontSize: 12,
@@ -515,7 +527,7 @@ export function TopicView({
             <span style={{ opacity: 0.4 }}>·</span>
             {TRACK_LEVEL_LABELS[topic.level][locale]}
             <span style={{ opacity: 0.4 }}>·</span>
-            {topic.trackOrder} / {trackTotal}
+            {trackPosition.position} / {trackPosition.total}
           </span>
         )}
       </div>
@@ -573,6 +585,7 @@ export function TopicView({
               adjacent={nav}
               locale={locale}
               testIdSuffix="-top"
+              crossTrackNext={crossTrackNext}
             />
           ) : null}
           {hasToc ? (
@@ -667,7 +680,12 @@ export function TopicView({
             ))}
           </div>
 
-          <TopicAdjacentNav adjacent={nav} locale={locale} testIdSuffix="" />
+          <TopicAdjacentNav
+            adjacent={nav}
+            locale={locale}
+            testIdSuffix=""
+            crossTrackNext={crossTrackNext}
+          />
           {trackSlugs && trackSlugs.length > 0 ? (
             <TrackCompletionBanner
               level={topic.level}

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation"
 import { QuizTopicView } from "@/components/playwright-learn/quiz-topic-view"
 import {
   getAllSlugs,
-  getAdjacentTopics,
+  getAdjacentTopicsInTrack,
   getTopicBySlug,
 } from "@/lib/playwright-learn/catalog"
 
@@ -35,6 +35,6 @@ export default async function LearnPlaywrightQuizUkPage({
   const { slug } = await params
   const topic = getTopicBySlug(slug)
   if (!topic) notFound()
-  const adjacent = getAdjacentTopics(slug)
+  const adjacent = getAdjacentTopicsInTrack(slug)
   return <QuizTopicView topic={topic} locale="uk" adjacent={adjacent} />
 }

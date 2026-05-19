@@ -97,7 +97,7 @@ function QuizAdjacentNav({
       ) : null}
       {next ? (
         <Link
-          href={learnTopicQuizHref(locale, next.slug)}
+          href={learnTopicHref(locale, next.slug)}
           data-testid="learn-quiz-next-topic"
           style={{
             ...linkBase,

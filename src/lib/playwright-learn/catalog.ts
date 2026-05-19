@@ -170,6 +170,18 @@ export function getTopicsByLevel(level: TopicLevel): PlaywrightTopic[] {
   )
 }
 
+/** 1-based index within the level track (for UI counters). */
+export function getTrackPosition(
+  slug: string,
+): { position: number; total: number } | undefined {
+  const topic = PLAYWRIGHT_TOPICS.find((t) => t.slug === slug)
+  if (!topic) return undefined
+  const track = getTopicsByLevel(topic.level)
+  const i = track.findIndex((t) => t.slug === slug)
+  if (i === -1) return undefined
+  return { position: i + 1, total: track.length }
+}
+
 /** Prev/next within the same level track. */
 export function getAdjacentTopicsInTrack(slug: string): AdjacentTopics {
   const topic = PLAYWRIGHT_TOPICS.find((t) => t.slug === slug)
