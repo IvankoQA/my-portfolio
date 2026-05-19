@@ -19,6 +19,7 @@
 - Prefer small, focused edits over broad refactors.
 - Do not change unrelated files while implementing a task.
 - Keep docs updates close to code changes when behavior changes.
+- **Context7 MCP:** when writing or changing code that depends on third-party libraries (Next.js, React, Convex, Tailwind, Biome, Playwright, shadcn, etc.) and the right API or config is unclear, use Context7 (`resolve-library-id` → `query-docs`) before implementing from memory. Convex: still read `convex/_generated/ai/guidelines.md` first. See `.cursor/rules/context7.mdc`.
 
 ## Convex rules (high priority)
 - This project uses [Convex](https://convex.dev) as its backend.

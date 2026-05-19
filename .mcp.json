@@ -11,6 +11,9 @@
     "github": {
       "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-github"]
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp/oauth"
     }
   }
 }

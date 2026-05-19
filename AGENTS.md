@@ -10,6 +10,7 @@
 - Keep diffs compact and easy to review.
 - Do not revert user-authored changes that are outside task scope.
 - After substantive edits, run lint checks for touched files.
+- **Context7 MCP:** when implementing code that uses external libraries and you are unsure of the correct API, config, or version-specific behavior, call Context7 (`resolve-library-id` → `query-docs`) before guessing. Prefer this over web search for library docs. See `.cursor/rules/context7.mdc`.
 
 ## Convex execution rules
 - Before any Convex code change, read `convex/_generated/ai/guidelines.md`.

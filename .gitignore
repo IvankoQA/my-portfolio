@@ -23,6 +23,9 @@
 # production
 /build
 
+# interview prep (local notes)
+/interviews/
+
 # misc
 .cache/
 .DS_Store
