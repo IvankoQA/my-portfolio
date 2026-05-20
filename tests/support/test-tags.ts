@@ -2,6 +2,7 @@ export const TAG = {
   smoke: "@smoke",
   regression: "@regression",
   api: "@api",
+  learn: "@learn",
   critical: "@critical",
   sandbox: "@sandbox",
   sandboxPlanted: "@sandbox-planted",

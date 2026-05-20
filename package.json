@@ -25,6 +25,9 @@
     "test:smoke": "playwright test --grep @smoke",
     "learn:generate-topics": "node ./scripts/generate-playwright-learn-topics.mjs",
     "learn:check-uk-urls": "node ./scripts/check-uk-learn-playwright-urls.mjs",
+    "test:learn:uk": "playwright test tests/api/learn-playwright-uk.api.spec.ts tests/e2e/learn/playwright-uk.spec.ts --project=api --project=chromium",
+    "test:learn:uk:api": "playwright test tests/api/learn-playwright-uk.api.spec.ts --project=api",
+    "test:learn:uk:e2e": "playwright test tests/e2e/learn/playwright-uk.spec.ts --project=chromium",
     "learn:strip-non-ts-codeblocks": "node ./scripts/strip-playwright-learn-non-ts-codeblocks.mjs",
     "learn:strip-remote-media": "node ./scripts/strip-playwright-learn-remote-media.mjs"
   },
