@@ -1503,7 +1503,7 @@ export default function Page() {
                 {t("home.cta.primary")} <Icon name="arrow-right" size={18} />
               </Link>
               <a
-                href="/cv/CV_Ivan_Kozenko_AQA_Senior.pdf"
+                href="/cv/Ivan_Kozenko_Senior_AQA_AI_Driven_QE_1.pdf"
                 download
                 style={{
                   height: 48,
