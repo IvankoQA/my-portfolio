@@ -23,7 +23,7 @@ test.describe(`Public routes ${TAG.smoke} ${TAG.regression}`, () => {
 
   test("CV PDF asset is reachable (200)", async ({ request, env }) => {
     const res = await request.get(
-      `${env.baseUrl}/cv/CV_Ivan_Kozenko_AQA_Senior.pdf`,
+      `${env.baseUrl}/cv/Ivan_Kozenko_Senior_AQA_AI_Driven_QE_1.pdf`,
     )
     expect(res.status()).toBe(200)
   })
