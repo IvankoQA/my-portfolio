@@ -71,7 +71,7 @@ test.describe(`Home page ${TAG.regression}`, () => {
     await expect(downloadLink).toBeVisible()
     await expect(downloadLink).toHaveAttribute(
       "href",
-      "/cv/CV_Ivan_Kozenko_AQA_Senior.pdf",
+      "/cv/Ivan_Kozenko_Senior_AQA_AI_Driven_QE_1.pdf",
     )
   })
 })
