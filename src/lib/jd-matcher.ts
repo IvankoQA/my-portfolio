@@ -84,15 +84,10 @@ const COMMON_JD_ASKS = [
   { label: "Java", aliases: [" java "] },
   { label: "Kotlin", aliases: ["kotlin"] },
   { label: "Python", aliases: ["python"] },
-  { label: "Appium", aliases: ["appium"] },
   { label: "Kubernetes", aliases: ["kubernetes", "k8s"] },
   { label: "AWS", aliases: ["aws"] },
   { label: "Azure", aliases: [" azure "] },
   { label: "Selenium Grid", aliases: ["selenium grid"] },
-  {
-    label: "Mobile-native testing",
-    aliases: ["native mobile", "ios automation", "android automation"],
-  },
   { label: "Ruby / RSpec", aliases: ["rspec", " ruby "] },
   {
     label: "Performance engineering (full)",

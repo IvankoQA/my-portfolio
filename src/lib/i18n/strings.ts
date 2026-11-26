@@ -12,7 +12,7 @@ const STRINGS = {
     "home.tagline":
       "I architect Playwright frameworks from scratch. Then I find the bugs in them. :)",
     "home.summary":
-      "Senior Automation QA with 7+ years across fintech, AdTech and gaming. I bridge automation gaps with exploratory testing — clean code, lean E2E, and CI pipelines that don't flake at 4am — but that's not a promise...)",
+      "Senior Test Automation Engineer with 8+ years in software quality across gaming, fintech and AdTech. I build scalable TypeScript and Playwright automation for web and mobile, design framework architecture and CI integration, and maintain 2,000+ automated tests. I apply AI across the testing lifecycle.",
     "home.cta.primary": "Take the QA challenge",
     "home.cta.secondary": "Copy CV",
     "home.cta.copied": "Copied",
@@ -86,7 +86,7 @@ const STRINGS = {
     "home.tagline":
       "Архітектую Playwright-фреймворки з нуля. А потім знаходжу в них баги. :)",
     "home.summary":
-      "Senior Automation QA з 7+ роками досвіду у fintech, AdTech та gaming. Поєдную автоматизацію з exploratory-тестуванням — чистий код, легкі E2E та CI-пайплайни, що не флакають о 4-й ранку — але це не точно...)",
+      "Senior Test Automation Engineer з 8+ роками досвіду у якості ПЗ: gaming, fintech та AdTech. Будую масштабовану автоматизацію на TypeScript і Playwright для web та mobile, проєктую архітектуру фреймворків і CI-інтеграцію, підтримую 2 000+ автотестів. Застосовую AI на всіх етапах тестування.",
     "home.cta.primary": "Пройти QA-челендж",
     "home.cta.secondary": "Копіювати CV",
     "home.cta.copied": "Скопійовано",

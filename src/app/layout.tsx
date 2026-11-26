@@ -19,9 +19,9 @@ const jetbrainsMono = JetBrains_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Ivan Kozenko · Senior AQA Engineer",
+  title: "Ivan Kozenko · Senior Test Automation Engineer",
   description:
-    "Portfolio of Ivan Kozenko — Senior Automation QA Engineer. Playwright, TypeScript, CI/CD.",
+    "Portfolio of Ivan Kozenko — Senior Test Automation Engineer. Playwright, TypeScript, WebdriverIO, Appium, CI/CD.",
 }
 
 export default function RootLayout({

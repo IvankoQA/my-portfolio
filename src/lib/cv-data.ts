@@ -39,11 +39,14 @@ export type Stat = {
 export const CV = {
   name: "Ivan Kozenko",
   role: {
-    en: "Senior Automation QA Engineer",
-    ua: "Senior Automation QA Engineer",
+    en: "Senior Test Automation Engineer",
+    ua: "Senior Test Automation Engineer",
   },
-  location: { en: "Poland · Remote", ua: "Польща · Віддалено" },
-  yearsExperience: 7,
+  location: {
+    en: "Batumi, Georgia · Remote (CET)",
+    ua: "Батумі, Грузія · Віддалено (CET)",
+  },
+  yearsExperience: 8,
   email: "ivan.kozenko.qa@gmail.com",
   links: {
     linkedin: "https://www.linkedin.com/in/ivan-kozenko-qa/",
@@ -53,7 +56,7 @@ export const CV = {
   },
 
   stats: [
-    { value: "7+", labelKey: "home.years" },
+    { value: "8+", labelKey: "home.years" },
     { value: "9000+", labelKey: "home.farmer" },
   ] satisfies Stat[],
 
@@ -71,6 +74,14 @@ export const CV = {
       id: "cypress",
       label: "Cypress",
       aliases: ["cypress"],
+      category: "framework",
+      weight: 2,
+      level: "advanced",
+    },
+    {
+      id: "webdriverio",
+      label: "WebdriverIO",
+      aliases: ["webdriverio", "webdriver io"],
       category: "framework",
       weight: 2,
       level: "advanced",
@@ -171,14 +182,6 @@ export const CV = {
       level: "expert",
     },
     {
-      id: "graphql",
-      label: "GraphQL",
-      aliases: ["graphql"],
-      category: "api",
-      weight: 2,
-      level: "advanced",
-    },
-    {
       id: "contract",
       label: "Contract testing",
       aliases: ["contract testing", "pact"],
@@ -220,30 +223,6 @@ export const CV = {
       weight: 2,
       level: "advanced",
     },
-    {
-      id: "lighthouse",
-      label: "Lighthouse",
-      aliases: ["lighthouse"],
-      category: "perf",
-      weight: 1,
-      level: "intermediate",
-    },
-    {
-      id: "owasp",
-      label: "OWASP basics",
-      aliases: ["owasp", "security testing", "security scanning"],
-      category: "perf",
-      weight: 1,
-      level: "intermediate",
-    },
-    {
-      id: "datadog",
-      label: "Datadog",
-      aliases: ["datadog"],
-      category: "perf",
-      weight: 2,
-      level: "advanced",
-    },
 
     // Infra
     {
@@ -261,6 +240,14 @@ export const CV = {
       category: "infra",
       weight: 2,
       level: "advanced",
+    },
+    {
+      id: "cloud",
+      label: "AWS / GCP (basic)",
+      aliases: ["aws", "gcp", "google cloud", "amazon web services"],
+      category: "infra",
+      weight: 1,
+      level: "intermediate",
     },
     {
       id: "jenkins",
@@ -319,14 +306,6 @@ export const CV = {
       category: "mgmt",
       weight: 3,
       level: "expert",
-    },
-    {
-      id: "confluence",
-      label: "Confluence",
-      aliases: ["confluence"],
-      category: "mgmt",
-      weight: 2,
-      level: "advanced",
     },
     {
       id: "strategy",
@@ -489,8 +468,8 @@ export const CV = {
       label: "Kotlin",
       aliases: ["kotlin"],
       note: {
-        en: "No Kotlin/Appium authoring on CV — mobile coverage via browser emulation only.",
-        ua: "У CV немає Kotlin/Appium як авторського стеку — mobile лише через browser emulation.",
+        en: "No Kotlin authoring on CV — mobile automation is WebdriverIO/Appium in TypeScript.",
+        ua: "У CV немає Kotlin як авторського стеку — mobile-автоматизація на WebdriverIO/Appium мовою TypeScript.",
       },
     },
     {
@@ -507,12 +486,6 @@ export const CV = {
         en: "Read pods/logs, don't author.",
         ua: "Читаю pod/logs, не пишу.",
       },
-    },
-    {
-      id: "aws",
-      label: "AWS",
-      aliases: ["aws", "amazon web services"],
-      note: { en: "Comfortable with S3/EC2 basics.", ua: "Базово S3/EC2." },
     },
     {
       id: "performance",
@@ -588,60 +561,60 @@ You'll work closely with backend, write contract tests, run exploratory sessions
       domainKey: "gaming",
       bullets: {
         en: [
-          "Architected a scalable Playwright E2E framework for a high-load gaming platform using Functional style + COM.",
-          "Optimized execution via parallelization and sharding to maintain performance at scale.",
-          "Improved testability (custom IDs, API hooks); led code reviews for AQA scripts.",
-          "Balanced automated suites with exploratory sessions for complex gaming mechanics.",
-          "Used AI tools to accelerate framework setup and streamline failure analysis.",
-          "Defined and rolled out unified testing standards & JS/TS best practices.",
+          "Build and maintain a Playwright/TypeScript automation ecosystem of 2,000+ tests for a high-load gaming platform, with parallelization and sharding.",
+          "Design automation architecture with functional programming principles and the Component Object Model.",
+          "Extend automation to mobile: Android and iOS flows with WebdriverIO and Appium.",
+          "Enable self-service testing so feature teams can run and maintain E2E suites independently; improve testability through custom test IDs and API hooks.",
+          "Use AI across the test lifecycle with Claude Code and Cursor: maintain a structured AI knowledge base and reusable Skills, coordinate several AI agents on multi-step QA tasks, and validate AI-generated code through review.",
+          "Balance automated regression with exploratory testing for complex gaming mechanics and business-critical workflows.",
         ],
         ua: [
-          "Архітектував масштабований Playwright E2E фреймворк для high-load gaming платформи (Functional style + COM).",
-          "Оптимізував виконання через паралелізацію та шардинг.",
-          "Покращив testability (custom IDs, API hooks); лідив code review для AQA-скриптів.",
-          "Балансував авто-сьюти з exploratory-сесіями для складних gaming-механік.",
-          "Використовував AI-інструменти для прискорення setup і аналізу падінь.",
-          "Запровадив єдині стандарти тестування та JS/TS best practices.",
+          "Розробляю та підтримую автоматизовану екосистему на Playwright/TypeScript: 2 000+ тестів для high-load ігрової платформи з паралелізацією та шардингом.",
+          "Проєктую архітектуру автоматизації на принципах функціонального програмування та Component Object Model.",
+          "Розширив автоматизацію на мобільні платформи: Android та iOS флоу на WebdriverIO та Appium.",
+          "Налаштовую self-service тестування, щоб feature-команди самостійно запускали та підтримували E2E-набори; покращую testability через custom test IDs та API hooks.",
+          "Використовую AI на всіх етапах тестування з Claude Code та Cursor: веду структуровану AI-базу знань і багаторазові Skills, координую кілька AI-агентів у багатокрокових QA-задачах та валідую згенерований код через review.",
+          "Балансую автоматизовану регресію з exploratory-тестуванням для складних ігрових механік і критичних бізнес-сценаріїв.",
         ],
       },
     },
     {
       company: "Comparus UA",
-      role: { en: "Senior AQA Engineer", ua: "Senior AQA Engineer" },
+      role: { en: "Senior Automation QA Engineer", ua: "Senior Automation QA Engineer" },
       from: "04.2021",
       to: "04.2024",
       domainKey: "fintech",
       bullets: {
         en: [
-          "Automated 150+ E2E tests for 20+ microservices in a multi-tenant fintech ecosystem.",
-          "Aligned automation with DevOps/Backend; release frequency went up 4×.",
-          "Built modular API testing (Postman) layer using design patterns — contract testing & complex auth.",
-          "Architected SQL data prep scripts for environment isolation and test independence.",
+          "Designed and implemented 150+ automated E2E tests covering 20+ microservices in a multi-tenant fintech ecosystem.",
+          "Built a modular API testing layer with Postman, contract testing and complex authentication scenarios.",
+          "Developed SQL-based test data preparation scripts to improve environment isolation and test independence.",
+          "Worked with backend and DevOps teams to optimize the test pyramid, contributing to a 4× increase in release frequency.",
         ],
         ua: [
-          "Автоматизував 150+ E2E для 20+ мікросервісів у multi-tenant fintech.",
-          "Узгодив автоматизацію з DevOps/Backend — частота релізів зросла у 4×.",
-          "Побудував модульний API-шар (Postman) — contract testing та складна аутентифікація.",
-          "Архітектував SQL-скрипти для ізоляції середовищ і незалежності тестів.",
+          "Спроєктував і впровадив 150+ автоматизованих E2E-тестів для 20+ мікросервісів у multi-tenant fintech-екосистемі.",
+          "Побудував модульний шар API-тестування на Postman з contract testing та складними сценаріями автентифікації.",
+          "Розробив SQL-скрипти підготовки тестових даних для ізоляції середовищ і незалежності тестів.",
+          "Разом із backend та DevOps оптимізував test pyramid, що дало 4× зростання частоти релізів.",
         ],
       },
     },
     {
       company: "Evoplay",
-      role: { en: "AQA Engineer", ua: "AQA Engineer" },
+      role: { en: "Automation QA Engineer", ua: "Automation QA Engineer" },
       from: "02.2019",
       to: "04.2021",
       domainKey: "adtech",
       bullets: {
         en: [
-          "Developed a UI automation suite for AdTech supporting Chromium, Firefox & WebKit (100k+ users).",
-          "Reduced manual regression from 16h to a 4h automated run.",
-          "Integrated suites into CI for immediate feedback on every PR.",
+          "Built cross-browser UI automation (Chromium, Firefox, WebKit) for AdTech products serving 100K+ users.",
+          "Cut manual regression from 16 to 4 hours.",
+          "Integrated automated suites into CI pipelines for faster feedback on every pull request.",
         ],
         ua: [
-          "Розробив UI-suite для AdTech з підтримкою Chromium, Firefox та WebKit (100k+ users).",
-          "Скоротив ручний regression з 16 год до 4 год авто-запуску.",
-          "Інтегрував suite у CI для миттєвого фідбеку на кожен PR.",
+          "Побудував cross-browser UI-автоматизацію (Chromium, Firefox, WebKit) для AdTech-продуктів зі 100K+ користувачів.",
+          "Скоротив ручну регресію з 16 до 4 годин.",
+          "Інтегрував автотести в CI-пайплайни для швидкого фідбеку на кожен pull request.",
         ],
       },
     },
@@ -653,12 +626,10 @@ You'll work closely with backend, write contract tests, run exploratory sessions
       domainKey: "hr-tech",
       bullets: {
         en: [
-          "Performed requirement analysis and early defect detection across the SDLC.",
-          "Verified system integrity across UI, API (Postman) and Database (SQL).",
+          "Functional, UI, API and database testing with Postman and SQL; defect investigation with development teams.",
         ],
         ua: [
-          "Виконував requirement analysis та раннє виявлення дефектів.",
-          "Перевіряв цілісність системи на UI, API (Postman) та DB (SQL).",
+          "Функціональне, UI, API та database-тестування з Postman і SQL; розслідування дефектів разом із командами розробки.",
         ],
       },
     },
@@ -666,13 +637,13 @@ You'll work closely with backend, write contract tests, run exploratory sessions
 
   wins: [
     {
-      en: "Accelerated release frequency from bi-weekly → twice-a-week by optimizing the test pyramid (heavy logic to API layer, lean E2E).",
-      ua: "Прискорив реліз-каденс з bi-weekly до двох разів на тиждень — оптимізував test pyramid (важка логіка в API, легкі E2E).",
+      en: "Accelerated release frequency from bi-weekly to twice-a-week by optimizing the test pyramid: heavy logic moved to the API layer, lean E2E.",
+      ua: "Прискорив релізи з bi-weekly до двох разів на тиждень, оптимізувавши test pyramid: важка логіка перенесена в API-шар, легкі E2E.",
       tag: "release",
     },
     {
-      en: "Solution Architecture: Building Playwright & TS automation from the ground up. Prioritizing high-ROI business flows and delivering actionable quality insights to stakeholders.",
-      ua: "Архітектура рішень: з нуля будуємо автоматизацію на Playwright і TypeScript. Пріоритет — бізнес-сценарії з найвищим ROI і практичні висновки про якість для стейкхолдерів.",
+      en: "Built a Playwright/TypeScript ecosystem of 2,000+ tests with parallelization and sharding for a high-load gaming platform, extended to Android and iOS.",
+      ua: "Побудував Playwright/TypeScript-екосистему з 2 000+ тестів із паралелізацією та шардингом для high-load ігрової платформи, розширену на Android та iOS.",
       tag: "scale",
     },
   ] satisfies Win[],
