@@ -109,7 +109,7 @@ Covers: portfolio home (`/`), sandbox (`/sandbox`), public API (`/api/jd-match`)
 | **Matrix rows** | — |
 | **Preconditions** | Home page open |
 | **Steps** | 1. Navigate to `/` — 2. Locate download link |
-| **Expected** | `<a download href="/cv/CV_Ivan_Kozenko_AQA_Senior.pdf">` present and reachable (HTTP 200) |
+| **Expected** | `<a download href="/cv/Ivan_Kozenko_Senior_AQA_AI_Driven_QE_1.pdf">` present and reachable (HTTP 200) |
 
 ---
 
